@@ -47,5 +47,5 @@ endif
 libCcspDhcpMgrUtils_la_LIBADD = -lccsp_common -ltelemetry_msgsender -lulog -lsyscfg -lsysevent -ltime_conversion -lprint_uptime \
         ${top_builddir}/source/DHCPClientUtils/DHCPv4Client/libCcspDhcpMgr_Dhcpv4Client.la \
         ${top_builddir}/source/DHCPClientUtils/DHCPv6Client/libCcspDhcpMgr_Dhcpv6Client.la \
-        -lhal_platform \
-        ${top_builddir}/source/DHCPMgrUtils/CustomOptions/libcustomoptions.la
+        ${top_builddir}/source/DHCPMgrUtils/CustomOptions/libcustomoptions.la \
+        -lhal_platform
