@@ -58,4 +58,7 @@ endif
 CcspDHCPMgr_CFLAGS = $(SYSTEMD_CFLAGS) $(NONROOT_CFLAGS)
 CcspDHCPMgr_SOURCES = ssp_messagebus_interface.c ssp_main.c ssp_action.c dm_pack_datamodel.c
 CcspDHCPMgr_LDFLAGS = -rdynamic $(SYSTEMD_LDFLAGS) -pthread
-CcspDHCPMgr_LDADD = $(CcspDHCPMgr_DEPENDENCIES) -lccsp_common -lsyscfg -ldl -lrbus
+CcspDHCPMgr_LDADD = \
+    $(CcspDHCPMgr_DEPENDENCIES) \
+    -lccsp_common -lsyscfg -ldl -lrbus \
+    -Wl,--no-as-needed -lhal_platform -Wl,--as-needed
