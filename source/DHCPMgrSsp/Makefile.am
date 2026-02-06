@@ -61,4 +61,4 @@ CcspDHCPMgr_LDFLAGS = -rdynamic $(SYSTEMD_LDFLAGS) -pthread
 CcspDHCPMgr_LDADD = \
     $(CcspDHCPMgr_DEPENDENCIES) \
     -lccsp_common -lsyscfg -ldl -lrbus \
-    -Wl,--no-as-needed -lhal_platform -Wl,--as-needed
+    -lhal_platform

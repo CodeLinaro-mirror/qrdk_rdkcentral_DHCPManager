@@ -48,4 +48,4 @@ libCcspDhcpMgrUtils_la_LIBADD = -lccsp_common -ltelemetry_msgsender -lulog -lsys
         ${top_builddir}/source/DHCPClientUtils/DHCPv4Client/libCcspDhcpMgr_Dhcpv4Client.la \
         ${top_builddir}/source/DHCPClientUtils/DHCPv6Client/libCcspDhcpMgr_Dhcpv6Client.la \
         ${top_builddir}/source/DHCPMgrUtils/CustomOptions/libcustomoptions.la \
-        -Wl,--no-as-needed -lhal_platform -Wl,--as-needed
+        -lhal_platform
