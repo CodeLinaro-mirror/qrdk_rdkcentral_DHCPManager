@@ -1244,6 +1244,7 @@ CosaDmlDhcpcGetNumberOfSentOption
     char param_name[256]= {0};
     int instancenum = ulClientInstanceNumber;
     _PSM_READ_PARAM(PSM_DHCPMANAGER_SENDOPTIONCOUNT);
+    DHCPMGR_LOG_INFO("<<DEBUG-AADHI>> %s:%d Client Instance Number: %d, SentOptionCount: %s\n", __FUNCTION__, __LINE__, ulClientInstanceNumber, param_value);   
     if (retPsmGet == CCSP_SUCCESS) {
        return atoi(param_value);
     }
@@ -1273,12 +1274,14 @@ CosaDmlDhcpcGetSentOption
     if (retPsmGet == CCSP_SUCCESS)
     {
         STRCPY_S_NOCLOBBER(pEntry->Alias, sizeof(pEntry->Alias), param_value);
+        DHCPMGR_LOG_INFO("<<DEBUG-AADHI>> %s:%d SendOption Alias: %s\n", __FUNCTION__, __LINE__, pEntry->Alias);
     }
-
+    
     _PSM_READ_TBL_PARAM(PSM_DHCPMANAGER_SENDOPTIONTAG);
     if (retPsmGet == CCSP_SUCCESS)
     {
        pEntry->Tag = atoi(param_value);
+       DHCPMGR_LOG_INFO("<<DEBUG-AADHI>> %s:%d SendOption Tag: %lu\n", __FUNCTION__, __LINE__, pEntry->Tag);
     }
 
     _PSM_READ_TBL_PARAM(PSM_DHCPMANAGER_SENDOPTIONVALUE);
@@ -1286,6 +1289,7 @@ CosaDmlDhcpcGetSentOption
     {
         STRCPY_S_NOCLOBBER((char *)pEntry->Value, sizeof(pEntry->Value), param_value);
     }
+    DHCPMGR_LOG_INFO("<<DEBUG-AADHI>> %s:%d SendOption Value: %s\n", __FUNCTION__, __LINE__, pEntry->Value);
 
     UNREFERENCED_PARAMETER(hContext);
     return ANSC_STATUS_SUCCESS;
@@ -1303,7 +1307,7 @@ CosaDmlDhcpcGetSentOptionbyInsNum
     UNREFERENCED_PARAMETER(hContext);
     ULONG index   = 0;
     ULONG i     = 0;
-
+    DHCPMGR_LOG_INFO("<<DEBUG-AADHI>> %s:%d ulClientInstanceNumber %d, option instance number %d\n", __FUNCTION__, __LINE__, ulClientInstanceNumber, pEntry->InstanceNumber);
     for(i = 0; i < g_Dhcp4ClientNum; i++)
     {
         if ( CH_g_dhcpv4_client[i].Cfg.InstanceNumber ==  ulClientInstanceNumber)
@@ -1313,6 +1317,10 @@ CosaDmlDhcpcGetSentOptionbyInsNum
                 if ( pEntry->InstanceNumber == g_dhcpv4_client_sent[i][index].InstanceNumber )
                 {
                     AnscCopyMemory( pEntry, &g_dhcpv4_client_sent[i][index], sizeof(COSA_DML_DHCP_OPT));
+                    DHCPMGR_LOG_INFO("<<DEBUG-AADHI>> %s:%d Found sent option with instance number %d for client instance number %d\n", __FUNCTION__, __LINE__, pEntry->InstanceNumber, ulClientInstanceNumber);
+                    DHCPMGR_LOG_INFO("<<DEBUG-AADHI>> %s:%d SentOption Alias: %s\n", __FUNCTION__, __LINE__, pEntry->Alias);
+                    DHCPMGR_LOG_INFO("<<DEBUG-AADHI>> %s:%d SentOption Tag: %lu\n", __FUNCTION__, __LINE__, pEntry->Tag);
+                    DHCPMGR_LOG_INFO("<<DEBUG-AADHI>> %s:%d SentOption Value: %s\n", __FUNCTION__, __LINE__, pEntry->Value);
                     return ANSC_STATUS_SUCCESS;
                 }
             }
@@ -1351,14 +1359,19 @@ CosaDmlDhcpcSetSentOptionValues
     {
         if ( CH_g_dhcpv4_client[i].Cfg.InstanceNumber ==  ulClientInstanceNumber)
         {
+            DHCPMGR_LOG_INFO("%s: found client with instance number %d\n", __FUNCTION__, ulClientInstanceNumber);   
             if ( ulIndex  > g_Dhcp4ClientSentOptNum[i] )
             {
+                DHCPMGR_LOG_ERROR("%s: invalid index %d, current sent option num is %d\n", __FUNCTION__, ulIndex, g_Dhcp4ClientSentOptNum[i]);
                 ULOGF(ULOG_SYSTEM, UL_DHCP, "%s: failed line %d\n", __FUNCTION__, __LINE__);
                 Utopia_Free(&ctx,0);
                 return ANSC_STATUS_FAILURE;
             }
             g_dhcpv4_client_sent[i][ulIndex].InstanceNumber  = ulInstanceNumber;
+            DHCPMGR_LOG_INFO("<<DEBUG-AADHI>> %s:%d set sent option instance number %d for client instance %d\n", __FUNCTION__, __LINE__, ulInstanceNumber, ulClientInstanceNumber);
             rc = STRCPY_S_NOCLOBBER(g_dhcpv4_client_sent[i][ulIndex].Alias, sizeof(g_dhcpv4_client_sent[i][ulIndex].Alias), pAlias);
+            DHCPMGR_LOG_INFO("<<DEBUG-AADHI>> %s:%d set sent option alias %s for client instance %d\n", __FUNCTION__, __LINE__, pAlias, ulClientInstanceNumber);
+            DHCPMGR_LOG_INFO("%s: set sent option alias %s for client instance %d\n", __FUNCTION__, pAlias, ulClientInstanceNumber);
             ERR_CHK(rc);
 
             if( !_ansc_strncmp(CH_g_dhcpv4_client[i].Cfg.Interface, COSA_DML_DHCPV4_CLIENT_IFNAME, _ansc_strlen(COSA_DML_DHCPV4_CLIENT_IFNAME)))
@@ -1374,6 +1387,7 @@ CosaDmlDhcpcSetSentOptionValues
             else
             {
                 ULOGF(ULOG_SYSTEM, UL_DHCP, "%s: not " COSA_DML_DHCPV4_CLIENT_IFNAME " nor lan0, New Interface %s\n", __FUNCTION__, CH_g_dhcpv4_client[i].Cfg.Interface);
+                DHCPMGR_LOG_ERROR("%s: not " COSA_DML_DHCPV4_CLIENT_IFNAME " nor lan0, New Interface %s\n", __FUNCTION__, CH_g_dhcpv4_client[i].Cfg.Interface);
                 rc = sprintf_s(inst_str, sizeof(inst_str), "%lu", ulInstanceNumber);
                 if(rc < EOK)
                 {
