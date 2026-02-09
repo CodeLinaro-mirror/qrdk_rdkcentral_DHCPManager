@@ -1244,7 +1244,7 @@ CosaDmlDhcpcGetNumberOfSentOption
     char param_name[256]= {0};
     int instancenum = ulClientInstanceNumber;
     _PSM_READ_PARAM(PSM_DHCPMANAGER_SENDOPTIONCOUNT);
-    DHCPMGR_LOG_INFO("<<DEBUG-AADHI>> %s:%d Client Instance Number: %d, SentOptionCount: %s\n", __FUNCTION__, __LINE__, ulClientInstanceNumber, param_value);   
+    DHCPMGR_LOG_INFO("<<DEBUG-AADHI>> %s:%d Client Instance Number: %lu, SentOptionCount: %s\n", __FUNCTION__, __LINE__, ulClientInstanceNumber, param_value);   
     if (retPsmGet == CCSP_SUCCESS) {
        return atoi(param_value);
     }
