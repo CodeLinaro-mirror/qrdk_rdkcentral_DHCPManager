@@ -1307,7 +1307,7 @@ CosaDmlDhcpcGetSentOptionbyInsNum
     UNREFERENCED_PARAMETER(hContext);
     ULONG index   = 0;
     ULONG i     = 0;
-    DHCPMGR_LOG_INFO("<<DEBUG-AADHI>> %s:%d  option instance number %d\n", __FUNCTION__, __LINE__, pEntry->InstanceNumber);
+    DHCPMGR_LOG_INFO("<<DEBUG-AADHI>> %s:%d  option instance number %lu\n", __FUNCTION__, __LINE__, pEntry->InstanceNumber);
     for(i = 0; i < g_Dhcp4ClientNum; i++)
     {
         if ( CH_g_dhcpv4_client[i].Cfg.InstanceNumber ==  ulClientInstanceNumber)
@@ -1317,7 +1317,7 @@ CosaDmlDhcpcGetSentOptionbyInsNum
                 if ( pEntry->InstanceNumber == g_dhcpv4_client_sent[i][index].InstanceNumber )
                 {
                     AnscCopyMemory( pEntry, &g_dhcpv4_client_sent[i][index], sizeof(COSA_DML_DHCP_OPT));
-                    DHCPMGR_LOG_INFO("<<DEBUG-AADHI>> %s:%d Found sent option with instance number %d for client instance number %lu\n", __FUNCTION__, __LINE__, pEntry->InstanceNumber, ulClientInstanceNumber);
+                    DHCPMGR_LOG_INFO("<<DEBUG-AADHI>> %s:%d Found sent option with instance number %lu for client instance number %lu\n", __FUNCTION__, __LINE__, pEntry->InstanceNumber, ulClientInstanceNumber);
                     DHCPMGR_LOG_INFO("<<DEBUG-AADHI>> %s:%d SentOption Alias: %s\n", __FUNCTION__, __LINE__, pEntry->Alias);
                     DHCPMGR_LOG_INFO("<<DEBUG-AADHI>> %s:%d SentOption Tag: %d\n", __FUNCTION__, __LINE__, pEntry->Tag);
                     DHCPMGR_LOG_INFO("<<DEBUG-AADHI>> %s:%d SentOption Value: %s\n", __FUNCTION__, __LINE__, pEntry->Value);
