@@ -1281,7 +1281,7 @@ CosaDmlDhcpcGetSentOption
     if (retPsmGet == CCSP_SUCCESS)
     {
        pEntry->Tag = atoi(param_value);
-       DHCPMGR_LOG_INFO("<<DEBUG-AADHI>> %s:%d SendOption Tag: %lu\n", __FUNCTION__, __LINE__, pEntry->Tag);
+       DHCPMGR_LOG_INFO("<<DEBUG-AADHI>> %s:%d SendOption Tag: %d\n", __FUNCTION__, __LINE__, pEntry->Tag);
     }
 
     _PSM_READ_TBL_PARAM(PSM_DHCPMANAGER_SENDOPTIONVALUE);
@@ -1319,7 +1319,7 @@ CosaDmlDhcpcGetSentOptionbyInsNum
                     AnscCopyMemory( pEntry, &g_dhcpv4_client_sent[i][index], sizeof(COSA_DML_DHCP_OPT));
                     DHCPMGR_LOG_INFO("<<DEBUG-AADHI>> %s:%d Found sent option with instance number %d for client instance number %lu\n", __FUNCTION__, __LINE__, pEntry->InstanceNumber, ulClientInstanceNumber);
                     DHCPMGR_LOG_INFO("<<DEBUG-AADHI>> %s:%d SentOption Alias: %s\n", __FUNCTION__, __LINE__, pEntry->Alias);
-                    DHCPMGR_LOG_INFO("<<DEBUG-AADHI>> %s:%d SentOption Tag: %lu\n", __FUNCTION__, __LINE__, pEntry->Tag);
+                    DHCPMGR_LOG_INFO("<<DEBUG-AADHI>> %s:%d SentOption Tag: %d\n", __FUNCTION__, __LINE__, pEntry->Tag);
                     DHCPMGR_LOG_INFO("<<DEBUG-AADHI>> %s:%d SentOption Value: %s\n", __FUNCTION__, __LINE__, pEntry->Value);
                     return ANSC_STATUS_SUCCESS;
                 }
