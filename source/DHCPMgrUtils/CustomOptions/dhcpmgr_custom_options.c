@@ -22,6 +22,7 @@
 #include "util.h"
 #include "ifl.h"
 #include "ipc_msg.h"
+#include "secure_wrapper.h"
 
 static int DhcpMgr_Option17Set_Common(const char *ifName, const char *OptionValue,uint32_t *ipv6_TimeOffset);
 #ifdef EROUTER_DHCP_OPTION_MTA
@@ -88,19 +89,41 @@ __attribute__((weak)) int Get_DhcpV6_CustomOption17(const char *ifName, char *Op
     return -1;
 }
 
-__attribute__((weak)) int add_dhcpv6_option_25(dhcp_opt_list **send_opt_list)
+int Get_DhcpV6_CustomOption_25(dhcp_opt_list ** send_opt_list)
 {
-    //TODO : Need to change back to { prefix ::/64 } once sky platform hal fixed
-    char optionValue[] = "\t 0";
-
     if (send_opt_list == NULL)
     {
         return RETURN_ERR;
     }
 
-    DHCPMGR_LOG_INFO("%s %d Weak implementation of add_dhcpv6_option_25 \n", __FUNCTION__, __LINE__);
+    FILE *fp = NULL;
+    char buff[128] = {0};
 
-    return add_dhcp_opt_to_list(send_opt_list, DHCPV6_OPT_25, optionValue);
+    fp = v_secure_popen("r", "syscfg get IPv6subPrefix");
+    if (fp)
+    {
+        if (fgets(buff, sizeof(buff), fp) == NULL)
+        {
+            buff[0] = '\0';
+        }
+        v_secure_pclose(fp);
+    }
+
+    unsigned int prefix_len = 64;
+    if (strncmp(buff, "true", 4) == 0)
+    {
+        prefix_len = 56;
+    }
+
+    memset(buff, 0, sizeof(buff));
+    snprintf(buff, sizeof(buff), "\n{ prefix ::/%u }", prefix_len);
+
+    if (add_dhcp_opt_to_list(send_opt_list, DHCPV6_OPT_25, buff) != RETURN_OK)
+    {
+        return RETURN_ERR;
+    }
+
+    return RETURN_OK;
 }
 
 __attribute__((weak)) int Set_DhcpV6_CustomOption17(const char *ifName, const char *OptionValue, uint32_t *ipv6_TimeOffset) 

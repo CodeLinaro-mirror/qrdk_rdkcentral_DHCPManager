@@ -95,12 +95,12 @@ int Get_DhcpV6_CustomOption17(const char *ifName, char *OptionValue, size_t Opti
  * @brief Adds DHCPv6 Option 25 (IA_PD) to the send option list.
  *
  * This function provides a weak default implementation that can be overridden
- * by platform code at link time.
+ * by platform code at link time using the current IPv6 sub-prefix mode.
  *
  * @param[in,out] send_opt_list Pointer to the DHCPv6 send option list.
  * @return int 0 on success, non-zero on failure.
  */
-int add_dhcpv6_option_25(dhcp_opt_list **send_opt_list);
+int Get_DhcpV6_CustomOption_25(dhcp_opt_list ** send_opt_list);
 
 /**
  * @brief Sets the custom DHCPv6 Option 17 (Vendor Specific Information Option) value.
