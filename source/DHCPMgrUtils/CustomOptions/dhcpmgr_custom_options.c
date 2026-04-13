@@ -22,7 +22,7 @@
 #include "util.h"
 #include "ifl.h"
 #include "ipc_msg.h"
-#include "secure_wrapper.h"
+#include "syscfg/syscfg.h"
 
 static int DhcpMgr_Option17Set_Common(const char *ifName, const char *OptionValue,uint32_t *ipv6_TimeOffset);
 #ifdef EROUTER_DHCP_OPTION_MTA
@@ -96,17 +96,12 @@ int Get_DhcpV6_CustomOption_25(dhcp_opt_list ** send_opt_list)
         return RETURN_ERR;
     }
 
-    FILE *fp = NULL;
     char buff[128] = {0};
+    int ret = syscfg_get(NULL, "IPv6subPrefix", buff, sizeof(buff));
 
-    fp = v_secure_popen("r", "syscfg get IPv6subPrefix");
-    if (fp)
+    if (ret != 0)
     {
-        if (fgets(buff, sizeof(buff), fp) == NULL)
-        {
-            buff[0] = '\0';
-        }
-        v_secure_pclose(fp);
+        buff[0] = '\0';
     }
 
     unsigned int prefix_len = 64;

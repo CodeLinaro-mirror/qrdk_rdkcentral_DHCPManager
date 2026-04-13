@@ -18,7 +18,7 @@
 
 AM_CFLAGS = -fno-exceptions -Wall -Wextra
 
-AM_LDFLAGS =  -lz -lpthread -lccsp_common -lsecure_wrapper $(DBUS_LIBS)
+AM_LDFLAGS =  -lz -lpthread -lccsp_common $(DBUS_LIBS)
 
 ACLOCAL_AMFLAGS = -I m4
 
