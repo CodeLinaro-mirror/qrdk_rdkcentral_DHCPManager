@@ -1993,7 +1993,7 @@ CosaDmlDhcpv6cGetEntry
     _ansc_memset(param_name, 0, sizeof(param_name));
     _ansc_sprintf(param_name, "DHCPCV6_ENABLE_%lu", ulIndex);
     int ret = commonSyseventGet(param_name, DhcpStateSys, sizeof(DhcpStateSys));
-    if (ret == 0 && DhcpStateSys[0] != '\0')
+    if (ret == 0 && (DhcpStateSys[0] != '\0' && strncmp(DhcpStateSys, "If FALSE", sizeof("If FALSE")) != 0))
     {
         pEntry->Cfg.bEnabled = TRUE;
         errno_t rc = strcpy_s(pEntry->Cfg.Interface, sizeof(pEntry->Cfg.Interface), DhcpStateSys);  
@@ -2015,7 +2015,7 @@ CosaDmlDhcpv6cGetEntry
     {
         //setting status to disabled incase of DHCPManager Crash Recovery to restart the process
         //if already running before the crash
-        if (DhcpStateSys[0] != '\0')
+        if (DhcpStateSys[0] != '\0' && strncmp(DhcpStateSys, "If FALSE", sizeof("If FALSE")) != 0)
         {
             pEntry->Info.Status = COSA_DML_DHCP_STATUS_Disabled;
         }

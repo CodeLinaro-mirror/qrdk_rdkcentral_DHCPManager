@@ -1155,7 +1155,7 @@ Client_SetParamBoolValue
                 return FALSE;
             }
             snprintf(DhcpSysEveSet, sizeof(DhcpSysEveSet),"DHCPCV4_ENABLE_%lu", pDhcpc->Cfg.InstanceNumber);
-            commonSyseventSet(DhcpSysEveSet,"");
+            commonSyseventSet(DhcpSysEveSet,"If FALSE");
         }
         ret_mq_send=1;
     }

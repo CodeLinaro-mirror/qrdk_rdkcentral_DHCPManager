@@ -1145,7 +1145,7 @@ CosaDmlDhcpcGetCfg
     char DhcpStateSys[64] = {0};
     _ansc_sprintf(param_name, "DHCPCV4_ENABLE_%d", instancenum);
     int ret = commonSyseventGet(param_name, DhcpStateSys, sizeof(DhcpStateSys));
-    if (ret == 0 && DhcpStateSys[0] != '\0')
+    if (ret == 0 && (DhcpStateSys[0] != '\0' && strncmp(DhcpStateSys, "If FALSE", sizeof("If FALSE")) != 0))
     {
         pCfg->bEnabled = TRUE;
         strcpy_s(pCfg->Interface, sizeof(pCfg->Interface), DhcpStateSys);

@@ -83,7 +83,7 @@ static void DhcpMgr_UpdateEnableSysevent(ULONG instance, const char *if_name, BO
     }
     else
     {
-        if (commonSyseventSet(sysevent_key, "") != 0)
+        if (commonSyseventSet(sysevent_key, "If FALSE") != 0)
         {
             DHCPMGR_LOG_ERROR("%s %d: Failed to clear sysevent %s\n", __FUNCTION__, __LINE__, sysevent_key);
         }
