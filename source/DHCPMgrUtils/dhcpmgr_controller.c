@@ -53,7 +53,6 @@
 
 #define DHCPCV4_ENABLE_PREFIX "DHCPCV4_ENABLE_"
 #define DHCPCV6_ENABLE_PREFIX "DHCPCV6_ENABLE_"
-#define RECOVERY_RESTART_PREFIX "Recovery_ClientRestart_"
 
 static void DhcpMgr_UpdateEnableSysevent(ULONG instance, const char *if_name, BOOL enabled, BOOL isV6)
 {
@@ -549,15 +548,6 @@ static void Process_DHCPv4_Handler(char* if_name, dhcp_info_t dml_set_msg)
             {
                 DHCPMGR_LOG_INFO("%s %d: Releasing the IP address and stopping the client\n",__FUNCTION__,__LINE__);
                 release_ip = 1;
-            }
-            else if (strncmp(dml_set_msg.ParamName, RECOVERY_RESTART_PREFIX, strlen(RECOVERY_RESTART_PREFIX)) == 0)
-            {
-                int recovery_instance = atoi(dml_set_msg.ParamName + strlen(RECOVERY_RESTART_PREFIX));
-                if (recovery_instance > 0 && (ULONG)recovery_instance == pDhcpc->Cfg.InstanceNumber)
-                {
-                    pDhcpc->Cfg.bEnabled = dml_set_msg.value.bValue;
-                    DHCPMGR_LOG_INFO("%s %d: Recovery_ClientRestart for instance %d bEnabled=%d\n", __FUNCTION__, __LINE__, recovery_instance, dml_set_msg.value.bValue);
-                }
             }
             else if (strcmp(dml_set_msg.ParamName, "Selfheal_ClientRestart") == 0 )
             {
