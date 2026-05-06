@@ -89,7 +89,7 @@ int DhcpMgr_Dhcp_Recovery_Start()
  * @param dhcpType The type of DHCP (DML_DHCPV4 or DML_DHCPV6).
  */
 
-static void DhcpMgr_EnqueueSelfhealRestart(const char *ifname, int dhcpType)
+static void DhcpMgr_EnqueueSelfhealRestart(int instance, const char *ifname, int dhcpType)
 {
     dhcp_info_t info;
 
@@ -103,11 +103,10 @@ static void DhcpMgr_EnqueueSelfhealRestart(const char *ifname, int dhcpType)
     strncpy(info.if_name, ifname, MAX_STR_LEN - 1);
     info.if_name[MAX_STR_LEN - 1] = '\0';
 
-    strncpy(info.ParamName, "Selfheal_ClientRestart", sizeof(info.ParamName) - 1);
-    info.ParamName[sizeof(info.ParamName) - 1] = '\0';
+    snprintf(info.ParamName, sizeof(info.ParamName), "Recovery_ClientRestart_%d", instance);
 
     info.dhcpType = dhcpType;
-    info.value.bValue = FALSE;
+    info.value.bValue = (ifname != NULL && ifname[0] != '\0') ? TRUE : FALSE;
 
     if (DhcpMgr_OpenQueueEnsureThread(info) != 0)
     {
@@ -142,7 +141,7 @@ static void Dhcp_process_crash_recovery_v4(int client_count)
         if (commonSyseventGet(sysevent_key, sysevent_val, sizeof(sysevent_val)) == 0 &&
             sysevent_val[0] != '\0')
         {
-            DhcpMgr_EnqueueSelfhealRestart(sysevent_val, DML_DHCPV4);
+            DhcpMgr_EnqueueSelfhealRestart(instance, sysevent_val, DML_DHCPV4);
         }
     }
 }
@@ -172,7 +171,7 @@ static void Dhcp_process_crash_recovery_v6(int client_count)
         if (commonSyseventGet(sysevent_key, sysevent_val, sizeof(sysevent_val)) == 0 &&
             sysevent_val[0] != '\0')
         {
-            DhcpMgr_EnqueueSelfhealRestart(sysevent_val, DML_DHCPV6);
+            DhcpMgr_EnqueueSelfhealRestart(instance,sysevent_val, DML_DHCPV6);
         }
     }
 }
