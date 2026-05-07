@@ -724,15 +724,6 @@ static void Process_DHCPv6_Handler(char* if_name, dhcp_info_t dml_set_msg)
             {
                 DHCPMGR_LOG_DEBUG("%s %d: ClientRestart received for interface %s\n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
             }
-            else if (strncmp(dml_set_msg.ParamName, RECOVERY_RESTART_PREFIX, strlen(RECOVERY_RESTART_PREFIX)) == 0)
-            {
-                int recovery_instance = atoi(dml_set_msg.ParamName + strlen(RECOVERY_RESTART_PREFIX));
-                if (recovery_instance > 0 && (ULONG)recovery_instance == pDhcp6c->Cfg.InstanceNumber)
-                {
-                    pDhcp6c->Cfg.bEnabled = dml_set_msg.value.bValue;
-                    DHCPMGR_LOG_INFO("%s %d: Recovery_ClientRestart for instance %d bEnabled=%d\n", __FUNCTION__, __LINE__, recovery_instance, dml_set_msg.value.bValue);
-                }
-            }
             else
             { 
                 DHCPMGR_LOG_ERROR("%s %d: Unknown ParamName %s received in MQ\n", __FUNCTION__, __LINE__, dml_set_msg.ParamName); 
