@@ -91,6 +91,7 @@ int DhcpMgr_Dhcp_Recovery_Start()
 
 static void DhcpMgr_EnqueueSelfhealRestart(const char *ifname, int dhcpType)
 {
+    DHCPMGR_LOG_INFO("%s:%d Enqueuing Selfheal_ClientRestart for interface %s (type=%d)\n", __FUNCTION__, __LINE__, ifname, dhcpType);
     dhcp_info_t info;
 
     if (ifname == NULL || ifname[0] == '\0')
@@ -371,6 +372,7 @@ static int load_v6dhcp_leases(ULONG clientCount)
             char ifName[64] = {0};
             BOOL isEnabled = FALSE;
             int sysevRet = Dhcp_get_Syseve_InterfaceEnabled(sysevent_key, ifName, sizeof(ifName), &isEnabled);
+            DHCPMGR_LOG_INFO("%s:%d Sysevent %s enabled=%d, \n PID %d running=%d ifName=%s\n", __FUNCTION__, __LINE__, sysevent_key, isEnabled, storedLease.Info.ClientProcessId, pid_running, ifName);
 
             /*If the ClientPid is running before and after DHCPMgr restart, populate data for the Client*/
             /*If not we need to tell the Controller that the stored pid is not running we have to restart the dhcp client*/
@@ -384,7 +386,7 @@ static int load_v6dhcp_leases(ULONG clientCount)
             else if (sysevRet == 0 && isEnabled && !pid_running)
             {
                 /*Sysevent says enabled but PID is not running - need restart*/
-                DHCPMGR_LOG_INFO("%s:%d PID %d is not running but sysevent %s is enabled, need restart\n", __FUNCTION__, __LINE__, storedLease.Info.ClientProcessId, sysevent_key);
+                DHCPMGR_LOG_INFO("%s:%d PID %d is not running \n but sysevent %s is enabled, need restart\n", __FUNCTION__, __LINE__, storedLease.Info.ClientProcessId, sysevent_key);
                 pDhcp6c->Info.Status = COSA_DML_DHCP_STATUS_Disabled;
                 DhcpMgr_EnqueueSelfhealRestart(ifName, DML_DHCPV6);
             }

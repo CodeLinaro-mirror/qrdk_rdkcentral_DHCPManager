@@ -2016,17 +2016,7 @@ CosaDmlDhcpv6cGetEntry
         }
     }
 
-    /*Info members*/
-    if (pEntry->Cfg.bEnabled)
-    {
-        //setting status to disabled incase of DHCPManager Crash Recovery to restart the process
-        //if already running before the crash
-        pEntry->Info.Status = COSA_DML_DHCP_STATUS_Disabled;
-    }
-    else
-    {
-        pEntry->Info.Status = COSA_DML_DHCP_STATUS_Disabled;
-    }
+    pEntry->Info.Status = COSA_DML_DHCP_STATUS_Disabled;
 
     /*TODO: supported options*/
 
