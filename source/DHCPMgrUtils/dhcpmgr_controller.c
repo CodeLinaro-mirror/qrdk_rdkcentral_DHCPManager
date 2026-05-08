@@ -51,9 +51,6 @@
 #include "cosa_apis_util.h"
 #include <telemetry_busmessage_sender.h>
 
-#define DHCPCV4_ENABLE_PREFIX "DHCPCV4_ENABLE_"
-#define DHCPCV6_ENABLE_PREFIX "DHCPCV6_ENABLE_"
-
 static void DhcpMgr_UpdateEnableSysevent(ULONG instance, const char *if_name, BOOL enabled, BOOL isV6)
 {
     char sysevent_key[64] = {0};
@@ -607,6 +604,7 @@ static void Process_DHCPv4_Handler(char* if_name, dhcp_info_t dml_set_msg)
         }
         else
         {
+            DHCPMGR_LOG_DEBUG("%s %d: DHCP client is not enabled or release_ip flag is set for interface %s \n", __FUNCTION__, __LINE__, pDhcpc->Cfg.Interface);
             //DHCP client disabled, stop the client if it is running.
             if(pDhcpc->Info.Status == COSA_DML_DHCP_STATUS_Enabled)
             {

@@ -2003,7 +2003,7 @@ CosaDmlDhcpv6cGetEntry
                 errno_t rc = strcpy_s(pEntry->Cfg.Interface, sizeof(pEntry->Cfg.Interface), parsedIfName);
                 if (rc != EOK)
                 {
-                    DHCPMGR_LOG_ERROR("%s:%d Failed to copy DHCPv6 interface name (err=%d)\n", __FUNCTION__, __LINE__, rc);
+                    DHCPMGR_LOG_DEBUG("%s:%d Failed to copy DHCPv6 interface name (err=%d)\n", __FUNCTION__, __LINE__, rc);
                     pEntry->Cfg.Interface[0] = '\0';
                     pEntry->Cfg.bEnabled = FALSE;
                 }
@@ -2011,7 +2011,7 @@ CosaDmlDhcpv6cGetEntry
         }
         else
         {
-            DHCPMGR_LOG_ERROR("%s:%d Failed to get/parse sysevent %s\n", __FUNCTION__, __LINE__, param_name);
+            DHCPMGR_LOG_DEBUG("%s:%d Failed to get/parse sysevent %s\n", __FUNCTION__, __LINE__, param_name);
             pEntry->Cfg.bEnabled = FALSE;
         }
     }

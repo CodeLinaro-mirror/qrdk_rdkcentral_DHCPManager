@@ -142,7 +142,7 @@ static void Dhcp_process_crash_recovery_v4(int client_count)
         {
             char parsedIfName[64] = {0};
             BOOL parsedEnabled = FALSE;
-            if (Dhcp_get_Syseve_InterfaceEnabled(sysevent_key, parsedIfName, sizeof(parsedIfName), &parsedEnabled) == 0 && parsedEnabled)
+            if (Dhcp_get_Syseve_InterfaceEnabled(sysevent_key, parsedIfName, sizeof(parsedIfName), &parsedEnabled) == 0)
             {
                 DhcpMgr_EnqueueSelfhealRestart(parsedIfName, DML_DHCPV4);
             }
@@ -178,7 +178,7 @@ static void Dhcp_process_crash_recovery_v6(int client_count)
         {
             char parsedIfName[64] = {0};
             BOOL parsedEnabled = FALSE;
-            if (Dhcp_get_Syseve_InterfaceEnabled(sysevent_key, parsedIfName, sizeof(parsedIfName), &parsedEnabled) == 0 && parsedEnabled)
+            if (Dhcp_get_Syseve_InterfaceEnabled(sysevent_key, parsedIfName, sizeof(parsedIfName), &parsedEnabled) == 0)
             {
                 DhcpMgr_EnqueueSelfhealRestart(parsedIfName, DML_DHCPV6);
             }
