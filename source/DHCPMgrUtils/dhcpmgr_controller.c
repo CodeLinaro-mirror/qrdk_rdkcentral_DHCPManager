@@ -547,8 +547,10 @@ static void Process_DHCPv4_Handler(char* if_name, dhcp_info_t dml_set_msg)
             continue;
         }
 
+        DHCPMGR_LOG_INFO("%s %d: DHCP client config after processing DML set - Enable: %d, Renew: %d, Restart: %d, \nRelease_IP: %d for interface %s infostatus=%d\n", __FUNCTION__, __LINE__, pDhcpc->Cfg.bEnabled, pDhcpc->Cfg.Renew, pDhcpc->Cfg.Restart, release_ip, pDhcpc->Cfg.Interface, pDhcpc->Info.Status);
         if(pDhcpc->Cfg.bEnabled == TRUE && release_ip == 0)
         {
+            DHCPMGR_LOG_INFO("%s %d: DHCP client is enabled and release_ip flag is not set for interface %s \n", __FUNCTION__, __LINE__, pDhcpc->Cfg.Interface);
             if(pDhcpc->Info.Status == COSA_DML_DHCP_STATUS_Disabled)
             {
                 ////DHCP client Enabled, start the client if not started.
