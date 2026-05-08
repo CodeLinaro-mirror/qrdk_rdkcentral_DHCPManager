@@ -1386,6 +1386,7 @@ int Dhcp_get_Syseve_InterfaceEnabled(const char *sysevent_key, char *ifname, siz
     strncpy(ifname, tmpIfName, ifnameLen - 1);
     ifname[ifnameLen - 1] = '\0';
     *enabled = (status == 1) ? TRUE : FALSE;
+    DHCPMGR_LOG_INFO("%s:%d Got sysevent %s=%s, parsed ifname=%s, enabled=%d\n", __FUNCTION__, __LINE__, sysevent_key, sysevent_value, ifname, *enabled);
 
     return 0;
 }
