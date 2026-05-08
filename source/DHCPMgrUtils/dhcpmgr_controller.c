@@ -57,35 +57,21 @@
 static void DhcpMgr_UpdateEnableSysevent(ULONG instance, const char *if_name, BOOL enabled, BOOL isV6)
 {
     char sysevent_key[64] = {0};
-    char sysevent_value[MAX_STR_LEN] = {0};
 
     snprintf(sysevent_key,
              sizeof(sysevent_key),
              isV6 ? "DHCPCV6_ENABLE_%lu" : "DHCPCV4_ENABLE_%lu",
              instance);
 
-    if (enabled)
+    if (if_name == NULL || if_name[0] == '\0')
     {
-        if (if_name != NULL && if_name[0] != '\0')
-        {
-            strncpy(sysevent_value, if_name, sizeof(sysevent_value) - 1);
-            sysevent_value[sizeof(sysevent_value) - 1] = '\0';
-            if (commonSyseventSet(sysevent_key, sysevent_value) != 0)
-            {
-                DHCPMGR_LOG_ERROR("%s %d: Failed to set sysevent %s=%s\n", __FUNCTION__, __LINE__, sysevent_key, if_name);
-            }
-        }
-        else
-        {
-            DHCPMGR_LOG_ERROR("%s %d: Cannot set sysevent %s with empty interface name\n", __FUNCTION__, __LINE__, sysevent_key);
-        }
+        DHCPMGR_LOG_ERROR("%s %d: Cannot set sysevent %s with empty interface name\n", __FUNCTION__, __LINE__, sysevent_key);
+        return;
     }
-    else
+
+    if (Dhcp_set_Syseve_InterfaceEnabled(sysevent_key, if_name, enabled) != 0)
     {
-        if (commonSyseventSet(sysevent_key, "If FALSE") != 0)
-        {
-            DHCPMGR_LOG_ERROR("%s %d: Failed to clear sysevent %s\n", __FUNCTION__, __LINE__, sysevent_key);
-        }
+        DHCPMGR_LOG_ERROR("%s %d: Failed to set sysevent %s\n", __FUNCTION__, __LINE__, sysevent_key);
     }
 }
 

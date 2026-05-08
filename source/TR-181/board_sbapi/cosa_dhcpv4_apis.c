@@ -1142,24 +1142,31 @@ CosaDmlDhcpcGetCfg
     }
 
     //Required for the crash Recovery
-    char DhcpStateSys[64] = {0};
     _ansc_sprintf(param_name, "DHCPCV4_ENABLE_%d", instancenum);
-    int ret = commonSyseventGet(param_name, DhcpStateSys, sizeof(DhcpStateSys));
-    if (ret == 0 && (DhcpStateSys[0] != '\0' && strncmp(DhcpStateSys, "If FALSE", sizeof("If FALSE")) != 0))
     {
-        pCfg->bEnabled = TRUE;
-        strcpy_s(pCfg->Interface, sizeof(pCfg->Interface), DhcpStateSys);
-    }
-    else
-    {
-        pCfg->bEnabled = FALSE;
-        commonSyseventGet("current_wan_ifname", ifname, sizeof(ifname));
-        if (strlen(ifname) > 0)
-               pCfg->Interface[0] = 0;
+        char parsedIfName[64] = {0};
+        BOOL parsedEnabled = FALSE;
+
+        if (Dhcp_get_Syseve_InterfaceEnabled(param_name, parsedIfName, sizeof(parsedIfName), &parsedEnabled) == 0)
+        {
+            pCfg->bEnabled = parsedEnabled;
+            if (parsedEnabled)
+            {
+                strcpy_s(pCfg->Interface, sizeof(pCfg->Interface), parsedIfName);
+            }
+        }
         else
         {
-                rc = strcpy_s(pCfg->Interface, sizeof(pCfg->Interface), ifname);
-                ERR_CHK(rc);
+            DHCPMGR_LOG_ERROR("%s:%d Failed to get/parse sysevent %s\n", __FUNCTION__, __LINE__, param_name);
+            pCfg->bEnabled = FALSE;
+            commonSyseventGet("current_wan_ifname", ifname, sizeof(ifname));
+            if (strlen(ifname) > 0)
+                   pCfg->Interface[0] = 0;
+            else
+            {
+                    rc = strcpy_s(pCfg->Interface, sizeof(pCfg->Interface), ifname);
+                    ERR_CHK(rc);
+            }
         }
     }
     _PSM_READ_PARAM(PSM_DHCPMANAGER_CLIENTALIAS);

@@ -136,14 +136,20 @@ static void Dhcp_process_crash_recovery_v4(int client_count)
     for (int instance = 1; instance <= client_count; instance++)
     {
         char sysevent_key[64] = {0};
-        char sysevent_val[64] = {0};
 
         snprintf(sysevent_key, sizeof(sysevent_key), "DHCPCV4_ENABLE_%d", instance);
 
-        if (commonSyseventGet(sysevent_key, sysevent_val, sizeof(sysevent_val)) == 0 &&
-            sysevent_val[0] != '\0')
         {
-            DhcpMgr_EnqueueSelfhealRestart(sysevent_val, DML_DHCPV4);
+            char parsedIfName[64] = {0};
+            BOOL parsedEnabled = FALSE;
+            if (Dhcp_get_Syseve_InterfaceEnabled(sysevent_key, parsedIfName, sizeof(parsedIfName), &parsedEnabled) == 0 && parsedEnabled)
+            {
+                DhcpMgr_EnqueueSelfhealRestart(parsedIfName, DML_DHCPV4);
+            }
+            else
+            {
+                DHCPMGR_LOG_INFO("%s:%d Interface %s is not enabled according to sysevent, skipping restart\n", __FUNCTION__, __LINE__, parsedIfName);
+            }
         }
     }
 }
@@ -166,14 +172,20 @@ static void Dhcp_process_crash_recovery_v6(int client_count)
     for (int instance = 1; instance <= client_count; instance++)
     {
         char sysevent_key[64] = {0};
-        char sysevent_val[64] = {0};
 
         snprintf(sysevent_key, sizeof(sysevent_key), "DHCPCV6_ENABLE_%d", instance);
 
-        if (commonSyseventGet(sysevent_key, sysevent_val, sizeof(sysevent_val)) == 0 &&
-            sysevent_val[0] != '\0')
         {
-            DhcpMgr_EnqueueSelfhealRestart(sysevent_val, DML_DHCPV6);
+            char parsedIfName[64] = {0};
+            BOOL parsedEnabled = FALSE;
+            if (Dhcp_get_Syseve_InterfaceEnabled(sysevent_key, parsedIfName, sizeof(parsedIfName), &parsedEnabled) == 0 && parsedEnabled)
+            {
+                DhcpMgr_EnqueueSelfhealRestart(parsedIfName, DML_DHCPV6);
+            }
+            else
+            {
+                DHCPMGR_LOG_INFO("%s:%d Interface %s is not enabled according to sysevent, skipping restart\n", __FUNCTION__, __LINE__, parsedIfName);
+            }
         }
     }
 }
@@ -417,7 +429,6 @@ static int load_v6dhcp_leases(ULONG clientCount)
             pthread_mutex_lock(&pDhcp6c->mutex);
             char procPath[64] = {0};
             char sysevent_key[64] = {0};
-            char sysevent_val[64] = {0};
             BOOL pid_running = FALSE;
             BOOL sysevent_valid = FALSE;
 
@@ -425,9 +436,12 @@ static int load_v6dhcp_leases(ULONG clientCount)
             snprintf(sysevent_key, sizeof(sysevent_key), "DHCPCV6_ENABLE_%lu", instanceNum);
 
             pid_running = (access(procPath, F_OK) == 0) ? TRUE : FALSE;
-            sysevent_valid = (commonSyseventGet(sysevent_key, sysevent_val, sizeof(sysevent_val)) == 0 &&
-                              sysevent_val[0] != '\0' &&
-                              strncmp(sysevent_val, "If FALSE", 8) != 0) ? TRUE : FALSE;
+            {
+                char parsedIfName[64] = {0};
+                BOOL parsedEnabled = FALSE;
+                sysevent_valid = (Dhcp_get_Syseve_InterfaceEnabled(sysevent_key, parsedIfName, sizeof(parsedIfName), &parsedEnabled) == 0 &&
+                                  parsedEnabled) ? TRUE : FALSE;
+            }
 
             /*If the ClientPid is running before and after DHCPMgr restart, populate data for the Client*/
             /*If not we need to tell the Controller that the stored pid is not running we have to restart the dhcp client*/
@@ -551,7 +565,6 @@ static int load_v4dhcp_leases(ULONG clientCount)
                 pthread_mutex_lock(&pDhcpc->mutex);
                 char procPath[64] = {0};
                 char sysevent_key[64] = {0};
-                char sysevent_val[64] = {0};
                 BOOL pid_running = FALSE;
                 BOOL sysevent_valid = FALSE;
 
@@ -559,9 +572,12 @@ static int load_v4dhcp_leases(ULONG clientCount)
                 snprintf(sysevent_key, sizeof(sysevent_key), "DHCPCV4_ENABLE_%lu", instanceNum);
 
                 pid_running = (access(procPath, F_OK) == 0) ? TRUE : FALSE;
-                sysevent_valid = (commonSyseventGet(sysevent_key, sysevent_val, sizeof(sysevent_val)) == 0 &&
-                                  sysevent_val[0] != '\0' &&
-                                  strncmp(sysevent_val, "If FALSE", 8) != 0) ? TRUE : FALSE;
+                {
+                    char parsedIfName[64] = {0};
+                    BOOL parsedEnabled = FALSE;
+                    sysevent_valid = (Dhcp_get_Syseve_InterfaceEnabled(sysevent_key, parsedIfName, sizeof(parsedIfName), &parsedEnabled) == 0 &&
+                                      parsedEnabled) ? TRUE : FALSE;
+                }
 
                 /*If the ClientPid is running before and after DHCPMgr restart, we have to populate data for the Client*/
                 /*If not we need to tell the Controller that the stored pid is not running we have to restart the dhcp client*/
