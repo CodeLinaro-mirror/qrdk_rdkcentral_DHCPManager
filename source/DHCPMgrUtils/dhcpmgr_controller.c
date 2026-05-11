@@ -481,6 +481,7 @@ static void Process_DHCPv4_Handler(char* if_name, dhcp_info_t dml_set_msg)
     clientCount = CosaDmlDhcpcGetNumberOfEntries(NULL);
     for ( ulIndex = 0; ulIndex < clientCount; ulIndex++ )
     {
+        DHCPMGR_LOG_DEBUG("%s %d: Processing DHCPv4 client entry %lu \n", __FUNCTION__, __LINE__, ulIndex);
         pSListEntry = (PSINGLE_LINK_ENTRY)Client_GetEntry(NULL,ulIndex,&instanceNum);
         if ( pSListEntry )
         {
@@ -495,6 +496,7 @@ static void Process_DHCPv4_Handler(char* if_name, dhcp_info_t dml_set_msg)
 
         pthread_mutex_lock(&pDhcpc->mutex); //MUTEX lock
         INT release_ip = 0;
+        DHCPMGR_LOG_DEBUG("%s %d: Comparing interface name %s with DHCP client interface %s \n", __FUNCTION__, __LINE__, if_name, pDhcpc->Cfg.Interface);
         if(strncmp(pDhcpc->Cfg.Interface, if_name, sizeof(pDhcpc->Cfg.Interface)) == 0)
         {
             if(dml_set_msg.ParamName == NULL)
