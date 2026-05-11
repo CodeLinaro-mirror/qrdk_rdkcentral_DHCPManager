@@ -389,6 +389,7 @@ static int load_v6dhcp_leases(ULONG clientCount)
                 DHCPMGR_LOG_INFO("%s:%d PID %d is not running \n but sysevent %s is enabled, need restart\n", __FUNCTION__, __LINE__, storedLease.Info.ClientProcessId, sysevent_key);
                 pDhcp6c->Info.Status = COSA_DML_DHCP_STATUS_Disabled;
                 snprintf(pDhcp6c->Cfg.Interface, sizeof(pDhcp6c->Cfg.Interface), "%s", ifName);
+                pDhcp6c->Info.ClientProcessId = storedLease.Info.ClientProcessId;
                 DhcpMgr_EnqueueSelfhealRestart(ifName, DML_DHCPV6);
             }
             else if (sysevRet == 0 && !isEnabled && pid_running)
@@ -397,6 +398,7 @@ static int load_v6dhcp_leases(ULONG clientCount)
                 DHCPMGR_LOG_INFO("%s:%d PID %d is running but sysevent %s is disabled, need restart\n", __FUNCTION__, __LINE__, storedLease.Info.ClientProcessId, sysevent_key);
                 pDhcp6c->Info.Status = COSA_DML_DHCP_STATUS_Enabled;
                 snprintf(pDhcp6c->Cfg.Interface, sizeof(pDhcp6c->Cfg.Interface), "%s", ifName);
+                pDhcp6c->Info.ClientProcessId = storedLease.Info.ClientProcessId;
                 DhcpMgr_EnqueueSelfhealRestart(ifName, DML_DHCPV6);
             }
             else
@@ -524,6 +526,7 @@ static int load_v4dhcp_leases(ULONG clientCount)
                     DHCPMGR_LOG_INFO("%s:%d PID %d is not running but sysevent %s is enabled, need restart\n", __FUNCTION__, __LINE__, storedLease.Info.ClientProcessId, sysevent_key);
                     pDhcpc->Info.Status = COSA_DML_DHCP_STATUS_Disabled;
                     snprintf(pDhcpc->Cfg.Interface, sizeof(pDhcpc->Cfg.Interface), "%s", ifName);
+                    pDhcpc->Info.ClientProcessId = storedLease.Info.ClientProcessId;
                     DhcpMgr_EnqueueSelfhealRestart(ifName, DML_DHCPV4);
                 }
                 else if (sysevRet == 0 && !isEnabled && pid_running)
@@ -532,6 +535,7 @@ static int load_v4dhcp_leases(ULONG clientCount)
                     DHCPMGR_LOG_INFO("%s:%d PID %d is running but sysevent %s is disabled, need restart\n", __FUNCTION__, __LINE__, storedLease.Info.ClientProcessId, sysevent_key);
                     pDhcpc->Info.Status = COSA_DML_DHCP_STATUS_Enabled;
                     snprintf(pDhcpc->Cfg.Interface, sizeof(pDhcpc->Cfg.Interface), "%s", ifName);
+                    pDhcpc->Info.ClientProcessId = storedLease.Info.ClientProcessId;
                     DhcpMgr_EnqueueSelfhealRestart(ifName, DML_DHCPV4);
                 }
                 else
