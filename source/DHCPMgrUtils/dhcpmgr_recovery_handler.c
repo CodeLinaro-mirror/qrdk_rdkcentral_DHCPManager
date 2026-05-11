@@ -348,32 +348,29 @@ static int load_v6dhcp_leases(ULONG clientCount)
         if (access(FilePattern, F_OK) == 0) 
         {
             FILE *file = fopen(FilePattern, "rb");
-            if (!file && ifName[0] != '\0') 
+            if (!file && sysevRet == 0 && ifName[0] == '\0') 
             {
                 DHCPMGR_LOG_INFO("%s:%d Failed to open file %s , No file was store for DHCPv6.%lu.Client \n", __FUNCTION__, __LINE__, FilePattern, instanceNum);
                 continue;
             }
             else
             {
-                if (sysevRet == 0 && isEnabled)
+                if (sysevRet == 0)
                 {
-                    DHCPMGR_LOG_DEBUG("%s:%d Sysevent %s is enabled, but failed to open file %s for DHCPv6.%lu.Client, need restart\n", __FUNCTION__, __LINE__, sysevent_key, FilePattern, instanceNum);
-                    //Making the instance Disabled so that Controller will start the process .
-                    pDhcp6c->Info.Status = COSA_DML_DHCP_STATUS_Disabled;
-                    snprintf(pDhcp6c->Cfg.Interface, sizeof(pDhcp6c->Cfg.Interface), "%s", ifName);
+                    if (isEnabled)
+                    {
+                        DHCPMGR_LOG_INFO("%s:%d Sysevent %s is enabled, but failed to open file %s for DHCPv6.%lu.Client, need restart\n", __FUNCTION__, __LINE__, sysevent_key, FilePattern, instanceNum);
+                        pDhcp6c->Info.Status = COSA_DML_DHCP_STATUS_Disabled;
+                        snprintf(pDhcp6c->Cfg.Interface, sizeof(pDhcp6c->Cfg.Interface), "%s", ifName);
+                    }
+                    else
+                    {
+                        DHCPMGR_LOG_INFO("%s:%d Sysevent %s is disabled, failed to open file %s for DHCPv6.%lu.Client\n", __FUNCTION__, __LINE__, sysevent_key, FilePattern, instanceNum);
+                        pDhcp6c->Info.Status = COSA_DML_DHCP_STATUS_Enabled;
+                        snprintf(pDhcp6c->Cfg.Interface, sizeof(pDhcp6c->Cfg.Interface), "%s", ifName);
+                    }
+                    DhcpMgr_EnqueueSelfhealRestart(ifName, DML_DHCPV6);
                 }
-                else if (sysevRet == 0 && !isEnabled)
-                {
-                    DHCPMGR_LOG_DEBUG("%s:%d Sysevent %s is disabled, failed to open file %s for DHCPv6.%lu.Client, skipping instance\n", __FUNCTION__, __LINE__, sysevent_key, FilePattern, instanceNum);
-                    //Making the instance Enabled so that Controller will stop the process .
-                    pDhcp6c->Info.Status = COSA_DML_DHCP_STATUS_Enabled;
-                    snprintf(pDhcp6c->Cfg.Interface, sizeof(pDhcp6c->Cfg.Interface), "%s", ifName);
-                }
-                else
-                {
-                    DHCPMGR_LOG_DEBUG("%s:%d Failed to get sysevent\n",__FUNCTION__, __LINE__);
-                }
-                DhcpMgr_EnqueueSelfhealRestart(ifName, DML_DHCPV6);
             }
 
             memset(&storedLease, 0, sizeof(COSA_DML_DHCPCV6_FULL));
@@ -482,7 +479,9 @@ static int load_v4dhcp_leases(ULONG clientCount)
         PCOSA_DML_DHCPC_FULL pDhcpc = NULL;
         int ret = EXIT_FAIL;
         char FilePattern[256] = {0};
-
+        char ifName[64] = {0};
+        BOOL isEnabled = FALSE;
+        
         for (ulIndex = 0; ulIndex < clientCount; ulIndex++) 
         {
             COSA_DML_DHCPC_FULL storedLease;
@@ -502,14 +501,39 @@ static int load_v4dhcp_leases(ULONG clientCount)
             }
 
             snprintf(FilePattern, sizeof(FilePattern), "/tmp/Dhcp_manager/dhcpLease_%lu_v4", instanceNum);
+            int sysevRet = Dhcp_get_Syseve_InterfaceEnabled(sysevent_key, ifName, sizeof(ifName), &isEnabled);
+
 
             if (access(FilePattern, F_OK) == 0) 
             {
                 FILE *file = fopen(FilePattern, "rb");
-                if (!file) 
+                if (!file && sysevRet == 0 && ifName[0] == '\0') 
                 {
                     DHCPMGR_LOG_INFO("%s:%d Failed to open file %s , No file was store for DHCPv4.%lu.Client \n", __FUNCTION__, __LINE__, FilePattern, instanceNum);
                     continue;
+                }
+                else
+                {
+                    if (sysevRet == 0)
+                    {
+                        if (isEnabled)
+                        {
+                            DHCPMGR_LOG_INFO("%s:%d Sysevent %s is enabled, but failed to open file %s for DHCPv4.%lu.Client, need restart\n", __FUNCTION__, __LINE__, sysevent_key, FilePattern, instanceNum);
+                            //Set the status to disabled and enqueue selfheal restart, so that DHCP client will be restarted 
+                            //and get the correct pid which we can monitor in dhcp_pid_mon thread.
+                            pDhcpc->Info.Status = COSA_DML_DHCP_STATUS_Disabled;
+                            snprintf(pDhcpc->Cfg.Interface, sizeof(pDhcpc->Cfg.Interface), "%s", ifName);
+                        }
+                        else
+                        {
+                            DHCPMGR_LOG_INFO("%s:%d Sysevent %s is disabled, failed to open file %s for DHCPv4.%lu.Client\n", __FUNCTION__, __LINE__, sysevent_key, FilePattern, instanceNum);
+                            //Set the status to enabled and enqueue selfheal restart, so that DHCP client will be restarted 
+                            //and get the correct pid which we can monitor in dhcp_pid_mon thread.
+                            pDhcpc->Info.Status = COSA_DML_DHCP_STATUS_Enabled;
+                            snprintf(pDhcpc->Cfg.Interface, sizeof(pDhcpc->Cfg.Interface), "%s", ifName);
+                        }
+                        DhcpMgr_EnqueueSelfhealRestart(ifName, DML_DHCPV4);
+                    }
                 }
 
                 memset(&storedLease, 0, sizeof(COSA_DML_DHCPC_FULL));
@@ -530,10 +554,6 @@ static int load_v4dhcp_leases(ULONG clientCount)
                 snprintf(sysevent_key, sizeof(sysevent_key), "DHCPCV4_ENABLE_%lu", instanceNum);
 
                 pid_running = (access(procPath, F_OK) == 0) ? TRUE : FALSE;
-
-                char ifName[64] = {0};
-                BOOL isEnabled = FALSE;
-                int sysevRet = Dhcp_get_Syseve_InterfaceEnabled(sysevent_key, ifName, sizeof(ifName), &isEnabled);
 
                 /*If the ClientPid is running before and after DHCPMgr restart, we have to populate data for the Client*/
                 /*If not we need to tell the Controller that the stored pid is not running we have to restart the dhcp client*/
