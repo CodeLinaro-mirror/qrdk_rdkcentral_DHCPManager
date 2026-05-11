@@ -1991,7 +1991,6 @@ CosaDmlDhcpv6cGetEntry
 
     _ansc_memset(param_name, 0, sizeof(param_name));
     _ansc_sprintf(param_name, "DHCPCV6_ENABLE_%lu", ulIndex);
-    {
         char parsedIfName[64] = {0};
         BOOL parsedEnabled = FALSE;
 
@@ -2007,16 +2006,18 @@ CosaDmlDhcpv6cGetEntry
                     pEntry->Cfg.Interface[0] = '\0';
                     pEntry->Cfg.bEnabled = FALSE;
                 }
+                pEntry->Info.Status = COSA_DML_DHCP_STATUS_Disabled;
+            }
+            else
+            {
+                pEntry->Info.Status = COSA_DML_DHCP_STATUS_Enabled;
             }
         }
         else
         {
             DHCPMGR_LOG_DEBUG("%s:%d Failed to get/parse sysevent %s\n", __FUNCTION__, __LINE__, param_name);
-            pEntry->Cfg.bEnabled = FALSE;
+            pEntry->Info.Status = COSA_DML_DHCP_STATUS_Disabled;
         }
-    }
-
-    pEntry->Info.Status = COSA_DML_DHCP_STATUS_Disabled;
 
     /*TODO: supported options*/
 

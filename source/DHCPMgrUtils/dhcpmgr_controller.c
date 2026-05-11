@@ -657,6 +657,7 @@ static void Process_DHCPv6_Handler(char* if_name, dhcp_info_t dml_set_msg)
 
     for ( ulIndex = 0; ulIndex < clientCount; ulIndex++ )
     {
+        DHCPMGR_LOG_DEBUG("%s %d: Processing DHCPv6 client entry %lu \n", __FUNCTION__, __LINE__, ulIndex);
         pSListEntry = (PSINGLE_LINK_ENTRY)Client3_GetEntry(NULL,ulIndex,&instanceNum);
         if ( pSListEntry )
         {
@@ -722,8 +723,10 @@ static void Process_DHCPv6_Handler(char* if_name, dhcp_info_t dml_set_msg)
             pthread_mutex_unlock(&pDhcp6c->mutex); //MUTEX unlock
             continue;
         }
+        DHCPMGR_LOG_INFO("%s %d: DHCPv6 client config after processing DML set - Enable: %d, Renew: %d, Restart: %d, Release_IP: %d for interface %s infostatus=%d\n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.bEnabled, pDhcp6c->Cfg.Renew, pDhcp6c->Cfg.Restart, release_ip, pDhcp6c->Cfg.Interface, pDhcp6c->Info.Status);
         if(pDhcp6c->Cfg.bEnabled == TRUE && release_ip == 0)
         {
+            DHCPMGR_LOG_DEBUG("%s %d: DHCPv6 client is enabled and release_ip flag is not set for interface %s \n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
             if(pDhcp6c->Info.Status == COSA_DML_DHCP_STATUS_Disabled)
             {
                 ////DHCP client Enabled, start the client if not started.
@@ -784,6 +787,7 @@ static void Process_DHCPv6_Handler(char* if_name, dhcp_info_t dml_set_msg)
         }
         else
         {
+            DHCPMGR_LOG_DEBUG("%s %d: DHCPv6 client is not enabled or release_ip flag is set for interface %s pDhcp6c->Info.Status=%d\n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface,pDhcp6c->Info.Status);
             //DHCP client disabled, stop the client if it is running.
             if(pDhcp6c->Info.Status == COSA_DML_DHCP_STATUS_Enabled)
             {

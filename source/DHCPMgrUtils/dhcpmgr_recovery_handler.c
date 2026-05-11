@@ -395,7 +395,7 @@ static int load_v6dhcp_leases(ULONG clientCount)
             {
                 /*PID is running but sysevent says disabled - mismatch, need restart*/
                 DHCPMGR_LOG_INFO("%s:%d PID %d is running but sysevent %s is disabled, need restart\n", __FUNCTION__, __LINE__, storedLease.Info.ClientProcessId, sysevent_key);
-                pDhcp6c->Info.Status = COSA_DML_DHCP_STATUS_Disabled;
+                pDhcp6c->Info.Status = COSA_DML_DHCP_STATUS_Enabled;
                 snprintf(pDhcp6c->Cfg.Interface, sizeof(pDhcp6c->Cfg.Interface), "%s", ifName);
                 DhcpMgr_EnqueueSelfhealRestart(ifName, DML_DHCPV6);
             }
@@ -530,7 +530,7 @@ static int load_v4dhcp_leases(ULONG clientCount)
                 {
                     /*PID is running but sysevent says disabled - mismatch, need restart*/
                     DHCPMGR_LOG_INFO("%s:%d PID %d is running but sysevent %s is disabled, need restart\n", __FUNCTION__, __LINE__, storedLease.Info.ClientProcessId, sysevent_key);
-                    pDhcpc->Info.Status = COSA_DML_DHCP_STATUS_Disabled;
+                    pDhcpc->Info.Status = COSA_DML_DHCP_STATUS_Enabled;
                     snprintf(pDhcpc->Cfg.Interface, sizeof(pDhcpc->Cfg.Interface), "%s", ifName);
                     DhcpMgr_EnqueueSelfhealRestart(ifName, DML_DHCPV4);
                 }
