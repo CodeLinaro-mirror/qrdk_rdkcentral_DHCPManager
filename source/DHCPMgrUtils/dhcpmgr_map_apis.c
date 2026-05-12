@@ -200,7 +200,12 @@ CosaDmlMapParseResponse
 
                g_stMapData.Ratio = 1 << (g_stMapData.EaLen -
                                                     (BUFLEN_32 - g_stMapData.RuleIPv4PrefixLen));
-               /* RFC default */
+               /*
+                * RFC default for PSID offset applies when the optional
+                * S46 Port Params suboption is not present. Keep the default
+                * here and let the suboption parser overwrite it with the
+                * received value, including 0 when that is explicitly encoded.
+                */
                g_stMapData.PsidOffset = 6;
                MAP_LOG_INFO("<<<TRACE>>> g_stMapData.Ratio             : %u", g_stMapData.Ratio);
                MAP_LOG_INFO("<<<TRACE>>> bytesLeftOut                   : %u", bytesLeftOut);
@@ -219,9 +224,23 @@ CosaDmlMapParseResponse
                          if ( uiSubOption == MAP_OPTION_S46_PORT_PARAMS &&
                               uiSubOptionLen == 4 )
                          {
-                              g_stMapData.PsidOffset  = (*(pCurOption += uiSubOptionLen))?
-                                                                 *pCurOption:6;
+                              pCurOption += sizeof(COSA_DML_MAPT_OPTION);
+                              g_stMaptData.PsidOffset  = *pCurOption;
                               g_stMapData.PsidLen     = *++pCurOption;
+
+                              // allowed PsidOffset values are 0 to 15
+                              if (g_stMaptData.PsidOffset > 15)
+                              {
+                                  MAPT_LOG_ERROR("Parsing OPTION_S46_PORT_PARAM: Received invalid PsidOffset :%u", g_stMaptData.PsidOffset);
+                                  return STATUS_FAILURE;
+                              }
+
+                              // allowed PsidLen values are 0 to 16
+                              if (g_stMaptData.PsidLen > 16)
+                              {
+                                  MAPT_LOG_ERROR("Parsing OPTION_S46_PORT_PARAM: Received invalid PsidLen :%u", g_stMaptData.PsidLen);
+                                  return STATUS_FAILURE;
+                              }
 
                               if ( !g_stMapData.EaLen )
                               {
@@ -238,6 +257,44 @@ CosaDmlMapParseResponse
                               MAP_LOG_INFO("<<<TRACE>>> g_stMapData.PsidLen    : %u", g_stMapData.PsidLen);
                               MAP_LOG_INFO("<<<TRACE>>> g_stMapData.PsidOffset : %u", g_stMapData.PsidOffset);
                               MAP_LOG_INFO("<<<TRACE>>> g_stMapData.Ratio      : %u", g_stMapData.Ratio);
+
+                              /* ------------------------------------------------------------------ */
+                              /* Reserved Port Range Validation (0–1023) */
+                              /* ------------------------------------------------------------------ */
+                              {
+                                  UINT8 psidoffset  = g_stMaptData.PsidOffset;
+                                  UINT8 psidLen = g_stMaptData.PsidLen;
+                                  UINT16 psid   = g_stMaptData.Psid;
+
+                                  /* Validate MAP-T bit allocation: psidLen + offset must fit within 16-bit port space
+                                   * to avoid negative shifts (m = 16 - (psidLen + offset)) and undefined behavior. 
+                                   * Ideally the check should be 
+                                   * "if (psidoffset < 16 && psidLen <= 16 && (psidoffset + psidLen)<= 16)"
+                                   * but since we are already rejecting invalid psidLen / psidOffset earlier, 
+                                   * we don't need to validate here.
+                                   */
+                                  if ((psidLen + psidoffset) <= 16)
+                                  {
+                                      UINT8 m = 16 - (psidLen + psidoffset);
+                                      UINT8 block_shift = 16 - psidoffset;
+                                      UINT32 min_i = (psidoffset == 0) ? 0 : 1;
+
+                                      /* Lowest possible port for this CE */
+                                      UINT32 min_port = (min_i << block_shift) + (psid << m);
+                                      if (min_port < 1024)
+                                      {
+                                          MAPT_LOG_WARNING(
+                                              "MAP-T WARNING: Privileged port usage detected! psid=%u psidLen=%u offset=%u min_port=%u",
+                                              psid, psidLen, psidoffset, min_port
+                                          );
+                                      }
+                                  }
+                                  else
+                                  {
+                                      MAPT_LOG_WARNING("MAP-T WARNING: Invalid MAP parameters! psidLen=%u offset=%u", psidLen, psidoffset);
+                                  }
+                              }
+                              /* ------------------------------------------------------------------ */
                               MAP_LOG_INFO("Parsing OPTION_S46_PORT_PARAM Successful.");
                          }
                          else
