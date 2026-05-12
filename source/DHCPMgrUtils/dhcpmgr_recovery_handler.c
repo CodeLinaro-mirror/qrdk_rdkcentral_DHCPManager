@@ -141,6 +141,7 @@ static void DhcpMgr_SetStatusAndEnqueueRestart(int sysevRet, BOOL isEnabled, con
                                                  char *cfgInterface, size_t cfgInterfaceSize,
                                                  ULONG *pStatus, int dhcpType)
 {
+    DHCPMGR_LOG_DEBUG("%s:%d sysevRet=%d, isEnabled=%d, ifName=%s\n", __FUNCTION__, __LINE__, sysevRet, isEnabled, ifName);
     if (sysevRet != 0 || ifName[0] == '\0')
     {
         return;
@@ -155,6 +156,9 @@ static void DhcpMgr_SetStatusAndEnqueueRestart(int sysevRet, BOOL isEnabled, con
         *pStatus = COSA_DML_DHCP_STATUS_Enabled;
     }
     snprintf(cfgInterface, cfgInterfaceSize, "%s", ifName);
+    DHCPMGR_LOG_DEBUG("%s:%d Set status to %s and interface to %s for DHCP type %d\n", __FUNCTION__, __LINE__,
+                    (*pStatus == COSA_DML_DHCP_STATUS_Enabled) ? "Enabled" : "Disabled",
+                    cfgInterface, dhcpType);
     DhcpMgr_EnqueueSelfhealRestart(ifName, dhcpType);
 }
 
@@ -439,6 +443,9 @@ static int load_v6dhcp_leases(ULONG clientCount)
                 DhcpMgr_SetStatusAndEnqueueRestart(sysevRet, !isEnabled, ifName,
                     pDhcp6c->Cfg.Interface, sizeof(pDhcp6c->Cfg.Interface),
                     &pDhcp6c->Info.Status, DML_DHCPV6);
+                DHCPMGR_LOG_DEBUG("%s:%d Set status to %s and interface to %s for DHCP type %d\n", __FUNCTION__, __LINE__,
+                    (pDhcp6c->Info.Status == COSA_DML_DHCP_STATUS_Enabled) ? "Enabled" : "Disabled",
+                    pDhcp6c->Cfg.Interface, DML_DHCPV6);
                 pDhcp6c->Info.ClientProcessId = storedLease.Info.ClientProcessId;
             }
             else

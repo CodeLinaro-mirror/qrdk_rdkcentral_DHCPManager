@@ -723,7 +723,7 @@ static void Process_DHCPv6_Handler(char* if_name, dhcp_info_t dml_set_msg)
             pthread_mutex_unlock(&pDhcp6c->mutex); //MUTEX unlock
             continue;
         }
-        DHCPMGR_LOG_INFO("%s %d: DHCPv6 client config after processing DML set - Enable: %d, Renew: %d, Restart: %d, Release_IP: %d for interface %s infostatus=%d\n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.bEnabled, pDhcp6c->Cfg.Renew, pDhcp6c->Cfg.Restart, release_ip, pDhcp6c->Cfg.Interface, pDhcp6c->Info.Status);
+        DHCPMGR_LOG_INFO("%s %d: DHCPv6 client config after processing DML set - Enable: %d, Renew: %d, \n Restart: %d, Release_IP: %d for interface %s infostatus=%d\n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.bEnabled, pDhcp6c->Cfg.Renew, pDhcp6c->Cfg.Restart, release_ip, pDhcp6c->Cfg.Interface, pDhcp6c->Info.Status);
         if(pDhcp6c->Cfg.bEnabled == TRUE && release_ip == 0)
         {
             DHCPMGR_LOG_DEBUG("%s %d: DHCPv6 client is enabled and release_ip flag is not set for interface %s \n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
