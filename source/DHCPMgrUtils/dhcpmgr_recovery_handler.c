@@ -440,7 +440,7 @@ static int load_v6dhcp_leases(ULONG clientCount)
             {
                 /*PID is running but sysevent says disabled - mismatch, need restart*/
                 DHCPMGR_LOG_INFO("%s:%d PID %d is running but sysevent %s is disabled, need restart\n", __FUNCTION__, __LINE__, storedLease.Info.ClientProcessId, sysevent_key);
-                DhcpMgr_SetStatusAndEnqueueRestart(sysevRet, !isEnabled, ifName,
+                DhcpMgr_SetStatusAndEnqueueRestart(sysevRet, isEnabled, ifName,
                     pDhcp6c->Cfg.Interface, sizeof(pDhcp6c->Cfg.Interface),
                     &pDhcp6c->Info.Status, DML_DHCPV6);
                 DHCPMGR_LOG_DEBUG("%s:%d Set status to %s and interface to %s for DHCP type %d\n", __FUNCTION__, __LINE__,
@@ -536,7 +536,7 @@ static int load_v4dhcp_leases(ULONG clientCount)
             snprintf(FilePattern, sizeof(FilePattern), "/tmp/Dhcp_manager/dhcpLease_%lu_v4", instanceNum);
             snprintf(sysevent_key, sizeof(sysevent_key), "DHCPCV4_ENABLE_%lu", instanceNum);
 
-            int sysevRet = Dhcp_get_Syseve_InterfaceEnabled(sysevent_key, ifName, sizeof(ifName), &isEnabled);
+            int sysevRet = (sysevent_key, ifName, sizeof(ifName), &isEnabled);
 
 
             if (access(FilePattern, F_OK) == 0) 
@@ -587,7 +587,7 @@ static int load_v4dhcp_leases(ULONG clientCount)
                 {
                     /*PID is running but sysevent says disabled - mismatch, need restart*/
                     DHCPMGR_LOG_INFO("%s:%d PID %d is running but sysevent %s is disabled, need restart\n", __FUNCTION__, __LINE__, storedLease.Info.ClientProcessId, sysevent_key);
-                    DhcpMgr_SetStatusAndEnqueueRestart(sysevRet, !isEnabled, ifName,
+                    DhcpMgr_SetStatusAndEnqueueRestart(sysevRet, isEnabled, ifName,
                         pDhcpc->Cfg.Interface, sizeof(pDhcpc->Cfg.Interface),
                         &pDhcpc->Info.Status, DML_DHCPV4);
                     pDhcpc->Info.ClientProcessId = storedLease.Info.ClientProcessId;
