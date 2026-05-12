@@ -2010,6 +2010,12 @@ CosaDmlDhcpv6cGetEntry
             }
             else
             {
+                errno_t rc = strcpy_s(pEntry->Cfg.Interface, sizeof(pEntry->Cfg.Interface), parsedIfName);
+                if (rc != EOK)
+                {
+                    DHCPMGR_LOG_DEBUG("%s:%d Failed to copy DHCPv6 interface name (err=%d)\n", __FUNCTION__, __LINE__, rc);
+                    pEntry->Cfg.Interface[0] = '\0';
+                }
                 pEntry->Info.Status = COSA_DML_DHCP_STATUS_Enabled;
             }
         }

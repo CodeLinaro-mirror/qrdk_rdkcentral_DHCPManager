@@ -345,6 +345,7 @@ static int load_v6dhcp_leases(ULONG clientCount)
         }
 
         snprintf(FilePattern, sizeof(FilePattern), "/tmp/Dhcp_manager/dhcpLease_%lu_v6", instanceNum);
+        snprintf(sysevent_key, sizeof(sysevent_key), "DHCPCV6_ENABLE_%lu", instanceNum);
 
         int sysevRet = Dhcp_get_Syseve_InterfaceEnabled(sysevent_key, ifName, sizeof(ifName), &isEnabled);
 
@@ -388,7 +389,6 @@ static int load_v6dhcp_leases(ULONG clientCount)
             pthread_mutex_lock(&pDhcp6c->mutex);
 
             snprintf(procPath, sizeof(procPath), "/proc/%d", storedLease.Info.ClientProcessId);
-            snprintf(sysevent_key, sizeof(sysevent_key), "DHCPCV6_ENABLE_%lu", instanceNum);
 
             pid_running = (access(procPath, F_OK) == 0) ? TRUE : FALSE;
 
@@ -504,6 +504,8 @@ static int load_v4dhcp_leases(ULONG clientCount)
             }
 
             snprintf(FilePattern, sizeof(FilePattern), "/tmp/Dhcp_manager/dhcpLease_%lu_v4", instanceNum);
+            snprintf(sysevent_key, sizeof(sysevent_key), "DHCPCV4_ENABLE_%lu", instanceNum);
+
             int sysevRet = Dhcp_get_Syseve_InterfaceEnabled(sysevent_key, ifName, sizeof(ifName), &isEnabled);
 
 
@@ -551,7 +553,6 @@ static int load_v4dhcp_leases(ULONG clientCount)
                 pthread_mutex_lock(&pDhcpc->mutex);
 
                 snprintf(procPath, sizeof(procPath), "/proc/%d", storedLease.Info.ClientProcessId);
-                snprintf(sysevent_key, sizeof(sysevent_key), "DHCPCV4_ENABLE_%lu", instanceNum);
 
                 pid_running = (access(procPath, F_OK) == 0) ? TRUE : FALSE;
 
