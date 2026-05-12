@@ -326,6 +326,9 @@ static int load_v6dhcp_leases(ULONG clientCount)
     for (ulIndex = 0; ulIndex < clientCount; ulIndex++) 
     {
         COSA_DML_DHCPCV6_FULL storedLease;
+        char procPath[64] = {0};
+        char sysevent_key[64] = {0};
+        BOOL pid_running = FALSE;
 
         pSListEntry = (PSINGLE_LINK_ENTRY)Client3_GetEntry(NULL, ulIndex, &instanceNum);
         if (pSListEntry) 
@@ -383,9 +386,6 @@ static int load_v6dhcp_leases(ULONG clientCount)
             }
 
             pthread_mutex_lock(&pDhcp6c->mutex);
-            char procPath[64] = {0};
-            char sysevent_key[64] = {0};
-            BOOL pid_running = FALSE;
 
             snprintf(procPath, sizeof(procPath), "/proc/%d", storedLease.Info.ClientProcessId);
             snprintf(sysevent_key, sizeof(sysevent_key), "DHCPCV6_ENABLE_%lu", instanceNum);
@@ -485,6 +485,9 @@ static int load_v4dhcp_leases(ULONG clientCount)
         for (ulIndex = 0; ulIndex < clientCount; ulIndex++) 
         {
             COSA_DML_DHCPC_FULL storedLease;
+            char procPath[64] = {0};
+            char sysevent_key[64] = {0};
+            BOOL pid_running = FALSE;
 
             pSListEntry = (PSINGLE_LINK_ENTRY)Client_GetEntry(NULL, ulIndex, &instanceNum);
             if (pSListEntry) 
@@ -546,9 +549,6 @@ static int load_v4dhcp_leases(ULONG clientCount)
                 }
 
                 pthread_mutex_lock(&pDhcpc->mutex);
-                char procPath[64] = {0};
-                char sysevent_key[64] = {0};
-                BOOL pid_running = FALSE;
 
                 snprintf(procPath, sizeof(procPath), "/proc/%d", storedLease.Info.ClientProcessId);
                 snprintf(sysevent_key, sizeof(sysevent_key), "DHCPCV4_ENABLE_%lu", instanceNum);
