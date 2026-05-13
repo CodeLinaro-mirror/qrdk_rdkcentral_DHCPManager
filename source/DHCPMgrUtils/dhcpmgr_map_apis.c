@@ -224,21 +224,21 @@ CosaDmlMapParseResponse
                          if ( uiSubOption == MAP_OPTION_S46_PORT_PARAMS &&
                               uiSubOptionLen == 4 )
                          {
-                              pCurOption += sizeof(COSA_DML_MAPT_OPTION);
-                              g_stMaptData.PsidOffset  = *pCurOption;
+                              pCurOption += sizeof(COSA_DML_MAP_OPTION);
+                              g_stMapData.PsidOffset  = *pCurOption;
                               g_stMapData.PsidLen     = *++pCurOption;
 
                               // allowed PsidOffset values are 0 to 15
-                              if (g_stMaptData.PsidOffset > 15)
+                              if (g_stMapData.PsidOffset > 15)
                               {
-                                  MAPT_LOG_ERROR("Parsing OPTION_S46_PORT_PARAM: Received invalid PsidOffset :%u", g_stMaptData.PsidOffset);
+                                  MAP_LOG_ERROR("Parsing OPTION_S46_PORT_PARAM: Received invalid PsidOffset :%u", g_stMapData.PsidOffset);
                                   return STATUS_FAILURE;
                               }
 
                               // allowed PsidLen values are 0 to 16
-                              if (g_stMaptData.PsidLen > 16)
+                              if (g_stMapData.PsidLen > 16)
                               {
-                                  MAPT_LOG_ERROR("Parsing OPTION_S46_PORT_PARAM: Received invalid PsidLen :%u", g_stMaptData.PsidLen);
+                                  MAP_LOG_ERROR("Parsing OPTION_S46_PORT_PARAM: Received invalid PsidLen :%u", g_stMapData.PsidLen);
                                   return STATUS_FAILURE;
                               }
 
@@ -262,9 +262,9 @@ CosaDmlMapParseResponse
                               /* Reserved Port Range Validation (0–1023) */
                               /* ------------------------------------------------------------------ */
                               {
-                                  UINT8 psidoffset  = g_stMaptData.PsidOffset;
-                                  UINT8 psidLen = g_stMaptData.PsidLen;
-                                  UINT16 psid   = g_stMaptData.Psid;
+                                  UINT8 psidoffset  = g_stMapData.PsidOffset;
+                                  UINT8 psidLen = g_stMapData.PsidLen;
+                                  UINT16 psid   = g_stMapData.Psid;
 
                                   /* Validate MAP-T bit allocation: psidLen + offset must fit within 16-bit port space
                                    * to avoid negative shifts (m = 16 - (psidLen + offset)) and undefined behavior. 
@@ -283,7 +283,7 @@ CosaDmlMapParseResponse
                                       UINT32 min_port = (min_i << block_shift) + (psid << m);
                                       if (min_port < 1024)
                                       {
-                                          MAPT_LOG_WARNING(
+                                          MAP_LOG_WARNING(
                                               "MAP-T WARNING: Privileged port usage detected! psid=%u psidLen=%u offset=%u min_port=%u",
                                               psid, psidLen, psidoffset, min_port
                                           );
@@ -291,7 +291,7 @@ CosaDmlMapParseResponse
                                   }
                                   else
                                   {
-                                      MAPT_LOG_WARNING("MAP-T WARNING: Invalid MAP parameters! psidLen=%u offset=%u", psidLen, psidoffset);
+                                      MAP_LOG_WARNING("MAP-T WARNING: Invalid MAP parameters! psidLen=%u offset=%u", psidLen, psidoffset);
                                   }
                               }
                               /* ------------------------------------------------------------------ */
