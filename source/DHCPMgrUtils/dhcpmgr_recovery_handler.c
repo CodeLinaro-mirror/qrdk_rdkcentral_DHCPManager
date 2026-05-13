@@ -536,7 +536,7 @@ static int load_v4dhcp_leases(ULONG clientCount)
             snprintf(FilePattern, sizeof(FilePattern), "/tmp/Dhcp_manager/dhcpLease_%lu_v4", instanceNum);
             snprintf(sysevent_key, sizeof(sysevent_key), "DHCPCV4_ENABLE_%lu", instanceNum);
 
-            int sysevRet = (sysevent_key, ifName, sizeof(ifName), &isEnabled);
+            int sysevRet = Dhcp_get_Syseve_InterfaceEnabled(sysevent_key, ifName, sizeof(ifName), &isEnabled);
 
 
             if (access(FilePattern, F_OK) == 0) 
