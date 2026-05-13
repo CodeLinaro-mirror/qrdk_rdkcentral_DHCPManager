@@ -75,6 +75,7 @@
 #include "cosa_drg_common.h"
 #include "cosa_apis_util.h"
 #include "util.h"
+#define DHCP_CRASH_MARKER_FILE "/tmp/dhcp_crash"
 
 #include <stdlib.h>
 #include <unistd.h>

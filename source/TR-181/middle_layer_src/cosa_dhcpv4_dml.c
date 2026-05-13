@@ -82,6 +82,7 @@
 #include "cosa_apis_util.h"
 #include "cosa_webconfig_api.h"
 #include "util.h"
+#define DHCP_CRASH_MARKER_FILE "/tmp/dhcp_crash"
 
 #ifdef DHCPV4_SERVER_SUPPORT
 #include "dhcpv4_server_interface.h"
