@@ -423,7 +423,7 @@ static int load_v6dhcp_leases(ULONG clientCount)
             if (sysevRet == 0 && !isEnabled && !pid_running)
             {
                 /*Sysevent says disabled and PID not running - instance is disabled*/
-                DHCPMGR_LOG_("%s:%d Sysevent %s disabled and PID not running, skipping instance %lu\n", __FUNCTION__, __LINE__, sysevent_key, instanceNum);
+                DHCPMGR_LOG_INFO("%s:%d Sysevent %s disabled and PID not running, skipping instance %lu\n", __FUNCTION__, __LINE__, sysevent_key, instanceNum);
                 pDhcp6c->Info.Status = COSA_DML_DHCP_STATUS_Disabled;
             }
             else if (sysevRet == 0 && isEnabled && !pid_running)
@@ -694,7 +694,7 @@ static int DHCPMgr_loadDhcpLeases()
     }
     else
     {
-        DHCPMGR_LOG_("%s:%d No DHCPv6 client entries found for recovery\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_DEBUG("%s:%d No DHCPv6 client entries found for recovery\n", __FUNCTION__, __LINE__);
         retv6 = EXIT_FAIL;
     }
 
