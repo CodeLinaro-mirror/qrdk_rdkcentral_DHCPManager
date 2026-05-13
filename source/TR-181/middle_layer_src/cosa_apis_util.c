@@ -1326,3 +1326,67 @@ INT PsmReadParameter( char *pParamName, char *pReturnVal, int returnValLength )
     return retPsmGet;
 }
 #endif //DHCPV6C_PSM_ENABLE
+
+int Dhcp_set_Syseve_InterfaceEnabled(const char *sysevent_key, const char *ifname, BOOL enabled)
+{
+    if (sysevent_key == NULL || sysevent_key[0] == '\0' || ifname == NULL || ifname[0] == '\0')
+    {
+        DHCPMGR_LOG_ERROR("%s:%d Invalid input parameters\n", __FUNCTION__, __LINE__);
+        return -1;
+    }
+
+    char sysevent_value[128] = {0};
+    int ret = snprintf(sysevent_value, sizeof(sysevent_value), "%s %d", ifname, enabled ? 1 : 0);
+    if (ret < 0 || (size_t)ret >= sizeof(sysevent_value))
+    {
+        DHCPMGR_LOG_ERROR("%s:%d Buffer too small for sysevent value\n", __FUNCTION__, __LINE__);
+        return -1;
+    }
+
+    if (commonSyseventSet((char *)sysevent_key, sysevent_value) != 0)
+    {
+        DHCPMGR_LOG_ERROR("%s:%d Failed to set sysevent %s=%s\n", __FUNCTION__, __LINE__, sysevent_key, sysevent_value);
+        return -1;
+    }
+
+    return 0;
+}
+
+int Dhcp_get_Syseve_InterfaceEnabled(const char *sysevent_key, char *ifname, size_t ifnameLen, BOOL *enabled)
+{
+    if (sysevent_key == NULL || sysevent_key[0] == '\0' || ifname == NULL || ifnameLen == 0 || enabled == NULL)
+    {
+        DHCPMGR_LOG_ERROR("%s:%d Invalid input parameters\n", __FUNCTION__, __LINE__);
+        return -1;
+    }
+
+    char sysevent_value[128] = {0};
+    if (commonSyseventGet((char *)sysevent_key, sysevent_value, sizeof(sysevent_value)) != 0 ||
+        sysevent_value[0] == '\0')
+    {
+        DHCPMGR_LOG_ERROR("%s:%d Failed to get sysevent %s\n", __FUNCTION__, __LINE__, sysevent_key);
+        return -1;
+    }
+
+    char tmpIfName[64] = {0};
+    int status = -1;
+
+    if (sscanf(sysevent_value, "%63s %d", tmpIfName, &status) != 2)
+    {
+        DHCPMGR_LOG_ERROR("%s:%d Invalid sysevent value format: %s\n", __FUNCTION__, __LINE__, sysevent_value);
+        return -1;
+    }
+
+    if (strlen(tmpIfName) >= ifnameLen)
+    {
+        DHCPMGR_LOG_ERROR("%s:%d Interface name buffer too small\n", __FUNCTION__, __LINE__);
+        return -1;
+    }
+
+    strncpy(ifname, tmpIfName, ifnameLen - 1);
+    ifname[ifnameLen - 1] = '\0';
+    *enabled = (status == 1) ? TRUE : FALSE;
+    DHCPMGR_LOG_INFO("%s:%d Got sysevent %s=%s, parsed ifname=%s, enabled=%d\n", __FUNCTION__, __LINE__, sysevent_key, sysevent_value, ifname, *enabled);
+
+    return 0;
+}

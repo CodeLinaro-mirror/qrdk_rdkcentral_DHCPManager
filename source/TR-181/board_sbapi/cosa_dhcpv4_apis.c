@@ -1141,7 +1141,7 @@ CosaDmlDhcpcGetCfg
         return ANSC_STATUS_FAILURE;
     }
 
-    //Required for the crash Recovery
+    /*//Required for the crash Recovery
     char DhcpStateSys[64] = {0};
     _ansc_sprintf(param_name, "DHCPCV4_ENABLE_%d", instancenum);
     int ret = commonSyseventGet(param_name, DhcpStateSys, sizeof(DhcpStateSys));
@@ -1151,7 +1151,7 @@ CosaDmlDhcpcGetCfg
         strcpy_s(pCfg->Interface, sizeof(pCfg->Interface), DhcpStateSys);
     }
     else
-    {
+    {*/
         pCfg->bEnabled = FALSE;
         commonSyseventGet("current_wan_ifname", ifname, sizeof(ifname));
         if (strlen(ifname) > 0)
@@ -1161,7 +1161,7 @@ CosaDmlDhcpcGetCfg
                 rc = strcpy_s(pCfg->Interface, sizeof(pCfg->Interface), ifname);
                 ERR_CHK(rc);
         }
-    }
+    //}
     _PSM_READ_PARAM(PSM_DHCPMANAGER_CLIENTALIAS);
     if (retPsmGet == CCSP_SUCCESS)
     {

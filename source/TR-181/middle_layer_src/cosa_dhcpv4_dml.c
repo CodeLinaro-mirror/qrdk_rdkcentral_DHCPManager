@@ -1144,7 +1144,10 @@ Client_SetParamBoolValue
                 return FALSE;
             }
             snprintf(DhcpSysEveSet, sizeof(DhcpSysEveSet),"DHCPCV4_ENABLE_%lu", pDhcpc->Cfg.InstanceNumber);
-            commonSyseventSet(DhcpSysEveSet,pDhcpc->Cfg.Interface);
+            if (Dhcp_set_Syseve_InterfaceEnabled(DhcpSysEveSet, pDhcpc->Cfg.Interface, TRUE) != 0)
+            {
+                DHCPMGR_LOG_ERROR("%s %d: Failed to set sysevent %s\n", __FUNCTION__, __LINE__, DhcpSysEveSet);
+            }
         }
         else
         {
@@ -1155,10 +1158,27 @@ Client_SetParamBoolValue
                 return FALSE;
             }
             snprintf(DhcpSysEveSet, sizeof(DhcpSysEveSet),"DHCPCV4_ENABLE_%lu", pDhcpc->Cfg.InstanceNumber);
-            commonSyseventSet(DhcpSysEveSet,"");
+            if (Dhcp_set_Syseve_InterfaceEnabled(DhcpSysEveSet, pDhcpc->Cfg.Interface, FALSE) != 0)
+            {
+                DHCPMGR_LOG_ERROR("%s %d: Failed to set sysevent %s\n", __FUNCTION__, __LINE__, DhcpSysEveSet);
+            }
         }
         ret_mq_send=1;
     }
+
+    if (access(DHCP_CRASH_MARKER_FILE, F_OK) == 0)
+        {
+            DHCPMGR_LOG_ERROR("%s %d: Crash marker file %s found. Crashing dhcpmanager intentionally\n",
+                              __FUNCTION__, __LINE__, DHCP_CRASH_MARKER_FILE);
+
+            if (remove(DHCP_CRASH_MARKER_FILE) != 0)
+            {
+                DHCPMGR_LOG_WARNING("%s %d: Failed to remove crash marker file %s (errno=%d)\n",
+                                    __FUNCTION__, __LINE__, DHCP_CRASH_MARKER_FILE, errno);
+            }
+
+            abort();
+        }
 
     if (strcmp(ParamName, "Renew") == 0)
     {

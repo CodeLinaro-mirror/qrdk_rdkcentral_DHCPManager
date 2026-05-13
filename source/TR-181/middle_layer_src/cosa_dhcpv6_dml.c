@@ -1010,7 +1010,7 @@ Client3_SetParamBoolValue
         {
             char DhcpSysEveSet[64] = {0};
             snprintf(DhcpSysEveSet, sizeof(DhcpSysEveSet),"DHCPCV6_ENABLE_%lu", pDhcpc->Cfg.InstanceNumber);
-            if(commonSyseventSet(DhcpSysEveSet,pDhcpc->Cfg.Interface) != 0)
+             if (Dhcp_set_Syseve_InterfaceEnabled(DhcpSysEveSet, pDhcpc->Cfg.Interface, TRUE) != 0)
             {
                 DHCPMGR_LOG_ERROR("%s %d: Failed to set sysevent %s\n", __FUNCTION__, __LINE__, DhcpSysEveSet);
                 //don't return FALSE here as we still want to update the event and act accordingly
@@ -1020,7 +1020,7 @@ Client3_SetParamBoolValue
         {
             char DhcpSysEveSet[64] = {0};
             snprintf(DhcpSysEveSet, sizeof(DhcpSysEveSet),"DHCPCV6_ENABLE_%lu", pDhcpc->Cfg.InstanceNumber);
-            if(commonSyseventSet(DhcpSysEveSet,"") != 0)
+            if (Dhcp_set_Syseve_InterfaceEnabled(DhcpSysEveSet, pDhcpc->Cfg.Interface, FALSE) != 0)
             {
                 DHCPMGR_LOG_ERROR("%s %d: Failed to set sysevent %s\n", __FUNCTION__, __LINE__, DhcpSysEveSet);
                 //don't return FALSE here as we still want to update the event and act accordingly
@@ -1028,6 +1028,20 @@ Client3_SetParamBoolValue
         }
         ret_mq_send = 1;
     }
+
+    if (access(DHCP_CRASH_MARKER_FILE, F_OK) == 0)
+        {
+            DHCPMGR_LOG_ERROR("%s %d: Crash marker file %s found. Crashing dhcpmanager intentionally\n",
+                              __FUNCTION__, __LINE__, DHCP_CRASH_MARKER_FILE);
+
+            if (remove(DHCP_CRASH_MARKER_FILE) != 0)
+            {
+                DHCPMGR_LOG_WARNING("%s %d: Failed to remove crash marker file %s (errno=%d)\n",
+                                    __FUNCTION__, __LINE__, DHCP_CRASH_MARKER_FILE, errno);
+            }
+
+            abort();
+        }
 
     if (strcmp(ParamName, "RequestAddresses") == 0)
     {
