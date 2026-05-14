@@ -138,9 +138,9 @@ static void DhcpMgr_EnqueueSelfhealRestart(const char *ifname, int dhcpType)
                                                  char *cfgInterface, size_t cfgInterfaceSize,
                                                  BOOL *pEnabled, ULONG *pStatus, int dhcpType)
 {
-    if (sysevRet != 0 || ifName[0] == '\0')
+    if (ifName == NULL || sysevRet != 0 || ifName[0] == '\0')
     {        
-        DHCPMGR_LOG_ERROR("%s:%d Invalid sysevent data, sysevRet=%d, ifName=%s\n", __FUNCTION__, __LINE__, sysevRet, ifName);
+        DHCPMGR_LOG_ERROR("%s:%d Invalid sysevent data, sysevRet=%d, ifName=%s\n", __FUNCTION__, __LINE__, sysevRet, ifName ? ifName : "NULL");
         return;
     }
     *pEnabled = isEnabled;
@@ -357,8 +357,6 @@ static int load_v6dhcp_leases(ULONG clientCount)
     PCOSA_CONTEXT_DHCPCV6_LINK_OBJECT pDhcp6cxtLink  = NULL;
     PCOSA_DML_DHCPCV6_FULL pDhcp6c = NULL;
     char FilePattern[STR_MAX_LEN] = {0};
-    char ifName[STR_MAX_LEN] = {0};
-    BOOL isEnabled = FALSE;
     
     if (clientCount == 0) 
     {
@@ -371,6 +369,8 @@ static int load_v6dhcp_leases(ULONG clientCount)
         COSA_DML_DHCPCV6_FULL storedLease;
         char procPath[STR_MAX_LEN] = {0};
         char sysevent_key[STR_MAX_LEN] = {0};
+        char ifName[STR_MAX_LEN] = {0};
+        BOOL isEnabled = FALSE;
         BOOL pid_running = FALSE;
 
         pSListEntry = (PSINGLE_LINK_ENTRY)Client3_GetEntry(NULL, ulIndex, &instanceNum);
@@ -510,15 +510,14 @@ static int load_v4dhcp_leases(ULONG clientCount)
         int ret = EXIT_FAIL;
         char FilePattern[STR_MAX_LEN] = {0};
 
-        char ifName[STR_MAX_LEN] = {0};
-        BOOL isEnabled = FALSE;
-        char procPath[STR_MAX_LEN] = {0};
-        char sysevent_key[STR_MAX_LEN] = {0};
-        BOOL pid_running = FALSE;
-
         for (ulIndex = 0; ulIndex < clientCount; ulIndex++) 
         {
             COSA_DML_DHCPC_FULL storedLease;
+            char ifName[STR_MAX_LEN] = {0};
+            BOOL isEnabled = FALSE;
+            char procPath[STR_MAX_LEN] = {0};
+            char sysevent_key[STR_MAX_LEN] = {0};
+            BOOL pid_running = FALSE;
 
             pSListEntry = (PSINGLE_LINK_ENTRY)Client_GetEntry(NULL, ulIndex, &instanceNum);
             if (pSListEntry) 

@@ -1371,10 +1371,22 @@ int Dhcp_get_Syseve_InterfaceEnabled(const char *sysevent_key, char *ifname, siz
     char tmpIfName[64] = {0};
     int status = -1;
 
-    if (sscanf(sysevent_value, "%63s %d", tmpIfName, &status) != 2)
+    /* Try new format: "<ifname> <0|1>" */
+    if (sscanf(sysevent_value, "%63s %d", tmpIfName, &status) == 2)
     {
-        DHCPMGR_LOG_ERROR("%s:%d Invalid sysevent value format: %s\n", __FUNCTION__, __LINE__, sysevent_value);
-        return -1;
+        /* Validate status is exactly 0 or 1 */
+        if (status != 0 && status != 1)
+        {
+            DHCPMGR_LOG_ERROR("%s:%d Invalid status value %d in sysevent %s (expected 0 or 1)\n",
+                              __FUNCTION__, __LINE__, status, sysevent_key);
+            return -1;
+        }
+    }
+    else
+    {
+        strncpy(tmpIfName, sysevent_value, sizeof(tmpIfName) - 1);
+        tmpIfName[sizeof(tmpIfName) - 1] = '\0';
+        status = 1; /* Legacy: non-empty value means enabled */
     }
 
     if (strlen(tmpIfName) >= ifnameLen)

@@ -82,7 +82,6 @@
 #include "cosa_apis_util.h"
 #include "cosa_webconfig_api.h"
 #include "util.h"
-#define DHCP_CRASH_MARKER_FILE "/tmp/dhcp_crash"
 
 #ifdef DHCPV4_SERVER_SUPPORT
 #include "dhcpv4_server_interface.h"
@@ -1166,20 +1165,6 @@ Client_SetParamBoolValue
         }
         ret_mq_send=1;
     }
-
-    if (access(DHCP_CRASH_MARKER_FILE, F_OK) == 0)
-        {
-            DHCPMGR_LOG_ERROR("%s %d: Crash marker file %s found. Crashing dhcpmanager intentionally\n",
-                              __FUNCTION__, __LINE__, DHCP_CRASH_MARKER_FILE);
-
-            if (remove(DHCP_CRASH_MARKER_FILE) != 0)
-            {
-                DHCPMGR_LOG_WARNING("%s %d: Failed to remove crash marker file %s (errno=%d)\n",
-                                    __FUNCTION__, __LINE__, DHCP_CRASH_MARKER_FILE, errno);
-            }
-
-            abort();
-        }
 
     if (strcmp(ParamName, "Renew") == 0)
     {
