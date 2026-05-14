@@ -259,7 +259,7 @@ CosaDmlMapParseResponse
                               MAP_LOG_INFO("<<<TRACE>>> g_stMapData.Ratio      : %u", g_stMapData.Ratio);
 
                               /* ------------------------------------------------------------------ */
-                              /* Reserved Port Range Validation (0–1023) */
+                              /* Reserved Port Range Validation (0-1023) */
                               /* ------------------------------------------------------------------ */
                               {
                                   UINT8 psidoffset  = g_stMapData.PsidOffset;
