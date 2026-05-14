@@ -242,6 +242,17 @@ CosaDmlMapParseResponse
                                   return STATUS_FAILURE;
                               }
 
+                              /* RFC-compliant MAP port allocation requires PsidOffset + PsidLen <= 16. */
+                              if ((g_stMapData.PsidOffset + g_stMapData.PsidLen) > 16)
+                              {
+                                  MAP_LOG_ERROR(
+                                      "Parsing OPTION_S46_PORT_PARAM: Received invalid MAP parameters PsidOffset:%u PsidLen:%u",
+                                      g_stMapData.PsidOffset,
+                                      g_stMapData.PsidLen
+                                  );
+                                  return STATUS_FAILURE;
+                              }
+
                               if ( !g_stMapData.EaLen )
                               {
                                    g_stMapData.Ratio = 1 << g_stMapData.PsidLen;
