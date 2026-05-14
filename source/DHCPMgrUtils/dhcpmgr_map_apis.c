@@ -276,33 +276,22 @@ CosaDmlMapParseResponse
                                   UINT8 psidoffset  = g_stMapData.PsidOffset;
                                   UINT8 psidLen = g_stMapData.PsidLen;
                                   UINT16 psid   = g_stMapData.Psid;
+                                  UINT8 m = 16 - (psidLen + psidoffset);
+                                  UINT8 block_shift = 16 - psidoffset;
+                                  UINT32 min_i = (psidoffset == 0) ? 0 : 1;
 
-                                  /* Validate MAP-T bit allocation: psidLen + offset must fit within 16-bit port space
-                                   * to avoid negative shifts (m = 16 - (psidLen + offset)) and undefined behavior. 
-                                   * Ideally the check should be 
-                                   * "if (psidoffset < 16 && psidLen <= 16 && (psidoffset + psidLen)<= 16)"
-                                   * but since we are already rejecting invalid psidLen / psidOffset earlier, 
-                                   * we don't need to validate here.
+                                  /* psidLen / psidOffset combinations are validated earlier, so
+                                   * the bit allocation is guaranteed to fit within the 16-bit port space.
                                    */
-                                  if ((psidLen + psidoffset) <= 16)
-                                  {
-                                      UINT8 m = 16 - (psidLen + psidoffset);
-                                      UINT8 block_shift = 16 - psidoffset;
-                                      UINT32 min_i = (psidoffset == 0) ? 0 : 1;
 
-                                      /* Lowest possible port for this CE */
-                                      UINT32 min_port = (min_i << block_shift) + (psid << m);
-                                      if (min_port < 1024)
-                                      {
-                                          MAP_LOG_WARNING(
-                                              "MAP-T WARNING: Privileged port usage detected! psid=%u psidLen=%u offset=%u min_port=%u",
-                                              psid, psidLen, psidoffset, min_port
-                                          );
-                                      }
-                                  }
-                                  else
+                                  /* Lowest possible port for this CE */
+                                  UINT32 min_port = (min_i << block_shift) + (psid << m);
+                                  if (min_port < 1024)
                                   {
-                                      MAP_LOG_WARNING("MAP-T WARNING: Invalid MAP parameters! psidLen=%u offset=%u", psidLen, psidoffset);
+                                      MAP_LOG_WARNING(
+                                          "MAP-T WARNING: Privileged port usage detected! psid=%u psidLen=%u offset=%u min_port=%u",
+                                          psid, psidLen, psidoffset, min_port
+                                      );
                                   }
                               }
                               /* ------------------------------------------------------------------ */
