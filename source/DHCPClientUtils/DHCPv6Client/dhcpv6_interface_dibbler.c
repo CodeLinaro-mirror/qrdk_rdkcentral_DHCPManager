@@ -479,17 +479,20 @@ int send_dhcpv6_renew(pid_t processID) {
  */
 int send_dhcpv6_release(pid_t processID) {
     DHCPMGR_LOG_INFO("%s %d  send_dhcpv6_release\n", __FUNCTION__, __LINE__);
-    // send unicast DHCPv6 RELEASE
-    int fd = 0;
-    //TODO : copiedfrom legacy implementation, change it to user def signal
-    fd = creat("/tmp/dhcpv6_release",S_IRUSR | S_IWUSR | S_IRGRP);
-    if(fd != -1)
+    if (processID <= 0)
     {
-        close(fd);
+        DHCPMGR_LOG_ERROR("%s %d: unable to get pid of dibbler\n", __FUNCTION__, __LINE__);
+        return FAILURE;
     }
-    DHCPMGR_LOG_INFO("%s %d Calling stop after sending release. \n", __FUNCTION__, __LINE__);
-    stop_dhcpv6_client(processID);
-    return 0;
+    if (signal_process(processID, SIGRTMIN) != RETURN_OK)
+    {
+        DHCPMGR_LOG_ERROR("%s %d: unable to send signal to pid %d\n", __FUNCTION__, __LINE__, processID);
+        return FAILURE;
+    }
+    struct timespec ts = {2, 0};
+    nanosleep(&ts, NULL);
+    int ret = collect_waiting_process(processID, DIBBLER_CLIENT_TERMINATE_TIMEOUT);
+    return ret;
 }
 
 /**
