@@ -82,7 +82,7 @@ static void DhcpMgr_UpdateEnableSysevent(ULONG instance, const char *if_name, BO
         return;
     }
 
-    if (Dhcp_set_Syseve_InterfaceEnabled(sysevent_key, if_name, enabled) != 0)
+    if (Dhcp_set_Sysevent_InterfaceEnable(sysevent_key, if_name, enabled) != 0)
     {
         DHCPMGR_LOG_ERROR("%s %d: Failed to set sysevent %s\n", __FUNCTION__, __LINE__, sysevent_key);
     }

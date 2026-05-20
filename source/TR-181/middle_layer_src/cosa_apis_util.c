@@ -1327,7 +1327,7 @@ INT PsmReadParameter( char *pParamName, char *pReturnVal, int returnValLength )
 }
 #endif //DHCPV6C_PSM_ENABLE
 
-int Dhcp_set_Syseve_InterfaceEnabled(const char *sysevent_key, const char *ifname, BOOL enabled)
+int Dhcp_set_Sysevent_InterfaceEnable(const char *sysevent_key, const char *ifname, BOOL enabled)
 {
     if (sysevent_key == NULL || sysevent_key[0] == '\0' || ifname == NULL || ifname[0] == '\0')
     {
@@ -1352,7 +1352,7 @@ int Dhcp_set_Syseve_InterfaceEnabled(const char *sysevent_key, const char *ifnam
     return 0;
 }
 
-int Dhcp_get_Syseve_InterfaceEnabled(const char *sysevent_key, char *ifname, size_t ifnameLen, BOOL *enabled)
+int Dhcp_get_Sysevent_InterfaceEnable(const char *sysevent_key, char *ifname, size_t ifnameLen, BOOL *enabled)
 {
     if (sysevent_key == NULL || sysevent_key[0] == '\0' || ifname == NULL || ifnameLen == 0 || enabled == NULL)
     {

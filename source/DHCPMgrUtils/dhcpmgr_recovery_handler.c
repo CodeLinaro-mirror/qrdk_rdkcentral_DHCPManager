@@ -123,7 +123,7 @@ static void DhcpMgr_EnqueueSelfhealRestart(const char *ifname, int dhcpType)
  * If sysevent is disabled, sets status to Enabled (so controller will stop the process).
  * Then enqueues a selfheal restart for the given interface.
  *
- * @param sysevRet Return value from Dhcp_get_Syseve_InterfaceEnabled.
+ * @param sysevRet Return value from Dhcp_get_Sysevent_InterfaceEnable.
  * @param isEnabled Whether sysevent reports the interface as enabled.
  * @param ifName The interface name from sysevent.
  * @param cfgInterface Pointer to Cfg.Interface field to populate.
@@ -390,7 +390,7 @@ static int load_v6dhcp_leases(ULONG clientCount)
         snprintf(FilePattern, sizeof(FilePattern), "/tmp/Dhcp_manager/dhcpLease_%lu_v6", instanceNum);
         snprintf(sysevent_key, sizeof(sysevent_key), "DHCPCV6_ENABLE_%lu", instanceNum);
 
-        int sysevRet = Dhcp_get_Syseve_InterfaceEnabled(sysevent_key, ifName, sizeof(ifName), &isEnabled);
+        int sysevRet = Dhcp_get_Sysevent_InterfaceEnable(sysevent_key, ifName, sizeof(ifName), &isEnabled);
 
         if (access(FilePattern, F_OK) == 0) 
         {
@@ -528,7 +528,7 @@ static int load_v4dhcp_leases(ULONG clientCount)
             DHCPMGR_LOG_DEBUG("%s:%d Loading data for DHCPv4.Client.%lu\n", __FUNCTION__, __LINE__, instanceNum);
             snprintf(sysevent_key, sizeof(sysevent_key), "DHCPCV4_ENABLE_%lu", instanceNum);
 
-            int sysevRet = Dhcp_get_Syseve_InterfaceEnabled(sysevent_key, ifName, sizeof(ifName), &isEnabled);
+            int sysevRet = Dhcp_get_Sysevent_InterfaceEnable(sysevent_key, ifName, sizeof(ifName), &isEnabled);
 
             if (!pDhcpc) 
             {

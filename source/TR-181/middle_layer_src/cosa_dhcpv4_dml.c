@@ -1144,7 +1144,7 @@ Client_SetParamBoolValue
                 return FALSE;
             }
             snprintf(DhcpSysEveSet, sizeof(DhcpSysEveSet),"DHCPCV4_ENABLE_%lu", pDhcpc->Cfg.InstanceNumber);
-            if (Dhcp_set_Syseve_InterfaceEnabled(DhcpSysEveSet, pDhcpc->Cfg.Interface, TRUE) != 0)
+            if (Dhcp_set_Sysevent_InterfaceEnable(DhcpSysEveSet, pDhcpc->Cfg.Interface, TRUE) != 0)
             {
                 DHCPMGR_LOG_ERROR("%s %d: Failed to set sysevent %s\n", __FUNCTION__, __LINE__, DhcpSysEveSet);
             }
@@ -1158,7 +1158,7 @@ Client_SetParamBoolValue
                 return FALSE;
             }
             snprintf(DhcpSysEveSet, sizeof(DhcpSysEveSet),"DHCPCV4_ENABLE_%lu", pDhcpc->Cfg.InstanceNumber);
-            if (Dhcp_set_Syseve_InterfaceEnabled(DhcpSysEveSet, pDhcpc->Cfg.Interface, FALSE) != 0)
+            if (Dhcp_set_Sysevent_InterfaceEnable(DhcpSysEveSet, pDhcpc->Cfg.Interface, FALSE) != 0)
             {
                 DHCPMGR_LOG_ERROR("%s %d: Failed to set sysevent %s\n", __FUNCTION__, __LINE__, DhcpSysEveSet);
             }
