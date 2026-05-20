@@ -1140,27 +1140,16 @@ CosaDmlDhcpcGetCfg
     {
         return ANSC_STATUS_FAILURE;
     }
-
-    //Required for the crash Recovery
-    char DhcpStateSys[64] = {0};
-    _ansc_sprintf(param_name, "DHCPCV4_ENABLE_%d", instancenum);
-    int ret = commonSyseventGet(param_name, DhcpStateSys, sizeof(DhcpStateSys));
-    if (ret == 0 && DhcpStateSys[0] != '\0')
+    pCfg->bEnabled = FALSE;
+    commonSyseventGet("current_wan_ifname", ifname, sizeof(ifname));
+    if (strlen(ifname) > 0)
     {
-        pCfg->bEnabled = TRUE;
-        strcpy_s(pCfg->Interface, sizeof(pCfg->Interface), DhcpStateSys);
+        pCfg->Interface[0] = 0;
     }
     else
     {
-        pCfg->bEnabled = FALSE;
-        commonSyseventGet("current_wan_ifname", ifname, sizeof(ifname));
-        if (strlen(ifname) > 0)
-               pCfg->Interface[0] = 0;
-        else
-        {
-                rc = strcpy_s(pCfg->Interface, sizeof(pCfg->Interface), ifname);
-                ERR_CHK(rc);
-        }
+        rc = strcpy_s(pCfg->Interface, sizeof(pCfg->Interface), ifname);
+        ERR_CHK(rc);
     }
     _PSM_READ_PARAM(PSM_DHCPMANAGER_CLIENTALIAS);
     if (retPsmGet == CCSP_SUCCESS)
