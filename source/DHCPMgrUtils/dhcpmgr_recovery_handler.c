@@ -140,7 +140,7 @@ static void DhcpMgr_EnqueueSelfhealRestart(const char *ifname, int dhcpType)
 {
     if (ifName == NULL || sysevRet != 0 || ifName[0] == '\0')
     {        
-        DHCPMGR_LOG_ERROR("%s:%d Invalid sysevent data, sysevRet=%d, ifName=%s\n", __FUNCTION__, __LINE__, sysevRet, ifName ? ifName : "NULL");
+        DHCPMGR_LOG_DEBUG("%s:%d Invalid sysevent data, sysevRet=%d, ifName=%s\n", __FUNCTION__, __LINE__, sysevRet, ifName ? ifName : "NULL");
         return;
     }
     *pEnabled = isEnabled;
@@ -435,7 +435,7 @@ static int load_v6dhcp_leases(ULONG clientCount)
             else if (sysevRet == 0 && isEnabled && !pid_running)
             {
                 /*Sysevent says enabled but PID is not running - need restart*/
-                DHCPMGR_LOG_INFO("%s:%d PID %d is not running \n but sysevent %s is enabled, need restart\n", __FUNCTION__, __LINE__, storedLease.Info.ClientProcessId, sysevent_key);
+                DHCPMGR_LOG_INFO("%s:%d PID %d is not running but sysevent %s is enabled, need restart\n", __FUNCTION__, __LINE__, storedLease.Info.ClientProcessId, sysevent_key);
                 DhcpMgr_SetStatusAndEnqueueRestart(sysevRet, isEnabled, ifName,
                     pDhcp6c->Cfg.Interface, sizeof(pDhcp6c->Cfg.Interface),
                     &pDhcp6c->Cfg.bEnabled, &pDhcp6c->Info.Status, DML_DHCPV6);

@@ -1364,7 +1364,7 @@ int Dhcp_get_Sysevent_InterfaceEnable(const char *sysevent_key, char *ifname, si
     if (commonSyseventGet((char *)sysevent_key, sysevent_value, sizeof(sysevent_value)) != 0 ||
         sysevent_value[0] == '\0')
     {
-        DHCPMGR_LOG_ERROR("%s:%d Failed to get sysevent %s\n", __FUNCTION__, __LINE__, sysevent_key);
+        DHCPMGR_LOG_DEBUG("%s:%d Failed to get sysevent %s\n", __FUNCTION__, __LINE__, sysevent_key);
         return -1;
     }
 
