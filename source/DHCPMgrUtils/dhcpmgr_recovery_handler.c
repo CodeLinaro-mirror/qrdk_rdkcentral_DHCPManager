@@ -543,6 +543,8 @@ static int load_v4dhcp_leases(ULONG clientCount)
 
             snprintf(FilePattern, sizeof(FilePattern), "/tmp/Dhcp_manager/dhcpLease_%lu_v4", instanceNum);
 
+            pthread_mutex_lock(&pDhcpc->mutex);
+
             if (access(FilePattern, F_OK) == 0) 
             {
                 FILE *file = fopen(FilePattern, "rb");
@@ -554,6 +556,7 @@ static int load_v4dhcp_leases(ULONG clientCount)
                         pDhcpc->Cfg.Interface, sizeof(pDhcpc->Cfg.Interface),
                         &pDhcpc->Cfg.bEnabled, &pDhcpc->Info.Status, DML_DHCPV4);
                     DHCPMGR_LOG_DEBUG("%s:%d Failed to open file %s , No file was store for DHCPv4.%lu.Client \n", __FUNCTION__, __LINE__, FilePattern, instanceNum);
+                    pthread_mutex_unlock(&pDhcpc->mutex);
                     continue;
                 }
 
@@ -563,10 +566,10 @@ static int load_v4dhcp_leases(ULONG clientCount)
                 {
                     DHCPMGR_LOG_ERROR("%s:%d Failed to read data from file %s\n", __FUNCTION__, __LINE__, FilePattern);
                     fclose(file);
+                    pthread_mutex_unlock(&pDhcpc->mutex);
                     continue;
                 }
 
-                pthread_mutex_lock(&pDhcpc->mutex);
                 snprintf(procPath, sizeof(procPath), "/proc/%d", storedLease.Info.ClientProcessId);
 
                 /*If the ClientPid is running before and after DHCPMgr restart, we have to populate data for the Client*/
@@ -632,7 +635,6 @@ static int load_v4dhcp_leases(ULONG clientCount)
                     ret = EXIT_SUCCESS;
                     DhcpMgr_updateDHCPv4DML(pDhcpc);
                 }
-                pthread_mutex_unlock(&pDhcpc->mutex);
                 fclose(file);
             }
             else 
@@ -644,6 +646,7 @@ static int load_v4dhcp_leases(ULONG clientCount)
                     &pDhcpc->Cfg.bEnabled, &pDhcpc->Info.Status, DML_DHCPV4);
                 DHCPMGR_LOG_DEBUG("%s:%d File %s does not exist, No file was stored for DHCPv4.Client.%lu\n", __FUNCTION__, __LINE__, FilePattern, instanceNum);
             }
+            pthread_mutex_unlock(&pDhcpc->mutex);
         }
         DHCPMGR_LOG_DEBUG("%s:%d ------OUT\n", __FUNCTION__, __LINE__);
         return ret;
