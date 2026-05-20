@@ -55,6 +55,40 @@
 /* ---- Global Constants -------------------------- */
 
 /**
+ * @brief Updates the DHCP client enable/disable state via sysevent.
+ *
+ * Sets a sysevent key (DHCPCV4_ENABLE or DHCPCV6_ENABLE) for the given
+ * interface instance to reflect the current enabled state.
+ *
+ * @param instance  The DHCP client instance number.
+ * @param if_name   The network interface name.
+ * @param enabled       TRUE to enable, FALSE to disable.
+ * @param dhcpVersion   DHCP_v4 or DHCP_v6.
+ */
+static void DhcpMgr_UpdateEnableSysevent(ULONG instance, const char *if_name, BOOL enabled, int dhcpVersion)
+{
+    DHCPMGR_LOG_DEBUG("%s %d: Updating sysevent for instance %lu, interface %s, enabled %d, DHCP version %d\n", 
+        __FUNCTION__, __LINE__, instance, if_name ? if_name : "NULL", enabled, dhcpVersion);
+    char sysevent_key[64] = {0};
+
+    snprintf(sysevent_key,
+             sizeof(sysevent_key),
+             (dhcpVersion == DHCP_v6) ? "DHCPCV6_ENABLE_%lu" : "DHCPCV4_ENABLE_%lu",
+             instance);
+
+    if (if_name == NULL || if_name[0] == '\0')
+    {
+        DHCPMGR_LOG_ERROR("%s %d: Cannot set sysevent %s with empty interface name\n", __FUNCTION__, __LINE__, sysevent_key);
+        return;
+    }
+
+    if (Dhcp_set_Sysevent_InterfaceEnable(sysevent_key, if_name, enabled) != 0)
+    {
+        DHCPMGR_LOG_ERROR("%s %d: Failed to set sysevent %s\n", __FUNCTION__, __LINE__, sysevent_key);
+    }
+}
+
+/**
  * @brief Starts the main controller thread.
  *
  * This function initializes and starts the main controller thread for the DHCP Manager.
@@ -529,6 +563,8 @@ static void Process_DHCPv4_Handler(char* if_name, dhcp_info_t dml_set_msg)
                 if(DhcpMgr_checkInterfaceStatus(pDhcpc->Cfg.Interface)== FALSE)
                 {
                     pDhcpc->Cfg.bEnabled = FALSE;
+                    //update the sysevent with interface enabled status as false, so that dhcp client won't be started on DHCPMANAGER crash recovery.
+                    DhcpMgr_UpdateEnableSysevent(pDhcpc->Cfg.InstanceNumber, pDhcpc->Cfg.Interface, FALSE, DHCP_v4);
                     DhcpMgr_PublishDhcpV4Event(pDhcpc, DHCP_CLIENT_FAILED);
                 }
                 else
@@ -682,6 +718,8 @@ static void Process_DHCPv6_Handler(char* if_name, dhcp_info_t dml_set_msg)
                 if(DhcpMgr_checkInterfaceStatus(pDhcp6c->Cfg.Interface)== FALSE)
                 {
                     pDhcp6c->Cfg.bEnabled = FALSE;
+                    //update the sysevent with interface enabled status as false, so that dhcp client won't be started on DHCPMANAGER crash recovery.
+                    DhcpMgr_UpdateEnableSysevent(pDhcp6c->Cfg.InstanceNumber, pDhcp6c->Cfg.Interface, FALSE, DHCP_v6);
                     DhcpMgr_PublishDhcpV6Event(pDhcp6c, DHCP_CLIENT_FAILED);
                 }
                 else if(DhcpMgr_checkLinkLocalAddress(pDhcp6c->Cfg.Interface)== FALSE)
