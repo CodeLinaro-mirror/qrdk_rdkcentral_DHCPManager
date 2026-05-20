@@ -392,6 +392,8 @@ static int load_v6dhcp_leases(ULONG clientCount)
 
         int sysevRet = Dhcp_get_Sysevent_InterfaceEnable(sysevent_key, ifName, sizeof(ifName), &isEnabled);
 
+        pthread_mutex_lock(&pDhcp6c->mutex);
+
         if (access(FilePattern, F_OK) == 0) 
         {
             FILE *file = fopen(FilePattern, "rb");
@@ -403,6 +405,7 @@ static int load_v6dhcp_leases(ULONG clientCount)
                 DhcpMgr_SetStatusAndEnqueueRestart(sysevRet, isEnabled, ifName,
                     pDhcp6c->Cfg.Interface, sizeof(pDhcp6c->Cfg.Interface),
                     &pDhcp6c->Cfg.bEnabled, &pDhcp6c->Info.Status, DML_DHCPV6);
+                pthread_mutex_unlock(&pDhcp6c->mutex);
                 continue;
             }
 
@@ -412,10 +415,11 @@ static int load_v6dhcp_leases(ULONG clientCount)
             {
                 DHCPMGR_LOG_ERROR("%s:%d Failed to read data from file %s\n", __FUNCTION__, __LINE__, FilePattern);
                 fclose(file);
+                pthread_mutex_unlock(&pDhcp6c->mutex);
                 continue;
             }
 
-            pthread_mutex_lock(&pDhcp6c->mutex);
+            //pthread_mutex_lock(&pDhcp6c->mutex);
 
             snprintf(procPath, sizeof(procPath), "/proc/%d", storedLease.Info.ClientProcessId);
             /*If the ClientPid is running before and after DHCPMgr restart, populate data for the Client*/
@@ -481,7 +485,7 @@ static int load_v6dhcp_leases(ULONG clientCount)
                 //even if we fail to read current lease, we can continue as the dhcp client is running already and we don't need current lease right now.
                 ret=EXIT_SUCCESS;
             }
-            pthread_mutex_unlock(&pDhcp6c->mutex);
+            //pthread_mutex_unlock(&pDhcp6c->mutex);
             fclose(file);
         }
         else
@@ -493,6 +497,7 @@ static int load_v6dhcp_leases(ULONG clientCount)
                 pDhcp6c->Cfg.Interface, sizeof(pDhcp6c->Cfg.Interface),
                 &pDhcp6c->Cfg.bEnabled, &pDhcp6c->Info.Status, DML_DHCPV6);
         }
+        pthread_mutex_unlock(&pDhcp6c->mutex);
     }
     DHCPMGR_LOG_DEBUG("%s:%d ------OUT\n", __FUNCTION__, __LINE__);
     return ret;
