@@ -106,9 +106,10 @@ static void processv6LesSysevents(IPv6Events* eventMaps, size_t size, const char
  * @brief Checks if a lifetime has meaningfully changed in lease policy.
  *
  * On DHCPv6 renewals, the server sends the full new lifetime from that moment.
- * The actual value may vary between renewals even if the policy is unchanged.
- * Only detect a real policy change: transition between infinite and finite lifetime.
- * Finite-to-finite variations are treated optimistically as the same policy.
+ * If new lifetime <= previous, WanManager already has a higher/equal timer set,
+ * so no update is needed. If new lifetime > previous, it means the previously
+ * stored timer in WanManager would be expiring or has expired, and the server is
+ * granting a fresh longer lease that must be published.
  *
  * @param currentLifeTime The previously stored lifetime value.
  * @param newLifeTime The newly received lifetime value.
@@ -117,11 +118,8 @@ static void processv6LesSysevents(IPv6Events* eventMaps, size_t size, const char
  */
 static bool is_lifetime_changed(uint32_t currentLifeTime, uint32_t newLifeTime)
 {
-    bool currentIsInfinite = (currentLifeTime == 0 || currentLifeTime == UINT32_MAX);
-    bool newIsInfinite = (newLifeTime == 0 || newLifeTime == UINT32_MAX);
-
-    /* Only a transition between infinite and finite is a real policy change */
-    return (currentIsInfinite != newIsInfinite);
+    /* If new lifetime is greater than previous, WanManager needs the update */
+    return (newLifeTime > currentLifeTime);
 }
 
 static bool compare_dhcpv6_plugin_msg(const DHCPv6_PLUGIN_MSG *currentLease, const DHCPv6_PLUGIN_MSG *newLease) 
