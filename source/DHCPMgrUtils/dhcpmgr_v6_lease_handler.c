@@ -103,34 +103,25 @@ static void processv6LesSysevents(IPv6Events* eventMaps, size_t size, const char
  * @return true if the two messages are identical, false otherwise.
  */
 /**
- * @brief Checks if two lifetimes represent a meaningful change in lease policy.
+ * @brief Checks if a lifetime has meaningfully changed in lease policy.
  *
  * On DHCPv6 renewals, the server sends the full new lifetime from that moment.
- * Due to timing jitter between renewals, the value may vary slightly (e.g., 3600 vs 3595).
- * This function ignores minor variations and only reports a change when the server has
- * actually changed the lease policy (e.g., infinite -> 3600, or 3600 -> 1800).
+ * The actual value may vary between renewals even if the policy is unchanged.
+ * Only detect a real policy change: transition between infinite and finite lifetime.
+ * Finite-to-finite variations are treated optimistically as the same policy.
  *
  * @param currentLifeTime The previously stored lifetime value.
  * @param newLifeTime The newly received lifetime value.
  *
  * @return true if the lifetime has meaningfully changed, false otherwise.
  */
-#define LIFETIME_CHANGE_THRESHOLD 120 /* seconds - ignore jitter smaller than this */
-
 static bool is_lifetime_changed(uint32_t currentLifeTime, uint32_t newLifeTime)
 {
-    /* Infinite lifetime (0xFFFFFFFF) to/from finite is always a real change */
-    if (currentLifeTime == UINT32_MAX || newLifeTime == UINT32_MAX)
-    {
-        return (currentLifeTime != newLifeTime);
-    }
+    bool currentIsInfinite = (currentLifeTime == 0 || currentLifeTime == UINT32_MAX);
+    bool newIsInfinite = (newLifeTime == 0 || newLifeTime == UINT32_MAX);
 
-    /* For finite lifetimes, use threshold to ignore minor renewal timing variations */
-    uint32_t diff = (currentLifeTime > newLifeTime) ?
-                    (currentLifeTime - newLifeTime) :
-                    (newLifeTime - currentLifeTime);
-
-    return (diff > LIFETIME_CHANGE_THRESHOLD);
+    /* Only a transition between infinite and finite is a real policy change */
+    return (currentIsInfinite != newIsInfinite);
 }
 
 static bool compare_dhcpv6_plugin_msg(const DHCPv6_PLUGIN_MSG *currentLease, const DHCPv6_PLUGIN_MSG *newLease) 
