@@ -112,12 +112,16 @@ static bool compare_dhcpv6_plugin_msg(const DHCPv6_PLUGIN_MSG *currentLease, con
 
     bool ia_na_eq = (currentLease->ia_na.assigned == newLease->ia_na.assigned) &&
                     (strncmp(currentLease->ia_na.address, newLease->ia_na.address, sizeof(currentLease->ia_na.address)) == 0) &&
-                    (currentLease->ia_na.IA_ID == newLease->ia_na.IA_ID);
+                    (currentLease->ia_na.IA_ID == newLease->ia_na.IA_ID) &&
+                    (currentLease->ia_na.PreferedLifeTime == newLease->ia_na.PreferedLifeTime) &&
+                    (currentLease->ia_na.ValidLifeTime == newLease->ia_na.ValidLifeTime);
 
     bool ia_pd_eq = (currentLease->ia_pd.assigned == newLease->ia_pd.assigned) &&
                     (strncmp(currentLease->ia_pd.Prefix, newLease->ia_pd.Prefix, sizeof(currentLease->ia_pd.Prefix)) == 0) &&
                     (currentLease->ia_pd.PrefixLength == newLease->ia_pd.PrefixLength) &&
-                    (currentLease->ia_pd.IA_ID == newLease->ia_pd.IA_ID);
+                    (currentLease->ia_pd.IA_ID == newLease->ia_pd.IA_ID) &&
+                    (currentLease->ia_pd.PreferedLifeTime == newLease->ia_pd.PreferedLifeTime) &&
+                    (currentLease->ia_pd.ValidLifeTime == newLease->ia_pd.ValidLifeTime);
 
     // Compare all fields except the `next` pointer
     if (currentLease->isExpired != newLease->isExpired ||
