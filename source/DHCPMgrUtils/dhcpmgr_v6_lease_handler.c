@@ -102,6 +102,37 @@ static void processv6LesSysevents(IPv6Events* eventMaps, size_t size, const char
  * 
  * @return true if the two messages are identical, false otherwise.
  */
+/**
+ * @brief Checks if two lifetimes represent a meaningful change in lease policy.
+ *
+ * On DHCPv6 renewals, the server sends the full new lifetime from that moment.
+ * Due to timing jitter between renewals, the value may vary slightly (e.g., 3600 vs 3595).
+ * This function ignores minor variations and only reports a change when the server has
+ * actually changed the lease policy (e.g., infinite -> 3600, or 3600 -> 1800).
+ *
+ * @param currentLifeTime The previously stored lifetime value.
+ * @param newLifeTime The newly received lifetime value.
+ *
+ * @return true if the lifetime has meaningfully changed, false otherwise.
+ */
+#define LIFETIME_CHANGE_THRESHOLD 120 /* seconds - ignore jitter smaller than this */
+
+static bool is_lifetime_changed(uint32_t currentLifeTime, uint32_t newLifeTime)
+{
+    /* Infinite lifetime (0xFFFFFFFF) to/from finite is always a real change */
+    if (currentLifeTime == UINT32_MAX || newLifeTime == UINT32_MAX)
+    {
+        return (currentLifeTime != newLifeTime);
+    }
+
+    /* For finite lifetimes, use threshold to ignore minor renewal timing variations */
+    uint32_t diff = (currentLifeTime > newLifeTime) ?
+                    (currentLifeTime - newLifeTime) :
+                    (newLifeTime - currentLifeTime);
+
+    return (diff > LIFETIME_CHANGE_THRESHOLD);
+}
+
 static bool compare_dhcpv6_plugin_msg(const DHCPv6_PLUGIN_MSG *currentLease, const DHCPv6_PLUGIN_MSG *newLease) 
 {
     if (currentLease == NULL || newLease == NULL) 
@@ -113,15 +144,15 @@ static bool compare_dhcpv6_plugin_msg(const DHCPv6_PLUGIN_MSG *currentLease, con
     bool ia_na_eq = (currentLease->ia_na.assigned == newLease->ia_na.assigned) &&
                     (strncmp(currentLease->ia_na.address, newLease->ia_na.address, sizeof(currentLease->ia_na.address)) == 0) &&
                     (currentLease->ia_na.IA_ID == newLease->ia_na.IA_ID) &&
-                    (currentLease->ia_na.PreferedLifeTime == newLease->ia_na.PreferedLifeTime) &&
-                    (currentLease->ia_na.ValidLifeTime == newLease->ia_na.ValidLifeTime);
+                    !is_lifetime_changed(currentLease->ia_na.PreferedLifeTime, newLease->ia_na.PreferedLifeTime) &&
+                    !is_lifetime_changed(currentLease->ia_na.ValidLifeTime, newLease->ia_na.ValidLifeTime);
 
     bool ia_pd_eq = (currentLease->ia_pd.assigned == newLease->ia_pd.assigned) &&
                     (strncmp(currentLease->ia_pd.Prefix, newLease->ia_pd.Prefix, sizeof(currentLease->ia_pd.Prefix)) == 0) &&
                     (currentLease->ia_pd.PrefixLength == newLease->ia_pd.PrefixLength) &&
                     (currentLease->ia_pd.IA_ID == newLease->ia_pd.IA_ID) &&
-                    (currentLease->ia_pd.PreferedLifeTime == newLease->ia_pd.PreferedLifeTime) &&
-                    (currentLease->ia_pd.ValidLifeTime == newLease->ia_pd.ValidLifeTime);
+                    !is_lifetime_changed(currentLease->ia_pd.PreferedLifeTime, newLease->ia_pd.PreferedLifeTime) &&
+                    !is_lifetime_changed(currentLease->ia_pd.ValidLifeTime, newLease->ia_pd.ValidLifeTime);
 
     // Compare all fields except the `next` pointer
     if (currentLease->isExpired != newLease->isExpired ||
