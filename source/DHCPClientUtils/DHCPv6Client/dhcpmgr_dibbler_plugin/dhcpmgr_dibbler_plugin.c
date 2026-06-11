@@ -48,8 +48,7 @@
 #define DHCPv6_OPTION_MAPT                   "SRV_OPTION95"
 #define DHCPv6_OPTION_MAPE                   "SRV_OPTION94"
 
-#if 0  // Uncomment the following code to enable plugin logs
-
+#ifndef FEATURE_SUPPORT_RDKLOG
 #define PLUGIN_DBG_PRINT(fmt ...)     {\
     FILE     *fp        = NULL;\
     fp = fopen ( "/rdklogs/logs/DHCPMGRLog.txt.0", "a+");\
