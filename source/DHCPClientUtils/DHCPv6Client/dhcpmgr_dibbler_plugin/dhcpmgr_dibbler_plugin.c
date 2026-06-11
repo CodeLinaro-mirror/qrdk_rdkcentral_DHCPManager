@@ -49,8 +49,6 @@
 #define DHCPv6_OPTION_MAPE                   "SRV_OPTION94"
 
 /* Plugin is a standalone binary without rdklogger init, use direct file logging */
-#undef FEATURE_SUPPORT_RDKLOG
-#ifndef FEATURE_SUPPORT_RDKLOG
 #define PLUGIN_DBG_PRINT(fmt ...)     {\
     FILE     *fp        = NULL;\
     fp = fopen ( "/rdklogs/logs/DHCPMGRLog.txt.0", "a+");\
@@ -69,7 +67,6 @@
 #define DHCPMGR_LOG_ERROR(fmt, ...)    PLUGIN_DBG_PRINT(fmt, ##__VA_ARGS__)
 #define DHCPMGR_LOG_DEBUG(fmt, ...)    PLUGIN_DBG_PRINT(fmt, ##__VA_ARGS__)
 #define DHCPMGR_LOG_WARNING(fmt, ...)  PLUGIN_DBG_PRINT(fmt, ##__VA_ARGS__)
-#endif
 
 static int get_and_fill_env_data_dhcp6(DHCPv6_PLUGIN_MSG *dhcpv6_data, char *input_option)
 {

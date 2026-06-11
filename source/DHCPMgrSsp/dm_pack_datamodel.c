@@ -1,0 +1,124 @@
+/*
+DM PACK
+created with:
+python /home/ape777/aadhi/XB8/build-tchxb8/tmp/work/cortexa15hf-neon-rdk-linux-gnueabi/ccsp-dhcp-mgr/1.0.1+gitAUTOINC+2faf6eac90-r0/recipe-sysroot-native/usr/bin/dm_pack_code_gen.py /home/ape777/aadhi/XB8/build-tchxb8/tmp/work/cortexa15hf-neon-rdk-linux-gnueabi/ccsp-dhcp-mgr/1.0.1+gitAUTOINC+2faf6eac90-r0/git/config/TR181-DHCPMgr.XML /home/ape777/aadhi/XB8/build-tchxb8/tmp/work/cortexa15hf-neon-rdk-linux-gnueabi/ccsp-dhcp-mgr/1.0.1+gitAUTOINC+2faf6eac90-r0/git/source/DHCPMgrSsp/dm_pack_datamodel.c
+*/
+
+#include "ansc_platform.h"
+#include "ansc_xml_dom_parser_interface.h"
+#include "dm_pack_xml_helper.h"
+PVOID DMPackCreateDataModelXML(){
+ PANSC_XML_DOM_NODE_OBJECT P0,P1,P2,P3,P4,P5,P6,P7;
+ P0=DMPackCreatePNode(0,"dataModelInfo");
+  P1=DMPackCreateNode(P0,"version","1",1);
+  P1=DMPackCreateNode(P0,"moduleName","DHCPMgr",7);
+  P1=DMPackCreatePNode(P0,"author");
+  P1=DMPackCreatePNode(P0,"description");
+  P1=DMPackCreatePNode(P0,"library");
+   P2=DMPackCreateNode(P1,"func_Init","COSA_Init",9);
+  P1=DMPackCreatePNode(P0,"objects");
+   P2=DMPackCreateObject(P1, 0,"DHCPv4",0);
+    DMPackCreateFunctions(P2,"DHCPv4",4,10,11,12,13);
+    P3=DMPackCreatePNode(P2,"parameters");
+     DMPackCreateParam(P3,"ClientNumberOfEntries",2);
+    P3=DMPackCreatePNode(P2,"objects");
+     P4=DMPackCreateObject(P3, 3,"Client","128");
+      DMPackCreateFunctions(P4,"Client",15,0,2,3,4,10,11,12,13,15,16,17,18,20,21,22);
+      P5=DMPackCreatePNode(P4,"parameters");
+       DMPackCreateW(P5,"Enable",0,1);
+       DMPackCreateParamTS(P5,"Alias","string(64)","string");
+       DMPackCreateParamTSW(P5,"X_RDK_LinuxInterface","string(256)","string",1);
+       DMPackCreateParamTSW(P5,"X_CISCO_COM_BootFileName","string(256)","string",1);
+       DMPackCreateParamTSW(P5,"Interface","string(256)","string",1);
+       DMPackCreateParamTS(P5,"Status","string: Disabled(1),Enabled(2),Error_Misconfigured(3),Error(4)","uint32/mapped");
+       DMPackCreateParamTS(P5,"DHCPStatus","string: Init(1),Selecting(2),Requesting(3),Rebinding(4),Bound(5),Renewing(6)","uint32/mapped");
+       DMPackCreateW(P5,"Renew",0,1);
+       DMPackCreateW(P5,"X_RDK_Restart",0,1);
+       DMPackCreateW(P5,"X_RDK_Release",0,1);
+       DMPackCreateParamS(P5,"IPAddress",3,"uint32/ip4_addr");
+       DMPackCreateParamS(P5,"SubnetMask",3,"uint32/ip4_addr");
+       DMPackCreateParamTS(P5,"IPRouters","string(256)","string");
+       DMPackCreateParamTS(P5,"DNSServers","string(256)","string");
+       DMPackCreateParamTSN(P5,"LeaseTimeRemaining","int[-1:]","int",0);
+       DMPackCreateParamS(P5,"DHCPServer",3,"uint32/ip4_addr");
+       DMPackCreateParam(P5,"SentOptionNumberOfEntries",2);
+       DMPackCreateParam(P5,"ReqOptionNumberOfEntries",2);
+      P5=DMPackCreatePNode(P4,"objects");
+       P6=DMPackCreateObject(P5, 3,"SentOption","128");
+        DMPackCreateFunctions(P6,"SentOption",15,0,2,3,4,10,11,12,13,15,16,17,18,20,21,22);
+        P7=DMPackCreatePNode(P6,"parameters");
+         DMPackCreateW(P7,"Enable",0,1);
+         DMPackCreateParamTSW(P7,"Alias","string(64)","string",1);
+         DMPackCreateParamTSW(P7,"Tag","unsignedInt[1:254]","uint32",1);
+         DMPackCreateParamTSW(P7,"Value","hexBinary(255)","string",1);
+       P6=DMPackCreateObject(P5, 3,"ReqOption","128");
+        DMPackCreateFunctions(P6,"ReqOption",15,0,2,3,4,10,11,12,13,15,16,17,18,20,21,22);
+        P7=DMPackCreatePNode(P6,"parameters");
+         DMPackCreateW(P7,"Enable",0,1);
+         DMPackCreateParamTSW(P7,"Order","unsignedInt[1:]","uint32",1);
+         DMPackCreateParamTSW(P7,"Alias","string(64)","string",1);
+         DMPackCreateParamTSW(P7,"Tag","unsignedInt[1:254]","uint32",1);
+         DMPackCreateParamTSW(P7,"Value","hexBinary(255)","string",1);
+   P2=DMPackCreateObject(P1, 0,"DHCPv6",0);
+    DMPackCreateFunctions(P2,"DHCPv6",4,10,11,12,13);
+    P3=DMPackCreatePNode(P2,"parameters");
+     DMPackCreateParam(P3,"ClientNumberOfEntries",2);
+    P3=DMPackCreatePNode(P2,"objects");
+     P4=DMPackCreateObject(P3, 3,"Client","128");
+      DMPackCreateFunctions(P4,"Client3",15,0,2,3,4,10,11,12,13,15,16,17,18,20,21,22);
+      P5=DMPackCreatePNode(P4,"parameters");
+       DMPackCreateW(P5,"Enable",0,1);
+       DMPackCreateParamTSW(P5,"Alias","string(64)","string",1);
+       DMPackCreateParamTSW(P5,"X_RDK_LinuxInterface","string(256)","string",1);
+       DMPackCreateParamTSW(P5,"Interface","string(256)","string",1);
+       DMPackCreateParamTS(P5,"Status","string: Disabled(1),Enabled(2),Error_Misconfigured(3),Error(4)","uint32/mapped");
+       DMPackCreateParamTS(P5,"DUID","hexBinary(130)","string");
+       DMPackCreateW(P5,"RequestAddresses",0,1);
+       DMPackCreateW(P5,"RequestPrefixes",0,1);
+       DMPackCreateW(P5,"RapidCommit",0,1);
+       DMPackCreateW(P5,"Renew",0,1);
+       DMPackCreateW(P5,"X_RDK_Restart",0,1);
+       DMPackCreateW(P5,"X_RDK_Release",0,1);
+       DMPackCreateParamTSW(P5,"SuggestedT1","int[-1:]","int",1);
+       DMPackCreateParamTSW(P5,"SuggestedT2","int[-1:]","int",1);
+       DMPackCreateParam(P5,"SupportedOptions",3);
+       DMPackCreateW(P5,"RequestedOptions",3,1);
+       DMPackCreateParam(P5,"ServerNumberOfEntries",2);
+       DMPackCreateParam(P5,"SentOptionNumberOfEntries",2);
+       DMPackCreateParam(P5,"ReceivedOptionNumberOfEntries",2);
+      P5=DMPackCreatePNode(P4,"objects");
+       P6=DMPackCreateObject(P5, 2,"Server","128");
+        DMPackCreateFunctions(P6,"Server2",8,0,2,5,6,10,11,12,13);
+        P7=DMPackCreatePNode(P6,"parameters");
+         DMPackCreateParam(P7,"SourceAddress",3);
+         DMPackCreateParamTS(P7,"DUID","hexBinary(130)","string");
+         DMPackCreateParamTS(P7,"InformationRefreshTime","dateTime","string");
+       P6=DMPackCreateObject(P5, 3,"SentOption","128");
+        DMPackCreateFunctions(P6,"SentOption1",15,0,2,3,4,10,11,12,13,15,16,17,18,20,21,22);
+        P7=DMPackCreatePNode(P6,"parameters");
+         DMPackCreateW(P7,"Enable",0,1);
+         DMPackCreateParamTSW(P7,"Alias","string(64)","string",1);
+         DMPackCreateParamTSW(P7,"Tag","unsignedInt[0:65535]","uint32",1);
+         DMPackCreateParamTSW(P7,"Value","hexBinary(65535)","string",1);
+       P6=DMPackCreateObject(P5, 2,"ReceivedOption","128");
+        DMPackCreateFunctions(P6,"ReceivedOption",8,0,2,5,6,10,11,12,13);
+        P7=DMPackCreatePNode(P6,"parameters");
+         DMPackCreateParamTS(P7,"Tag","unsignedInt[0:65535]","uint32");
+         DMPackCreateParamTS(P7,"Value","hexBinary(65535)","string");
+         DMPackCreateParam(P7,"Server",3);
+       P6=DMPackCreateObject(P5, 0,"X_RDKCENTRAL-COM_RcvOption",0);
+        DMPackCreateFunctions(P6,"dhcp6c_mapt_mape",3,10,12,13);
+        P7=DMPackCreatePNode(P6,"parameters");
+         DMPackCreateW(P7,"MapTransportMode",3,0);
+         DMPackCreateW(P7,"MapBRPrefix",3,0);
+         DMPackCreateW(P7,"MapRuleIPv4Prefix",3,0);
+         DMPackCreateW(P7,"MapRuleIPv6Prefix",3,0);
+         DMPackCreateW(P7,"MapEALen",2,0);
+         DMPackCreateParam(P7,"MapPSIDOffset",2);
+         DMPackCreateW(P7,"MapPSIDLen",2,0);
+         DMPackCreateW(P7,"MapPSID",2,0);
+         DMPackCreateW(P7,"MapIsFMR",0,0);
+         DMPackCreateW(P7,"MapIpv4Address",3,0);
+         DMPackCreateW(P7,"MapRatio",2,0);
+ return P0;
+}

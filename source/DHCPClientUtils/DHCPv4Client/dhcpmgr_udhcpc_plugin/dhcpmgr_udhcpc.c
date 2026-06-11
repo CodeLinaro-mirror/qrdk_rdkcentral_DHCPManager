@@ -6,8 +6,6 @@
 #include "udhcpc_msg.h"
 
 /* Plugin is a standalone binary without rdklogger init, use direct file logging */
-#undef FEATURE_SUPPORT_RDKLOG
-#ifndef FEATURE_SUPPORT_RDKLOG
 #define PLUGIN_DBG_PRINT(fmt ...)     {\
     FILE     *fp        = NULL;\
     fp = fopen ( "/rdklogs/logs/DHCPMGRLog.txt.0", "a+");\
@@ -26,7 +24,6 @@
 #define DHCPMGR_LOG_ERROR(fmt, ...)    PLUGIN_DBG_PRINT(fmt, ##__VA_ARGS__)
 #define DHCPMGR_LOG_DEBUG(fmt, ...)    PLUGIN_DBG_PRINT(fmt, ##__VA_ARGS__)
 #define DHCPMGR_LOG_WARNING(fmt, ...)  PLUGIN_DBG_PRINT(fmt, ##__VA_ARGS__)
-#endif
 
 typedef struct udhcpc_env_t
 {
