@@ -48,6 +48,8 @@
 #define DHCPv6_OPTION_MAPT                   "SRV_OPTION95"
 #define DHCPv6_OPTION_MAPE                   "SRV_OPTION94"
 
+/* Plugin is a standalone binary without rdklogger init, use direct file logging */
+#undef FEATURE_SUPPORT_RDKLOG
 #ifndef FEATURE_SUPPORT_RDKLOG
 #define PLUGIN_DBG_PRINT(fmt ...)     {\
     FILE     *fp        = NULL;\
