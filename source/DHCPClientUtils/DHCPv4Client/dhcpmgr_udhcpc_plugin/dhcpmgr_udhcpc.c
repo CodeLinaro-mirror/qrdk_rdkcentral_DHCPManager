@@ -2,28 +2,36 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
+#include <sys/time.h>
 #include "util.h"
 #include "udhcpc_msg.h"
 
 /* Plugin is a standalone binary without rdklogger init, use direct file logging */
-#define PLUGIN_DBG_PRINT(fmt ...)     {\
-    FILE     *fp        = NULL;\
-    fp = fopen ( "/rdklogs/logs/DHCPMGRLog.txt.0", "a+");\
+#define PLUGIN_DBG_PRINT(level, fmt, ...)     {\
+    FILE *fp = fopen("/rdklogs/logs/DHCPMGRLog.txt.0", "a+");\
     if (fp)\
     {\
-        fprintf(fp,fmt);\
+        struct timeval tv;\
+        struct tm tm_info;\
+        gettimeofday(&tv, NULL);\
+        localtime_r(&tv.tv_sec, &tm_info);\
+        fprintf(fp, "%02d%02d%02d-%02d:%02d:%02d.%06ld [mod=DHCPMGR, lvl=%s] " fmt,\
+                tm_info.tm_year % 100, tm_info.tm_mon + 1, tm_info.tm_mday,\
+                tm_info.tm_hour, tm_info.tm_min, tm_info.tm_sec, (long)tv.tv_usec,\
+                level, ##__VA_ARGS__);\
         fclose(fp);\
     }\
-}\
+}
 
 #undef DHCPMGR_LOG_INFO
 #undef DHCPMGR_LOG_ERROR
 #undef DHCPMGR_LOG_DEBUG
 #undef DHCPMGR_LOG_WARNING
-#define DHCPMGR_LOG_INFO(fmt, ...)     PLUGIN_DBG_PRINT(fmt, ##__VA_ARGS__)
-#define DHCPMGR_LOG_ERROR(fmt, ...)    PLUGIN_DBG_PRINT(fmt, ##__VA_ARGS__)
-#define DHCPMGR_LOG_DEBUG(fmt, ...)    PLUGIN_DBG_PRINT(fmt, ##__VA_ARGS__)
-#define DHCPMGR_LOG_WARNING(fmt, ...)  PLUGIN_DBG_PRINT(fmt, ##__VA_ARGS__)
+#define DHCPMGR_LOG_INFO(fmt, ...)     PLUGIN_DBG_PRINT("INFO", fmt, ##__VA_ARGS__)
+#define DHCPMGR_LOG_ERROR(fmt, ...)    PLUGIN_DBG_PRINT("ERROR", fmt, ##__VA_ARGS__)
+#define DHCPMGR_LOG_DEBUG(fmt, ...)    PLUGIN_DBG_PRINT("DEBUG", fmt, ##__VA_ARGS__)
+#define DHCPMGR_LOG_WARNING(fmt, ...)  PLUGIN_DBG_PRINT("WARN", fmt, ##__VA_ARGS__)
 
 typedef struct udhcpc_env_t
 {
@@ -415,15 +423,18 @@ static int send_dhcp4_data_to_leaseMonitor (DHCPv4_PLUGIN_MSG *dhcpv4_data)
         if (bytes < 0)
         {
             sleep(1);
-            DHCPMGR_LOG_ERROR("[%s-%d] Failed to send data to the dhcpmanager error=[%d][%s] \n", __FUNCTION__, __LINE__,errno, strerror(errno));
+            DHCPMGR_LOG_ERROR("[%s-%d] Failed to send data to the dhcpmanager (attempt %d/%d) error=[%d][%s] \n", __FUNCTION__, __LINE__, i+1, MAX_SEND_THRESHOLD, errno, strerror(errno));
         }
         else
             break;
     }
 
-    DHCPMGR_LOG_INFO("Successfully send %d bytes to dhcpmanager \n", bytes);
+    if (bytes > 0)
+        DHCPMGR_LOG_INFO("[%s-%d] Successfully sent %d bytes to dhcpmanager \n", __FUNCTION__, __LINE__, bytes);
+    else
+        DHCPMGR_LOG_ERROR("[%s-%d] Failed to send data after %d attempts \n", __FUNCTION__, __LINE__, MAX_SEND_THRESHOLD);
     nn_close(sock);
-    return 0;
+    return (bytes > 0) ? 0 : -1;
 }
 
 static int handle_events (udhcpc_env_t *pinfo)
