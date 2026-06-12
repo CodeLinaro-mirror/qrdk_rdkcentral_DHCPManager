@@ -91,7 +91,7 @@ static int get_and_fill_env_data_dhcp6(DHCPv6_PLUGIN_MSG *dhcpv6_data, char *inp
     /** Interface name */
     if ((env = getenv(DHCPv6_INTERFACE_NAME)) != NULL)
     {
-        strncpy(dhcpv6_data->ifname, env, sizeof(dhcpv6_data->ifname));
+        snprintf(dhcpv6_data->ifname, sizeof(dhcpv6_data->ifname), "%s", env);
     }
     else
     {
@@ -115,7 +115,7 @@ static int get_and_fill_env_data_dhcp6(DHCPv6_PLUGIN_MSG *dhcpv6_data, char *inp
     /** IA_NA (Non-temporary address) */
     if ((env = getenv(DHCPv6_IANA_ADDRESS)) != NULL)
     {
-        strncpy(dhcpv6_data->ia_na.address, env, sizeof(dhcpv6_data->ia_na.address));
+        snprintf(dhcpv6_data->ia_na.address, sizeof(dhcpv6_data->ia_na.address), "%s", env);
         dhcpv6_data->ia_na.assigned = true;
     }
 
@@ -147,7 +147,7 @@ static int get_and_fill_env_data_dhcp6(DHCPv6_PLUGIN_MSG *dhcpv6_data, char *inp
     /** IA_PD (Prefix delegation) */
     if ((env = getenv(DHCPv6_IAPD_PREFIX)) != NULL)
     {
-        strncpy(dhcpv6_data->ia_pd.Prefix, env, sizeof(dhcpv6_data->ia_pd.Prefix));
+        snprintf(dhcpv6_data->ia_pd.Prefix, sizeof(dhcpv6_data->ia_pd.Prefix), "%s", env);
         dhcpv6_data->ia_pd.assigned = true;
     }
 
@@ -191,13 +191,13 @@ static int get_and_fill_env_data_dhcp6(DHCPv6_PLUGIN_MSG *dhcpv6_data, char *inp
         tok = strtok_r(dns, " ", &saveptr);
         if (tok)
         {
-            strncpy(dhcpv6_data->dns.nameserver, tok, (sizeof(dhcpv6_data->dns.nameserver)-1));
+            snprintf(dhcpv6_data->dns.nameserver, sizeof(dhcpv6_data->dns.nameserver), "%s", tok);
         }
 
         tok = strtok_r(NULL, " ", &saveptr);
         if (tok)
         {
-	    strncpy(dhcpv6_data->dns.nameserver1, tok, (sizeof(dhcpv6_data->dns.nameserver1)-1));
+            snprintf(dhcpv6_data->dns.nameserver1, sizeof(dhcpv6_data->dns.nameserver1), "%s", tok);
         }
         dhcpv6_data->dns.assigned = true;
     }
@@ -205,32 +205,32 @@ static int get_and_fill_env_data_dhcp6(DHCPv6_PLUGIN_MSG *dhcpv6_data, char *inp
     /** Domain Name */
     if ((env = getenv(DHCPv6_OPTION_DOMAIN)) != NULL)
     {
-        strncpy(dhcpv6_data->domainName, env, sizeof(dhcpv6_data->domainName));
+        snprintf(dhcpv6_data->domainName, sizeof(dhcpv6_data->domainName), "%s", env);
     }
 
     /** NTP Server */
     if ((env = getenv(DHCPv6_OPTION_NTP)) != NULL)
     {
-        strncpy(dhcpv6_data->ntpserver, env, sizeof(dhcpv6_data->ntpserver));
+        snprintf(dhcpv6_data->ntpserver, sizeof(dhcpv6_data->ntpserver), "%s", env);
     }
 
     /** AFTR (Access Gateway for DS-Lite) */
     if ((env = getenv(DHCPv6_OPTION_DSLITE)) != NULL)
     {
-        strncpy(dhcpv6_data->aftr, env, sizeof(dhcpv6_data->aftr));
+        snprintf(dhcpv6_data->aftr, sizeof(dhcpv6_data->aftr), "%s", env);
     }
 
     /** MAP-T Configuration */
     if ((env = getenv(DHCPv6_OPTION_MAPT)) != NULL)
     {
-        strncpy((char *) dhcpv6_data->mapt.Container, env, sizeof(dhcpv6_data->mapt.Container));
+        snprintf((char *) dhcpv6_data->mapt.Container, sizeof(dhcpv6_data->mapt.Container), "%s", env);
         dhcpv6_data->mapt.Assigned = true;
     }
 
     /** MAP-E Configuration */
     if ((env = getenv(DHCPv6_OPTION_MAPE)) != NULL)
     {
-        strncpy((char *) dhcpv6_data->mape.Container, env, sizeof(dhcpv6_data->mape.Container));
+        snprintf((char *) dhcpv6_data->mape.Container, sizeof(dhcpv6_data->mape.Container), "%s", env);
         DHCPMGR_LOG_INFO("[%s-%d] MAP-E configuration is updated\n", __FUNCTION__, __LINE__);
         dhcpv6_data->mape.Assigned = true;
     }
@@ -240,7 +240,7 @@ static int get_and_fill_env_data_dhcp6(DHCPv6_PLUGIN_MSG *dhcpv6_data, char *inp
     {
         dhcpv6_data->vendor.Assigned = true;
         dhcpv6_data->vendor.Length = strlen(env);
-        strncpy(dhcpv6_data->vendor.Data, env, sizeof(dhcpv6_data->vendor.Data)-1);
+        snprintf(dhcpv6_data->vendor.Data, sizeof(dhcpv6_data->vendor.Data), "%s", env);
     }
 
     return 0;
@@ -328,13 +328,6 @@ static int handle_dibbler_event(char *input_option)
         DHCPMGR_LOG_ERROR("[%s][%d] Failed to get DHCPv6 data from environment \n", __FUNCTION__, __LINE__);
         return -1;
     }
-
-    /* Ensure NUL-termination for all string fields before logging (strncpy may fill buffer without NUL) */
-    data.ifname[sizeof(data.ifname) - 1]                   = '\0';
-    data.ia_na.address[sizeof(data.ia_na.address) - 1]     = '\0';
-    data.ia_pd.Prefix[sizeof(data.ia_pd.Prefix) - 1]       = '\0';
-    data.dns.nameserver[sizeof(data.dns.nameserver) - 1]    = '\0';
-    data.dns.nameserver1[sizeof(data.dns.nameserver1) - 1]  = '\0';
 
     /* Print received DHCPv6 data */
     DHCPMGR_LOG_INFO("[%s][%d] ===============DHCPv6 Configuration Received==============================\n", __FUNCTION__, __LINE__);
