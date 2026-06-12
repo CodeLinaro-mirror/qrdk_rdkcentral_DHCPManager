@@ -24,6 +24,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <fcntl.h>
+#include <unistd.h>
 #include "util.h"
 #include "dhcp_lease_monitor_thrd.h"
 
@@ -55,6 +56,7 @@
 #define PLUGIN_DBG_PRINT(level, fmt, ...)     do {\
     int _fd = open("/rdklogs/logs/DHCPMGRLog.txt.0", O_WRONLY | O_CREAT | O_APPEND, 0640);\
     FILE *fp = (_fd >= 0) ? fdopen(_fd, "a") : NULL;\
+    if (_fd >= 0 && fp == NULL) close(_fd);\
     if (fp)\
     {\
         struct timeval tv;\
@@ -326,6 +328,13 @@ static int handle_dibbler_event(char *input_option)
         DHCPMGR_LOG_ERROR("[%s][%d] Failed to get DHCPv6 data from environment \n", __FUNCTION__, __LINE__);
         return -1;
     }
+
+    /* Ensure NUL-termination for all string fields before logging (strncpy may fill buffer without NUL) */
+    data.ifname[sizeof(data.ifname) - 1]                   = '\0';
+    data.ia_na.address[sizeof(data.ia_na.address) - 1]     = '\0';
+    data.ia_pd.Prefix[sizeof(data.ia_pd.Prefix) - 1]       = '\0';
+    data.dns.nameserver[sizeof(data.dns.nameserver) - 1]    = '\0';
+    data.dns.nameserver1[sizeof(data.dns.nameserver1) - 1]  = '\0';
 
     /* Print received DHCPv6 data */
     DHCPMGR_LOG_INFO("[%s][%d] ===============DHCPv6 Configuration Received==============================\n", __FUNCTION__, __LINE__);

@@ -5,6 +5,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <fcntl.h>
+#include <unistd.h>
 #include "util.h"
 #include "udhcpc_msg.h"
 
@@ -12,6 +13,7 @@
 #define PLUGIN_DBG_PRINT(level, fmt, ...)     do {\
     int _fd = open("/rdklogs/logs/DHCPMGRLog.txt.0", O_WRONLY | O_CREAT | O_APPEND, 0640);\
     FILE *fp = (_fd >= 0) ? fdopen(_fd, "a") : NULL;\
+    if (_fd >= 0 && fp == NULL) close(_fd);\
     if (fp)\
     {\
         struct timeval tv;\
