@@ -34,7 +34,7 @@
 #define DIBBLER_DEFAULT_CONFIG_FILE       "/tmp/dibbler/client.conf"
 #define DIBBLER_CLIENT_TERMINATE_TIMEOUT  (10 * MSECS_IN_SEC)
 #define DIBBLER_PLUGIN_EXE                "/usr/bin/dhcpmgr_dibbler_plugin"
-#define DIBBLER_LOG_CONFIG                "log-level 7\nlog-mode full\n"
+#define DIBBLER_LOG_CONFIG                "log-level 7\nlog-mode full\nlog-name /rdklogs/logs/dibbler-client\n"
 #define DIBBLER_DUID_LL_CONFIG            "duid-type duid-ll\n"  
 #define DIBBLER_CLIENT_TERMINATE_INTERVAL (0.5 * MSECS_IN_SEC)
 #define DIBBLER_TMP_DIR_PATH              "/var/lib/dibbler"

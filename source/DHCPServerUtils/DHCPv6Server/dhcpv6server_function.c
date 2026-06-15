@@ -679,6 +679,7 @@ void __cosa_dhcpsv6_refresh_config()
             8 : Debug
         */
         fprintf(fp, "log-level %d\n", log_level);
+        fprintf(fp, "log-name /rdklogs/logs/dibbler-server\n");
     }
     /*
        Enable inactive mode: When server begins operation and it detects that
@@ -1508,6 +1509,7 @@ void __cosa_dhcpsv6_refresh_config()
 #endif
     /*Begin write configuration */
     fprintf(fp, "log-level 8\n");
+    fprintf(fp, "log-name /rdklogs/logs/dibbler-server\n");
     //Intel Proposed RDKB Generic Bug Fix from XB6 SDK
     fprintf(fp, "reconfigure-enabled 1\n");
     if ( g_dhcpv6_server_type != DHCPV6_SERVER_TYPE_STATEFUL )
