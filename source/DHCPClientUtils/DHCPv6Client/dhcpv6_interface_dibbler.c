@@ -34,7 +34,8 @@
 #define DIBBLER_DEFAULT_CONFIG_FILE       "/tmp/dibbler/client.conf"
 #define DIBBLER_CLIENT_TERMINATE_TIMEOUT  (10 * MSECS_IN_SEC)
 #define DIBBLER_PLUGIN_EXE                "/usr/bin/dhcpmgr_dibbler_plugin"
-#define DIBBLER_LOG_CONFIG                "log-level 7\nlog-mode full\nlog-name /rdklogs/logs/dibbler-client\n"
+#define DIBBLER_LOG_CONFIG                "log-level 7\nlog-mode full\n"
+#define DIBBLER_CLIENT_LOG_FILE           "/rdklogs/logs/dibbler-client.log"
 #define DIBBLER_DUID_LL_CONFIG            "duid-type duid-ll\n"  
 #define DIBBLER_CLIENT_TERMINATE_INTERVAL (0.5 * MSECS_IN_SEC)
 #define DIBBLER_TMP_DIR_PATH              "/var/lib/dibbler"
@@ -427,6 +428,18 @@ pid_t start_dhcpv6_client(char *interfaceName, dhcp_opt_list *req_opt_list, dhcp
         DHCPMGR_LOG_ERROR("%s %d: Unable to create dibbler conf.\n", __FUNCTION__, __LINE__);
         return FAILURE;
 
+    }
+
+    // Symlink client.log to /rdklogs/logs/ so dibbler logs land there
+    {
+        char log_path[BUFLEN_256] = {0};
+        snprintf(log_path, sizeof(log_path), "%s/client.log", config_path);
+        unlink(log_path);
+        if (symlink(DIBBLER_CLIENT_LOG_FILE, log_path) != 0)
+        {
+            DHCPMGR_LOG_WARNING("%s %d: symlink %s -> %s failed: %s\n",
+                __FUNCTION__, __LINE__, log_path, DIBBLER_CLIENT_LOG_FILE, strerror(errno));
+        }
     }
 
     DHCPMGR_LOG_INFO("%s %d: Starting dibbler with config %s\n", __FUNCTION__, __LINE__, config_path);
