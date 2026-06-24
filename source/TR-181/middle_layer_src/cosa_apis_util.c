@@ -355,6 +355,38 @@ int DhcpMgr_OpenQueueEnsureThread(dhcp_info_t info)
         mq_close(mq_desc);
         return -1;
     }
+
+    /*
+     * Re-check thread_running under global_mutex while holding q_mutex.
+     * The controller thread may have exited in the window between our first
+     * thread_running check (above) and acquiring q_mutex now. If so, spawn
+     * a new thread so the message we are about to send will be consumed.
+     */
+    {
+        interface_info_t recheck_info;
+        memset(&recheck_info, 0, sizeof(recheck_info));
+        pthread_mutex_lock(&global_mutex);
+        if (find_or_create_interface(info.if_name, &recheck_info) == 0 && !recheck_info.thread_running)
+        {
+            DHCPMGR_LOG_INFO("%s %d Thread for %s exited before send (race), respawning\n",
+                             __FUNCTION__, __LINE__, info.if_name);
+            if (create_interface_thread(info.if_name) == 0)
+            {
+                recheck_info.thread_running = TRUE;
+                update_interface_info(info.if_name, &recheck_info);
+            }
+            else
+            {
+                DHCPMGR_LOG_ERROR("%s %d Failed to respawn controller thread for %s\n",
+                                  __FUNCTION__, __LINE__, info.if_name);
+                pthread_mutex_unlock(&global_mutex);
+                DhcpMgr_UnlockInterfaceQueueMutexByName(info.if_name);
+                mq_close(mq_desc);
+                return -1;
+            }
+        }
+        pthread_mutex_unlock(&global_mutex);
+    }
     /* Send the filled info to the controller queue */
     if (mq_send(mq_desc, (char*)&mq_msg, sizeof(mq_msg), 0) == -1)
     {
