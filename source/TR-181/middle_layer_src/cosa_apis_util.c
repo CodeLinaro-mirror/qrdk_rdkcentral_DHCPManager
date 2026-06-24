@@ -308,18 +308,17 @@ int DhcpMgr_OpenQueueEnsureThread(dhcp_info_t info)
 
 
     /*
-     * Prepare the message payload before acquiring the mutex (pure memory ops).
-     * The if_info part (thread state snapshot) will be filled under the lock.
+     * Prepare the message payload (msg_info) before any lock — pure memory ops.
+     * if_info will be filled after we confirm thread state under global_mutex.
      */
     mq_send_msg_t mq_msg;
     memset(&mq_msg, 0, sizeof(mq_msg));
     memcpy(&mq_msg.msg_info, &info, sizeof(dhcp_info_t));
 
     /*
-     * Hold global_mutex continuously from the thread_running check through
-     * mq_send so no gap exists for mark_thread_stopped() + mq_close() in the
-     * controller exit path to run between the check and the send.
-     * mq_send uses O_NONBLOCK so the lock is held only briefly.
+     * Step 1: Ensure the interface entry (and its q_mutex) exists.
+     * find_or_create_interface creates and initialises the entry including
+     * q_mutex when first called, so this must happen before we can lock q_mutex.
      */
     interface_info_t tmp_info;
     memset(&tmp_info, 0, sizeof(tmp_info));
@@ -331,6 +330,38 @@ int DhcpMgr_OpenQueueEnsureThread(dhcp_info_t info)
         mq_close(mq_desc);
         return -1;
     }
+    pthread_mutex_unlock(&global_mutex);
+
+    /*
+     * Step 2: Lock q_mutex for this interface.
+     * This serialises the check+spawn+send here with the mark_stopped+close
+     * sequence in the controller exit path (which also holds q_mutex).
+     * While we hold q_mutex the controller cannot call mq_close(), so
+     * mq_send() is guaranteed to reach a live reader.
+     * Lock order everywhere: q_mutex -> global_mutex (no ABBA deadlock).
+     */
+    if (DhcpMgr_LockInterfaceQueueMutexByName(info.if_name) != 0)
+    {
+        DHCPMGR_LOG_ERROR("%s %d Failed to lock q_mutex for %s\n", __FUNCTION__, __LINE__, info.if_name);
+        mq_close(mq_desc);
+        return -1;
+    }
+
+    /*
+     * Step 3: Re-read thread_running under global_mutex (brief, inside q_mutex).
+     * The controller cannot mark the thread stopped+closed while we hold q_mutex,
+     * so the state we read here is valid for the mq_send below.
+     */
+    memset(&tmp_info, 0, sizeof(tmp_info));
+    pthread_mutex_lock(&global_mutex);
+    if (find_or_create_interface(info.if_name, &tmp_info) != 0)
+    {
+        DHCPMGR_LOG_ERROR("%s %d Failed to re-read interface entry for %s\n", __FUNCTION__, __LINE__, info.if_name);
+        pthread_mutex_unlock(&global_mutex);
+        DhcpMgr_UnlockInterfaceQueueMutexByName(info.if_name);
+        mq_close(mq_desc);
+        return -1;
+    }
     DHCPMGR_LOG_DEBUG("%s %d Thread running %d\n", __FUNCTION__, __LINE__, tmp_info.thread_running);
     if (!tmp_info.thread_running)
     {
@@ -338,6 +369,7 @@ int DhcpMgr_OpenQueueEnsureThread(dhcp_info_t info)
         {
             DHCPMGR_LOG_ERROR("%s %d Failed to create controller thread for %s\n", __FUNCTION__, __LINE__, mq_name);
             pthread_mutex_unlock(&global_mutex);
+            DhcpMgr_UnlockInterfaceQueueMutexByName(info.if_name);
             mq_close(mq_desc);
             return -1;
         }
@@ -349,16 +381,21 @@ int DhcpMgr_OpenQueueEnsureThread(dhcp_info_t info)
     {
         DHCPMGR_LOG_DEBUG("%s %d Thread already running for %s\n", __FUNCTION__, __LINE__, info.if_name);
     }
-    /* Fill in the thread state snapshot and send — still under global_mutex */
+    pthread_mutex_unlock(&global_mutex);
+
+    /*
+     * Step 4: Send to the queue — still inside q_mutex, so controller cannot
+     * call mq_close() concurrently. mq_send uses O_NONBLOCK (returns at once).
+     */
     memcpy(&mq_msg.if_info, &tmp_info, sizeof(interface_info_t));
     if (mq_send(mq_desc, (char*)&mq_msg, sizeof(mq_msg), 0) == -1)
     {
         DHCPMGR_LOG_ERROR("%s %d Failed to send message to queue %s\n", __FUNCTION__, __LINE__, tmp_info.mq_name);
-        pthread_mutex_unlock(&global_mutex);
+        DhcpMgr_UnlockInterfaceQueueMutexByName(info.if_name);
         mq_close(mq_desc);
         return -1;
     }
-    pthread_mutex_unlock(&global_mutex);
+    DhcpMgr_UnlockInterfaceQueueMutexByName(info.if_name);
     DHCPMGR_LOG_DEBUG("%s %d Successfully sent message to controller queue %s\n", __FUNCTION__, __LINE__, tmp_info.mq_name);
     mq_close(mq_desc);
     return 0;
