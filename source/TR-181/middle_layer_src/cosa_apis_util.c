@@ -307,58 +307,50 @@ int DhcpMgr_OpenQueueEnsureThread(dhcp_info_t info)
     }
 
 
+    /*
+     * Prepare the message payload before acquiring the mutex (pure memory ops).
+     * The if_info part (thread state snapshot) will be filled under the lock.
+     */
+    mq_send_msg_t mq_msg;
+    memset(&mq_msg, 0, sizeof(mq_msg));
+    memcpy(&mq_msg.msg_info, &info, sizeof(dhcp_info_t));
+
+    /*
+     * Hold global_mutex continuously from the thread_running check through
+     * mq_send so no gap exists for mark_thread_stopped() + mq_close() in the
+     * controller exit path to run between the check and the send.
+     * mq_send uses O_NONBLOCK so the lock is held only briefly.
+     */
     interface_info_t tmp_info;
     memset(&tmp_info, 0, sizeof(tmp_info));
     pthread_mutex_lock(&global_mutex);
-    if (find_or_create_interface(info.if_name, &tmp_info) == 0)
-    {
-        DHCPMGR_LOG_DEBUG("%s %d Thread running %d\n", __FUNCTION__, __LINE__, tmp_info.thread_running);
-        if (!tmp_info.thread_running)
-        {
-            if (create_interface_thread(info.if_name) == 0)
-            {
-                DHCPMGR_LOG_DEBUG("%s %d Controller thread started for %s\n", __FUNCTION__, __LINE__, mq_name);
-                tmp_info.thread_running = TRUE;
-                update_interface_info(info.if_name, &tmp_info);
-                pthread_mutex_unlock(&global_mutex);
-            }
-            else
-            {
-                DHCPMGR_LOG_ERROR("%s %d Failed to create controller thread for %s\n", __FUNCTION__, __LINE__, mq_name);
-                pthread_mutex_unlock(&global_mutex);
-                mq_close(mq_desc);
-                return -1;
-            }
-        }
-        else
-        {
-            DHCPMGR_LOG_DEBUG("%s %d Thread already running for %s\n", __FUNCTION__, __LINE__, info.if_name);
-            pthread_mutex_unlock(&global_mutex);
-        }
-    }
-    else
+    if (find_or_create_interface(info.if_name, &tmp_info) != 0)
     {
         DHCPMGR_LOG_ERROR("%s %d Failed to find or create interface entry for %s\n", __FUNCTION__, __LINE__, info.if_name);
         pthread_mutex_unlock(&global_mutex);
         mq_close(mq_desc);
         return -1;
     }
-
-    mq_send_msg_t mq_msg;
-    memset(&mq_msg, 0, sizeof(mq_msg));
+    DHCPMGR_LOG_DEBUG("%s %d Thread running %d\n", __FUNCTION__, __LINE__, tmp_info.thread_running);
+    if (!tmp_info.thread_running)
+    {
+        if (create_interface_thread(info.if_name) != 0)
+        {
+            DHCPMGR_LOG_ERROR("%s %d Failed to create controller thread for %s\n", __FUNCTION__, __LINE__, mq_name);
+            pthread_mutex_unlock(&global_mutex);
+            mq_close(mq_desc);
+            return -1;
+        }
+        DHCPMGR_LOG_DEBUG("%s %d Controller thread started for %s\n", __FUNCTION__, __LINE__, mq_name);
+        tmp_info.thread_running = TRUE;
+        update_interface_info(info.if_name, &tmp_info);
+    }
+    else
+    {
+        DHCPMGR_LOG_DEBUG("%s %d Thread already running for %s\n", __FUNCTION__, __LINE__, info.if_name);
+    }
+    /* Fill in the thread state snapshot and send — still under global_mutex */
     memcpy(&mq_msg.if_info, &tmp_info, sizeof(interface_info_t));
-    memcpy(&mq_msg.msg_info, &info, sizeof(dhcp_info_t));
-
-    /*
-     * Send the message while holding global_mutex so the thread_running check
-     * and mq_send are atomic with respect to mark_thread_stopped() in the
-     * controller exit path (which also acquires global_mutex internally).
-     * This eliminates the race without needing a separate q_mutex in the send
-     * or exit paths. mq_send is non-blocking (O_NONBLOCK) so holding
-     * global_mutex here is safe.
-     */
-    pthread_mutex_lock(&global_mutex);
-    /* Send the filled info to the controller queue */
     if (mq_send(mq_desc, (char*)&mq_msg, sizeof(mq_msg), 0) == -1)
     {
         DHCPMGR_LOG_ERROR("%s %d Failed to send message to queue %s\n", __FUNCTION__, __LINE__, tmp_info.mq_name);
