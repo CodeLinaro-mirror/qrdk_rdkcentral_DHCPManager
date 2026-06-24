@@ -349,61 +349,26 @@ int DhcpMgr_OpenQueueEnsureThread(dhcp_info_t info)
     memcpy(&mq_msg.if_info, &tmp_info, sizeof(interface_info_t));
     memcpy(&mq_msg.msg_info, &info, sizeof(dhcp_info_t));
 
-    if(DhcpMgr_LockInterfaceQueueMutexByName(info.if_name) != 0) // Lock the mutex before sending message
-    {
-        DHCPMGR_LOG_ERROR("%s %d Failed to lock interface queue mutex for %s\n", __FUNCTION__, __LINE__, info.if_name);
-        mq_close(mq_desc);
-        return -1;
-    }
-
     /*
-     * Re-check thread_running under global_mutex while holding q_mutex.
-     * The controller thread may have exited in the window between our first
-     * thread_running check (above) and acquiring q_mutex now. If so, spawn
-     * a new thread so the message we are about to send will be consumed.
+     * Send the message while holding global_mutex so the thread_running check
+     * and mq_send are atomic with respect to mark_thread_stopped() in the
+     * controller exit path (which also acquires global_mutex internally).
+     * This eliminates the race without needing a separate q_mutex in the send
+     * or exit paths. mq_send is non-blocking (O_NONBLOCK) so holding
+     * global_mutex here is safe.
      */
-    {
-        interface_info_t recheck_info;
-        memset(&recheck_info, 0, sizeof(recheck_info));
-        pthread_mutex_lock(&global_mutex);
-        if (find_or_create_interface(info.if_name, &recheck_info) == 0 && !recheck_info.thread_running)
-        {
-            DHCPMGR_LOG_INFO("%s %d Thread for %s exited before send (race), respawning\n",
-                             __FUNCTION__, __LINE__, info.if_name);
-            if (create_interface_thread(info.if_name) == 0)
-            {
-                recheck_info.thread_running = TRUE;
-                update_interface_info(info.if_name, &recheck_info);
-            }
-            else
-            {
-                DHCPMGR_LOG_ERROR("%s %d Failed to respawn controller thread for %s\n",
-                                  __FUNCTION__, __LINE__, info.if_name);
-                pthread_mutex_unlock(&global_mutex);
-                DhcpMgr_UnlockInterfaceQueueMutexByName(info.if_name);
-                mq_close(mq_desc);
-                return -1;
-            }
-        }
-        pthread_mutex_unlock(&global_mutex);
-    }
+    pthread_mutex_lock(&global_mutex);
     /* Send the filled info to the controller queue */
     if (mq_send(mq_desc, (char*)&mq_msg, sizeof(mq_msg), 0) == -1)
     {
         DHCPMGR_LOG_ERROR("%s %d Failed to send message to queue %s\n", __FUNCTION__, __LINE__, tmp_info.mq_name);
-        if(DhcpMgr_UnlockInterfaceQueueMutexByName(info.if_name) != 0) // Unlock the mutex on error
-        {
-            DHCPMGR_LOG_ERROR("%s %d Failed to unlock interface queue mutex for %s\n", __FUNCTION__, __LINE__, info.if_name);
-        }
+        pthread_mutex_unlock(&global_mutex);
         mq_close(mq_desc);
         return -1;
     }
+    pthread_mutex_unlock(&global_mutex);
     DHCPMGR_LOG_DEBUG("%s %d Successfully sent message to controller queue %s\n", __FUNCTION__, __LINE__, tmp_info.mq_name);
     mq_close(mq_desc);
-    if(DhcpMgr_UnlockInterfaceQueueMutexByName(info.if_name) != 0) // Unlock the mutex after sending message
-    {
-        DHCPMGR_LOG_ERROR("%s %d Failed to unlock interface queue mutex for %s\n", __FUNCTION__, __LINE__, info.if_name);
-    }
     return 0;
 }
 

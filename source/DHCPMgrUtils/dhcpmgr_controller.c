@@ -921,16 +921,11 @@ void* DhcpMgr_MainController( void *args )
 
 
     DHCPMGR_LOG_DEBUG("%s %d: Cleaning up DhcpMgr_MainController thread for interface %s\n", __FUNCTION__, __LINE__, inf_name);
-    if(DhcpMgr_LockInterfaceQueueMutexByName(inf_name) != 0)
-    {
-        DHCPMGR_LOG_ERROR("%s %d: Failed to lock the mutex on controller exit for interface %s\n",__FUNCTION__, __LINE__, inf_name);
-    }
+    /* mark_thread_stopped acquires global_mutex internally, making the state
+     * transition atomic with respect to the mq_send in DhcpMgr_OpenQueueEnsureThread
+     * which also holds global_mutex. No separate q_mutex needed. */
     mark_thread_stopped(inf_name);
     mq_close(mq_desc);
-    if(DhcpMgr_UnlockInterfaceQueueMutexByName(inf_name) != 0)
-    {
-        DHCPMGR_LOG_ERROR("%s %d: Failed to unlock the mutex on controller exit for interface %s\n",__FUNCTION__, __LINE__, inf_name);
-    }
     /* Mark thread as stopped so new one can be created if needed */
     DHCPMGR_LOG_DEBUG("%s %d: Exiting DhcpMgr_MainController thread for mq %s\n", __FUNCTION__, __LINE__, mq_name);
     return NULL;
