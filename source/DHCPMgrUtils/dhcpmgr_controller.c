@@ -50,6 +50,7 @@
 #include "dhcpmgr_custom_options.h"
 #include "cosa_apis_util.h"
 #include <telemetry_busmessage_sender.h>
+#include <linux/if_addr.h>     /* IFA_F_TENTATIVE */
 
 
 /* ---- Global Constants -------------------------- */
@@ -434,49 +435,47 @@ static bool DhcpMgr_checkInterfaceStatus(const char * ifName)
  * @return true if the link-local address is found and DAD status is verified, false otherwise.
  */
 static bool DhcpMgr_checkLinkLocalAddress(const char * interfaceName)
-{ 
+{
     // check if interface is ipv6 ready with a link-local address
     DHCPMGR_LOG_INFO("%s %d: Enter DhcpMgr_checkLinkLocalAddress, interfaceName=%s\n", __FUNCTION__, __LINE__, interfaceName ? interfaceName : "NULL");
     unsigned int waitTime = INTF_V6LL_TIMEOUT_IN_MSEC;
     DHCPMGR_LOG_INFO("%s %d: waitTime initialized to %u ms\n", __FUNCTION__, __LINE__, waitTime);
-    char cmd[BUFLEN_128] = {0};
-    snprintf(cmd, sizeof(cmd), "ip address show dev %s tentative", interfaceName);
-    DHCPMGR_LOG_INFO("%s %d: cmd=[%s]\n", __FUNCTION__, __LINE__, cmd);
-    /* Block SIGCHLD around popen/pclose to prevent sigchld_handler from
-     * stealing popen's child via waitpid(-1,...), which causes pclose to
-     * hang (ECHILD) or deadlock on the logging mutex. */
-    sigset_t sigchld_mask, old_mask;
-    sigemptyset(&sigchld_mask);
-    sigaddset(&sigchld_mask, SIGCHLD);
 
     while (waitTime > 0)
     {
         DHCPMGR_LOG_INFO("%s %d: waitTime remaining=%u ms\n", __FUNCTION__, __LINE__, waitTime);
-        FILE *fp_dad   = NULL;
-        char buffer[BUFLEN_256] = {0};
 
-        sigprocmask(SIG_BLOCK, &sigchld_mask, &old_mask);
-        fp_dad = popen(cmd, "r");
-        DHCPMGR_LOG_INFO("%s %d: popen(%s) returned fp_dad=%p\n", __FUNCTION__, __LINE__, cmd, (void*)fp_dad);
-        if(fp_dad != NULL)
+        /* Read /proc/net/if_inet6 directly - no child process, no SIGCHLD interference.
+         * Format: addr32hex if_idx prefix_len scope flags ifname (all hex except ifname)
+         * IFA_F_TENTATIVE (0x40) indicates address is undergoing DAD. */
+        bool tentative = false;
+        FILE *fp_inet6 = fopen("/proc/net/if_inet6", "r");
+        DHCPMGR_LOG_INFO("%s %d: fopen(/proc/net/if_inet6) returned fp=%p\n", __FUNCTION__, __LINE__, (void*)fp_inet6);
+        if (fp_inet6 != NULL)
         {
-            char *fgets_ret = fgets(buffer, BUFLEN_256, fp_dad);
-            DHCPMGR_LOG_INFO("%s %d: fgets returned=%p, buffer=[%s], strlen(buffer)=%zu\n", __FUNCTION__, __LINE__, (void*)fgets_ret, buffer, strlen(buffer));
-            if ((fgets_ret == NULL) || (strlen(buffer) == 0))
+            char addr[33];
+            int if_idx, pfx_len, scope, flags;
+            char ifname[IF_NAMESIZE + 1];
+            while (fscanf(fp_inet6, "%32s %x %x %x %x %16s", addr, &if_idx, &pfx_len, &scope, &flags, ifname) == 6)
             {
-                DHCPMGR_LOG_INFO("%s %d: no tentative address found, breaking out of loop\n", __FUNCTION__, __LINE__);
-                DHCPMGR_LOG_INFO("%s %d: calling pclose (break path)\n", __FUNCTION__, __LINE__);
-                pclose(fp_dad);
-                DHCPMGR_LOG_INFO("%s %d: pclose returned (break path)\n", __FUNCTION__, __LINE__);
-                sigprocmask(SIG_SETMASK, &old_mask, NULL);
-                break;
+                DHCPMGR_LOG_INFO("%s %d: if_inet6: addr=%s flags=0x%x ifname=%s\n", __FUNCTION__, __LINE__, addr, flags, ifname);
+                if ((strcmp(ifname, interfaceName) == 0) && (flags & IFA_F_TENTATIVE))
+                {
+                    tentative = true;
+                    break;
+                }
             }
-            DHCPMGR_LOG_INFO("%s %d: interface still tentative: %s\n", __FUNCTION__, __LINE__, buffer);
-            DHCPMGR_LOG_INFO("%s %d: calling pclose (tentative path)\n", __FUNCTION__, __LINE__);
-            pclose(fp_dad);
-            DHCPMGR_LOG_INFO("%s %d: pclose returned (tentative path)\n", __FUNCTION__, __LINE__);
+            fclose(fp_inet6);
         }
-        sigprocmask(SIG_SETMASK, &old_mask, NULL);
+        DHCPMGR_LOG_INFO("%s %d: tentative=%d for interface %s\n", __FUNCTION__, __LINE__, tentative, interfaceName);
+
+        if (!tentative)
+        {
+            DHCPMGR_LOG_INFO("%s %d: no tentative address found, breaking out of loop\n", __FUNCTION__, __LINE__);
+            break;
+        }
+
+        DHCPMGR_LOG_INFO("%s %d: interface still tentative, sleeping %f ms\n", __FUNCTION__, __LINE__, (double)INTF_V6LL_INTERVAL_IN_MSEC);
         usleep(INTF_V6LL_INTERVAL_IN_MSEC * USECS_IN_MSEC);
         DHCPMGR_LOG_INFO("%s %d: slept %f ms, decrementing waitTime by %f\n", __FUNCTION__, __LINE__, (double)INTF_V6LL_INTERVAL_IN_MSEC, (double)INTF_V6LL_INTERVAL_IN_MSEC);
         waitTime -= INTF_V6LL_INTERVAL_IN_MSEC;
