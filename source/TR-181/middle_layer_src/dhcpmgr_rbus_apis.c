@@ -68,12 +68,12 @@ rbusDataElement_t DhcpMgrRbusDataElements[] = {
  */
 ANSC_STATUS DhcpMgr_Rbus_Init()
 {
-    DHCPMGR_LOG_DEBUG("%s %d: rbus init called\n",__FUNCTION__, __LINE__);
+    DHCPMGR_LOG_INFO("%s %d: rbus init called\n",__FUNCTION__, __LINE__);
     int rc = ANSC_STATUS_FAILURE;
     rc = rbus_open(&rbusHandle, componentName);
     if (rc != RBUS_ERROR_SUCCESS)
     {
-        DHCPMGR_LOG_DEBUG("DhcpManager_Rbus_Init rbus initialization failed\n");
+        DHCPMGR_LOG_ERROR("DhcpManager_Rbus_Init rbus initialization failed\n");
         return rc;
     }
 
@@ -83,7 +83,7 @@ ANSC_STATUS DhcpMgr_Rbus_Init()
 
     if (rc != RBUS_ERROR_SUCCESS)
     {
-        DHCPMGR_LOG_DEBUG("rbus register data elements failed\n");
+        DHCPMGR_LOG_WARNING("rbus register data elements failed\n");
         rbus_close(rbusHandle);
         return rc;
     }
@@ -96,12 +96,12 @@ ANSC_STATUS DhcpMgr_Rbus_Init()
         rc = rbusTable_registerRow(rbusHandle, DHCP_MGR_DHCPv4_TABLE, (i+1), NULL);
         if(rc != RBUS_ERROR_SUCCESS)
         {
-            DHCPMGR_LOG_DEBUG("%s %d - Iterface(%lu) Table (%s) Registartion failed, Error=%d \n", __FUNCTION__, __LINE__, i, DHCP_MGR_DHCPv4_TABLE, rc);
+            DHCPMGR_LOG_ERROR("%s %d - Iterface(%lu) Table (%s) Registartion failed, Error=%d \n", __FUNCTION__, __LINE__, i, DHCP_MGR_DHCPv4_TABLE, rc);
             return rc;
         }
         else
         {
-            DHCPMGR_LOG_DEBUG("%s %d - Iterface(%lu) Table (%s) Registartion Successfully, AliasName(%s)\n", __FUNCTION__, __LINE__, i, DHCP_MGR_DHCPv4_TABLE, AliasName);
+            DHCPMGR_LOG_INFO("%s %d - Iterface(%lu) Table (%s) Registartion Successfully, AliasName(%s)\n", __FUNCTION__, __LINE__, i, DHCP_MGR_DHCPv4_TABLE, AliasName);
         }
 
         memset(AliasName,0,64);
@@ -114,12 +114,12 @@ ANSC_STATUS DhcpMgr_Rbus_Init()
         rc = rbusTable_registerRow(rbusHandle, DHCP_MGR_DHCPv6_TABLE, (i+1), NULL);
         if(rc != RBUS_ERROR_SUCCESS)
         {
-            DHCPMGR_LOG_DEBUG("%s %d - Iterface(%lu) Table (%s) Registartion failed, Error=%d \n", __FUNCTION__, __LINE__, i, DHCP_MGR_DHCPv6_TABLE, rc);
+            DHCPMGR_LOG_ERROR("%s %d - Iterface(%lu) Table (%s) Registartion failed, Error=%d \n", __FUNCTION__, __LINE__, i, DHCP_MGR_DHCPv6_TABLE, rc);
             return rc;
         }
         else
         {
-            DHCPMGR_LOG_DEBUG("%s %d - Iterface(%lu) Table (%s) Registartion Successfully, AliasName(%s)\n", __FUNCTION__, __LINE__, i, DHCP_MGR_DHCPv6_TABLE, AliasName);
+            DHCPMGR_LOG_INFO("%s %d - Iterface(%lu) Table (%s) Registartion Successfully, AliasName(%s)\n", __FUNCTION__, __LINE__, i, DHCP_MGR_DHCPv6_TABLE, AliasName);
         }
 
         memset(AliasName,0,64);
@@ -155,7 +155,7 @@ rbusError_t DhcpMgr_Rbus_SubscribeHandler(rbusHandle_t handle, rbusEventSubActio
      *autoPublish = false;
 
     char *subscribe_action = action == RBUS_EVENT_ACTION_SUBSCRIBE ? "subscribed" : "unsubscribed";
-    DHCPMGR_LOG_DEBUG("%s %d - Event %s has been  %s \n", __FUNCTION__, __LINE__,eventName, subscribe_action );
+    DHCPMGR_LOG_INFO("%s %d - Event %s has been  %s \n", __FUNCTION__, __LINE__,eventName, subscribe_action );
 
     return RBUS_ERROR_SUCCESS;
 }
@@ -199,7 +199,7 @@ static void DhcpMgr_createLeaseInfoMsg(DHCPv4_PLUGIN_MSG *src, DHCP_MGR_IPV4_MSG
  */
 static void DhcpMgr_UpdateDhcpv6MapInfo(PCOSA_DML_DHCPCV6_FULL pDhcpv6c, DHCP_MGR_IPV6_MSG *src)
 {
-    DHCPMGR_LOG_DEBUG("%s: Entry\n", __FUNCTION__);
+    DHCPMGR_LOG_INFO("%s: Entry\n", __FUNCTION__);
 
     if (!pDhcpv6c || !src)
         return;
@@ -273,7 +273,7 @@ static void DhcpMgr_createDhcpv6LeaseInfoMsg(DHCPv6_PLUGIN_MSG *src, DHCP_MGR_IP
             dest->map.mapType = MAP_TYPE_MAPT;
             t2_event_d("DHCPMGR_INFO_MAPTConfigured", 1);
         } else {
-            DHCPMGR_LOG_DEBUG("%s: MAP-T option95 parsing failed. Set maptAssigned to FALSE.\n", __FUNCTION__);
+            DHCPMGR_LOG_ERROR("%s: MAP-T option95 parsing failed. Set maptAssigned to FALSE.\n", __FUNCTION__);
             dest->maptAssigned = FALSE;
             t2_event_d("DHCPMGR_ERROR_MAPTParseFail", 1);
         }
@@ -291,7 +291,7 @@ static void DhcpMgr_createDhcpv6LeaseInfoMsg(DHCPv6_PLUGIN_MSG *src, DHCP_MGR_IP
             dest->map.mapType = MAP_TYPE_MAPE;
             t2_event_d("DHCPMGR_INFO_MAPEConfigured", 1);
         } else {
-            DHCPMGR_LOG_DEBUG("%s: MAP-E option94 parsing failed. Set mapeAssigned to FALSE.\n", __FUNCTION__);
+            DHCPMGR_LOG_ERROR("%s: MAP-E option94 parsing failed. Set mapeAssigned to FALSE.\n", __FUNCTION__);
             dest->mapeAssigned = FALSE;
             t2_event_d("DHCPMGR_ERROR_MAPEParseFail", 1);
         } 
@@ -343,7 +343,7 @@ rbusError_t getDataHandler(rbusHandle_t rbusHandle, rbusProperty_t rbusProperty,
     {
         if (sscanf(pName, DHCPv4_EVENT_FORMAT, &iDmIndex) != 1 || iDmIndex < 1)
         {
-            DHCPMGR_LOG_DEBUG("%s %d - Invalid DHCPv4 property name %s\n", __FUNCTION__, __LINE__, pName);
+            DHCPMGR_LOG_ERROR("%s %d - Invalid DHCPv4 property name %s\n", __FUNCTION__, __LINE__, pName);
             return RBUS_ERROR_SUCCESS;
         }
 
@@ -361,12 +361,12 @@ rbusError_t getDataHandler(rbusHandle_t rbusHandle, rbusProperty_t rbusProperty,
 
         if (!pDhcpc || !pDhcpc->currentLease)
         {
-            DHCPMGR_LOG_DEBUG("%s %d - DHCPv4 client context or lease not available for %s\n", __FUNCTION__, __LINE__, pName);
+            DHCPMGR_LOG_INFO("%s %d - DHCPv4 client context or lease not available for %s\n", __FUNCTION__, __LINE__, pName);
             return RBUS_ERROR_SUCCESS;
         }
 
         msgType = pDhcpc->currentLease->isExpired ? DHCP_LEASE_DEL : DHCP_LEASE_UPDATE;
-        DHCPMGR_LOG_DEBUG("%s %d - Getting DHCPv4 data for %s, MsgType=%d\n", __FUNCTION__, __LINE__, pName, msgType);
+        DHCPMGR_LOG_INFO("%s %d - Getting DHCPv4 data for %s, MsgType=%d\n", __FUNCTION__, __LINE__, pName, msgType);
 
         if (msgType == DHCP_LEASE_UPDATE)
         {
@@ -384,7 +384,7 @@ rbusError_t getDataHandler(rbusHandle_t rbusHandle, rbusProperty_t rbusProperty,
     {
         if (sscanf(pName, DHCPv6_EVENT_FORMAT, &iDmIndex) != 1 || iDmIndex < 1)
         {
-            DHCPMGR_LOG_DEBUG("%s %d - Invalid DHCPv6 property name %s\n", __FUNCTION__, __LINE__, pName);
+            DHCPMGR_LOG_ERROR("%s %d - Invalid DHCPv6 property name %s\n", __FUNCTION__, __LINE__, pName);
             return RBUS_ERROR_SUCCESS;
         }
 
@@ -402,12 +402,12 @@ rbusError_t getDataHandler(rbusHandle_t rbusHandle, rbusProperty_t rbusProperty,
 
         if (!pDhcpv6c || !pDhcpv6c->currentLease)
         {
-            DHCPMGR_LOG_DEBUG("%s %d - DHCPv6 client context or lease not available for %s\n", __FUNCTION__, __LINE__, pName);
+            DHCPMGR_LOG_INFO("%s %d - DHCPv6 client context or lease not available for %s\n", __FUNCTION__, __LINE__, pName);
             return RBUS_ERROR_SUCCESS;
         }
 
         msgType = pDhcpv6c->currentLease->isExpired ? DHCP_LEASE_DEL : DHCP_LEASE_UPDATE;
-        DHCPMGR_LOG_DEBUG("%s %d - Getting DHCPv6 data for %s, MsgType=%d\n", __FUNCTION__, __LINE__, pName, msgType);
+        DHCPMGR_LOG_INFO("%s %d - Getting DHCPv6 data for %s, MsgType=%d\n", __FUNCTION__, __LINE__, pName, msgType);
 
         if (msgType == DHCP_LEASE_UPDATE)
         {
@@ -423,7 +423,7 @@ rbusError_t getDataHandler(rbusHandle_t rbusHandle, rbusProperty_t rbusProperty,
     }
     else
     {
-        DHCPMGR_LOG_DEBUG("%s %d - Unsupported property name %s\n", __FUNCTION__, __LINE__, pName ? pName : "NULL");
+        DHCPMGR_LOG_ERROR("%s %d - Unsupported property name %s\n", __FUNCTION__, __LINE__, pName ? pName : "NULL");
     }
 
     return RBUS_ERROR_SUCCESS;
@@ -453,7 +453,7 @@ int DhcpMgr_PublishDhcpV4Event(PCOSA_DML_DHCPC_FULL pDhcpc, DHCP_MESSAGE_TYPE ms
 {
     if(pDhcpc == NULL)
     {
-        DHCPMGR_LOG_DEBUG("%s : pDhcpc is NULL\n",__FUNCTION__);
+        DHCPMGR_LOG_ERROR("%s : pDhcpc is NULL\n",__FUNCTION__);
         return -1;
     }
 
@@ -462,7 +462,7 @@ int DhcpMgr_PublishDhcpV4Event(PCOSA_DML_DHCPC_FULL pDhcpc, DHCP_MESSAGE_TYPE ms
     rbusObject_t rdata;
     rbusValue_t ifNameVal , typeVal, leaseInfoVal;
 
-    DHCPMGR_LOG_DEBUG("%s %d - Publishing DHCPv4 Event for Interface %s with MsgType %d\n", __FUNCTION__, __LINE__, pDhcpc->Cfg.Interface, msgType);
+    DHCPMGR_LOG_INFO("%s %d - Publishing DHCPv4 Event for Interface %s with MsgType %d\n", __FUNCTION__, __LINE__, pDhcpc->Cfg.Interface, msgType);
     /*Set Interface Name */
     rbusObject_Init(&rdata, NULL);
     rbusValue_Init(&ifNameVal);
@@ -480,11 +480,11 @@ int DhcpMgr_PublishDhcpV4Event(PCOSA_DML_DHCPC_FULL pDhcpc, DHCP_MESSAGE_TYPE ms
         DHCP_MGR_IPV4_MSG leaseInfo;
         memset(&leaseInfo, 0, sizeof(leaseInfo));
         DhcpMgr_createLeaseInfoMsg(pDhcpc->currentLease,&leaseInfo);
-        DHCPMGR_LOG_DEBUG("%s %d - Mta Option 122: %s\n", __FUNCTION__, __LINE__, pDhcpc->currentLease->mtaOption.option_122);
-        DHCPMGR_LOG_DEBUG("%s %d - Mta Option 67: %s\n", __FUNCTION__, __LINE__, pDhcpc->currentLease->mtaOption.cOption67);
-        DHCPMGR_LOG_DEBUG("%s %d - cTftpServer: %s\n", __FUNCTION__, __LINE__, pDhcpc->currentLease->cTftpServer);
-        DHCPMGR_LOG_DEBUG("%s %d - HostName: %s\n", __FUNCTION__, __LINE__, pDhcpc->currentLease->cHostName);
-        DHCPMGR_LOG_DEBUG("%s %d - DomainName: %s\n", __FUNCTION__, __LINE__, pDhcpc->currentLease->cDomainName);
+        DHCPMGR_LOG_INFO("%s %d - Mta Option 122: %s\n", __FUNCTION__, __LINE__, pDhcpc->currentLease->mtaOption.option_122);
+        DHCPMGR_LOG_INFO("%s %d - Mta Option 67: %s\n", __FUNCTION__, __LINE__, pDhcpc->currentLease->mtaOption.cOption67);
+        DHCPMGR_LOG_INFO("%s %d - cTftpServer: %s\n", __FUNCTION__, __LINE__, pDhcpc->currentLease->cTftpServer);
+        DHCPMGR_LOG_INFO("%s %d - HostName: %s\n", __FUNCTION__, __LINE__, pDhcpc->currentLease->cHostName);
+        DHCPMGR_LOG_INFO("%s %d - DomainName: %s\n", __FUNCTION__, __LINE__, pDhcpc->currentLease->cDomainName);
         rbusValue_Init(&leaseInfoVal);
         rbusValue_SetBytes(leaseInfoVal, &leaseInfo, sizeof(leaseInfo));
         rbusObject_SetValue(rdata, "LeaseInfo", leaseInfoVal);
@@ -506,11 +506,11 @@ int DhcpMgr_PublishDhcpV4Event(PCOSA_DML_DHCPC_FULL pDhcpc, DHCP_MESSAGE_TYPE ms
     
     if( rt != RBUS_ERROR_SUCCESS && rt != RBUS_ERROR_NOSUBSCRIBERS)
     {
-        DHCPMGR_LOG_DEBUG("%s %d - Event %s Publish Failed \n", __FUNCTION__, __LINE__,eventStr );
+        DHCPMGR_LOG_WARNING("%s %d - Event %s Publish Failed \n", __FUNCTION__, __LINE__,eventStr );
     }
     else
     {
-        DHCPMGR_LOG_DEBUG("%s %d - Event %s Published \n", __FUNCTION__, __LINE__,eventStr );
+        DHCPMGR_LOG_INFO("%s %d - Event %s Published \n", __FUNCTION__, __LINE__,eventStr );
         rc = 0;
     }
 
@@ -547,7 +547,7 @@ int DhcpMgr_PublishDhcpV6Event(PCOSA_DML_DHCPCV6_FULL pDhcpv6c, DHCP_MESSAGE_TYP
 {
     if(pDhcpv6c == NULL)
     {
-        DHCPMGR_LOG_DEBUG("%s : pDhcpv6c is NULL\n",__FUNCTION__);
+        DHCPMGR_LOG_ERROR("%s : pDhcpv6c is NULL\n",__FUNCTION__);
         return -1;
     }
 
@@ -586,7 +586,7 @@ int DhcpMgr_PublishDhcpV6Event(PCOSA_DML_DHCPCV6_FULL pDhcpv6c, DHCP_MESSAGE_TYP
         else if(pDhcpv6c->Info.MapInfo.MaptAssigned) // previously assigned MAPT in DML but not in the new lease, clear the MAPT info in DML
         {
             //Clear MAPT related info in DML if MAPT is not assigned in the lease
-            DHCPMGR_LOG_DEBUG("%s: Clearing MAPT info in DML as MAPT is not assigned in the lease\n", __FUNCTION__);
+            DHCPMGR_LOG_INFO("%s: Clearing MAPT info in DML as MAPT is not assigned in the lease\n", __FUNCTION__);
             memset(&pDhcpv6c->Info.MapInfo, 0, sizeof(DML_DHCPCV6_MAP_INFO));
         }
 #endif // FEATURE_MAPT || FEATURE_SUPPORT_MAPT_NAT46
@@ -604,11 +604,11 @@ int DhcpMgr_PublishDhcpV6Event(PCOSA_DML_DHCPCV6_FULL pDhcpv6c, DHCP_MESSAGE_TYP
     
     if( rt != RBUS_ERROR_SUCCESS && rt != RBUS_ERROR_NOSUBSCRIBERS)
     {
-        DHCPMGR_LOG_DEBUG("%s %d - Event %s Publish Failed \n", __FUNCTION__, __LINE__,eventStr );
+        DHCPMGR_LOG_WARNING("%s %d - Event %s Publish Failed \n", __FUNCTION__, __LINE__,eventStr );
     }
     else
     {
-        DHCPMGR_LOG_DEBUG("%s %d - Event %s Published \n", __FUNCTION__, __LINE__,eventStr );
+        DHCPMGR_LOG_INFO("%s %d - Event %s Published \n", __FUNCTION__, __LINE__,eventStr );
         rc = 0;
     }
 

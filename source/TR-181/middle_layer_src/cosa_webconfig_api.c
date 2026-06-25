@@ -46,10 +46,10 @@ int  get_base64_decodedbuffer(char *pString, char **buffer, int *size)
         return -1;
 
     *size = b64_decode( (const uint8_t*)pString, strlen(pString), (uint8_t *)decodeMsg );
-    DHCPMGR_LOG_DEBUG("base64 decoded data contains %d bytes\n",*size);
+    DHCPMGR_LOG_WARNING("base64 decoded data contains %d bytes\n",*size);
 
     getCurrentTime(endPtr);
-    DHCPMGR_LOG_DEBUG("Base64 decode Elapsed time : %ld ms\n", timeValDiff(startPtr, endPtr));
+    DHCPMGR_LOG_WARNING("Base64 decode Elapsed time : %ld ms\n", timeValDiff(startPtr, endPtr));
 
     *buffer = decodeMsg;
     return 0;
@@ -71,22 +71,22 @@ msgpack_unpack_return get_msgpack_unpack_status(char *decodedbuf, int size)
     switch(unpack_ret)
     {
     case MSGPACK_UNPACK_SUCCESS:
-        DHCPMGR_LOG_DEBUG("MSGPACK_UNPACK_SUCCESS :%d\n",unpack_ret);
+        DHCPMGR_LOG_WARNING("MSGPACK_UNPACK_SUCCESS :%d\n",unpack_ret);
         break;
     case MSGPACK_UNPACK_EXTRA_BYTES:
-        DHCPMGR_LOG_DEBUG("MSGPACK_UNPACK_EXTRA_BYTES :%d\n",unpack_ret);
+        DHCPMGR_LOG_WARNING("MSGPACK_UNPACK_EXTRA_BYTES :%d\n",unpack_ret);
         break;
     case MSGPACK_UNPACK_CONTINUE:
-        DHCPMGR_LOG_DEBUG("MSGPACK_UNPACK_CONTINUE :%d\n",unpack_ret);
+        DHCPMGR_LOG_WARNING("MSGPACK_UNPACK_CONTINUE :%d\n",unpack_ret);
         break;
     case MSGPACK_UNPACK_PARSE_ERROR:
-        DHCPMGR_LOG_DEBUG("MSGPACK_UNPACK_PARSE_ERROR :%d\n",unpack_ret);
+        DHCPMGR_LOG_WARNING("MSGPACK_UNPACK_PARSE_ERROR :%d\n",unpack_ret);
         break;
     case MSGPACK_UNPACK_NOMEM_ERROR:
-        DHCPMGR_LOG_DEBUG("MSGPACK_UNPACK_NOMEM_ERROR :%d\n",unpack_ret);
+        DHCPMGR_LOG_WARNING("MSGPACK_UNPACK_NOMEM_ERROR :%d\n",unpack_ret);
         break;
     default:
-        DHCPMGR_LOG_DEBUG("Message Pack decode failed with error: %d\n", unpack_ret);
+        DHCPMGR_LOG_WARNING("Message Pack decode failed with error: %d\n", unpack_ret);
     }
 
     msgpack_zone_destroy(&mempool);
@@ -97,7 +97,7 @@ msgpack_unpack_return get_msgpack_unpack_status(char *decodedbuf, int size)
 int CheckIfIpIsValid( char *ipAddress )
 {
 
-    DHCPMGR_LOG_DEBUG("%s:IpAddressReceivedIs:%s\n",__FUNCTION__,ipAddress);
+    DHCPMGR_LOG_INFO("%s:IpAddressReceivedIs:%s\n",__FUNCTION__,ipAddress);
 
     struct sockaddr_in sa;
     struct sockaddr_in6 sa6;
@@ -113,8 +113,8 @@ int CheckIfIpIsValid( char *ipAddress )
 int CheckIfPortsAreValid( char *port, char *port_end_range )
 {
 
-    DHCPMGR_LOG_DEBUG("%s:ExternalPortEndRangeReceivedIs:%s\n",__FUNCTION__,port);
-    DHCPMGR_LOG_DEBUG("%s:ExternalPortEndRangeReceivedIs:%s\n",__FUNCTION__,port_end_range);
+    DHCPMGR_LOG_INFO("%s:ExternalPortEndRangeReceivedIs:%s\n",__FUNCTION__,port);
+    DHCPMGR_LOG_INFO("%s:ExternalPortEndRangeReceivedIs:%s\n",__FUNCTION__,port_end_range);
 
 
     int iPort = atoi(port);
@@ -179,19 +179,19 @@ int setBlobVersion(char* subdoc,uint32_t version)
         if (version == 0)
         {
             snprintf(cmd,sizeof(cmd),"rm %s",HOTSPOT_BLOB_FILE);
-            DHCPMGR_LOG_DEBUG("%s : cmd to remove filename is %s\n",__FUNCTION__,cmd);
+            DHCPMGR_LOG_INFO("%s : cmd to remove filename is %s\n",__FUNCTION__,cmd);
         }
         else
         {
             snprintf(cmd,sizeof(cmd),"mv /tmp/.%s%s %s",subdoc,subdoc_ver,HOTSPOT_BLOB_FILE);
-            DHCPMGR_LOG_DEBUG("%s : cmd to move filename is %s\n",__FUNCTION__,cmd);
+            DHCPMGR_LOG_INFO("%s : cmd to move filename is %s\n",__FUNCTION__,cmd);
         }
         system(cmd);
 
     }
     if(syscfg_set_commit(NULL,buf,subdoc_ver) != 0)
     {
-        DHCPMGR_LOG_DEBUG("syscfg_set failed\n");
+        DHCPMGR_LOG_ERROR("syscfg_set failed\n");
         return -1;
     }
 

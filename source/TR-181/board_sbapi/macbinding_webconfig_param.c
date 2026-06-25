@@ -220,7 +220,7 @@ int process_macbindingdoc( macbindingdoc_t *md, int num, ... )
 
             if( 0 != process_macdocparams(&md->entries[i], &array->ptr[i].via.map) )
             {
-                DHCPMGR_LOG_DEBUG("process_macdocparams failed\n");
+                DHCPMGR_LOG_WARNING("process_macdocparams failed\n");
                 return -1;
             }
         }

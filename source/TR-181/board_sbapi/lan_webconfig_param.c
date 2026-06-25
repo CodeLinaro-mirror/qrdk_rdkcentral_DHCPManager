@@ -116,7 +116,7 @@ const char* landoc_strerror( int errnum )
     while( (map[i].v != errnum) && (NULL != map[i].txt) ) { i++; }
     if( NULL == map[i].txt )
     {
-        DHCPMGR_LOG_DEBUG("----landoc_strerror----\n");
+        DHCPMGR_LOG_WARNING("----landoc_strerror----\n");
         return "Unknown error.";
     }
     return map[i].txt;
@@ -216,7 +216,7 @@ int process_landoc( landoc_t *ld,int num, ... )
     ld->param = (lanparam_t *) malloc( sizeof(lanparam_t) );
     if( NULL == ld->param )
     {
-        DHCPMGR_LOG_DEBUG("entries count malloc failed\n");
+        DHCPMGR_LOG_WARNING("entries count malloc failed\n");
         return -1;
     }
     memset( ld->param, 0, sizeof(lanparam_t));
@@ -224,7 +224,7 @@ int process_landoc( landoc_t *ld,int num, ... )
 
     if( 0 != process_lanparams(ld->param, mapobj) )
     {
-        DHCPMGR_LOG_DEBUG("process_lanparams failed\n");
+        DHCPMGR_LOG_WARNING("process_lanparams failed\n");
         return -1;
     }
 
