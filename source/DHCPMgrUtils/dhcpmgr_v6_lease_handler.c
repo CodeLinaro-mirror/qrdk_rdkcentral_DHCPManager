@@ -87,7 +87,7 @@ static void processv6LesSysevents(IPv6Events* eventMaps, size_t size, const char
         {
             char sysEventName[256] = {0};
             snprintf(sysEventName, sizeof(sysEventName), eventMaps[i].eventName, IfaceName);
-            DHCPMGR_LOG_DEBUG("%s - %d: Setting sysevent %s to %s \n", __FUNCTION__, __LINE__, sysEventName, eventMaps[i].value);
+            CcspTraceInfo(("%s - %d: Setting sysevent %s to %s \n", __FUNCTION__, __LINE__, sysEventName, eventMaps[i].value));
  //           sysevent_set(sysevent_fd, sysevent_token, sysEventName, eventMaps[i].value, 0);
             ifl_set_event(sysEventName,eventMaps[i].value);
         }
