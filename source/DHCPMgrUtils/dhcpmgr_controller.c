@@ -465,12 +465,16 @@ static bool DhcpMgr_checkLinkLocalAddress(const char * interfaceName)
             if ((fgets_ret == NULL) || (strlen(buffer) == 0))
             {
                 DHCPMGR_LOG_INFO("%s %d: no tentative address found, breaking out of loop\n", __FUNCTION__, __LINE__);
+                DHCPMGR_LOG_INFO("%s %d: calling pclose (break path)\n", __FUNCTION__, __LINE__);
                 pclose(fp_dad);
+                DHCPMGR_LOG_INFO("%s %d: pclose returned (break path)\n", __FUNCTION__, __LINE__);
                 sigprocmask(SIG_SETMASK, &old_mask, NULL);
                 break;
             }
             DHCPMGR_LOG_INFO("%s %d: interface still tentative: %s\n", __FUNCTION__, __LINE__, buffer);
+            DHCPMGR_LOG_INFO("%s %d: calling pclose (tentative path)\n", __FUNCTION__, __LINE__);
             pclose(fp_dad);
+            DHCPMGR_LOG_INFO("%s %d: pclose returned (tentative path)\n", __FUNCTION__, __LINE__);
         }
         sigprocmask(SIG_SETMASK, &old_mask, NULL);
         usleep(INTF_V6LL_INTERVAL_IN_MSEC * USECS_IN_MSEC);
