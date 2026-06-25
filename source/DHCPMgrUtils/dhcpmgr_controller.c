@@ -464,7 +464,7 @@ static bool DhcpMgr_checkLinkLocalAddress(const char * interfaceName)
             pclose(fp_dad);
         }
         usleep(INTF_V6LL_INTERVAL_IN_MSEC * USECS_IN_MSEC);
-        DHCPMGR_LOG_DEBUG("%s %d: slept %d ms, decrementing waitTime by %d\n", __FUNCTION__, __LINE__, INTF_V6LL_INTERVAL_IN_MSEC, INTF_V6LL_INTERVAL_IN_MSEC);
+        DHCPMGR_LOG_DEBUG("%s %d: slept %f ms, decrementing waitTime by %f\n", __FUNCTION__, __LINE__, (double)INTF_V6LL_INTERVAL_IN_MSEC, (double)INTF_V6LL_INTERVAL_IN_MSEC);
         waitTime -= INTF_V6LL_INTERVAL_IN_MSEC;
         DHCPMGR_LOG_DEBUG("%s %d: waitTime after decrement=%u ms\n", __FUNCTION__, __LINE__, waitTime);
     }
