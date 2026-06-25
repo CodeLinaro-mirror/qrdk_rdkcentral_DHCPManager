@@ -216,19 +216,19 @@ int find_arp_entry(char *ipaddr, char *ifname, unsigned char *pMac)
 int usg_cpe_from_moca(char *pMac)
 {
 
-    DHCPMGR_LOG_INFO("Inside %s\n", __FUNCTION__);
+    DHCPMGR_LOG_DEBUG("Inside %s\n", __FUNCTION__);
     int n=0,i;
     unsigned char macArray[6];
     moca_cpe_t cpes[kMoca_MaxCpeList];
 
     mac_string_to_array(pMac,macArray);
 
-    DHCPMGR_LOG_INFO("Calling moca_GetMocaCPEs, %s\n", __FUNCTION__);
+    DHCPMGR_LOG_DEBUG("Calling moca_GetMocaCPEs, %s\n", __FUNCTION__);
     moca_GetMocaCPEs(0, cpes, &n);
-    DHCPMGR_LOG_INFO("Returned from moca_GetMocaCPEs, %s\n", __FUNCTION__);
-    DHCPMGR_LOG_INFO("%s", "");
+    DHCPMGR_LOG_DEBUG("Returned from moca_GetMocaCPEs, %s\n", __FUNCTION__);
+    DHCPMGR_LOG_DEBUG("%s", "");
     for(i=0;i<n;i++){
-        DHCPMGR_LOG_INFO("MAC[%d]-> %02x:%02x:%02x:%02x:%02x:%02x\n", i, cpes[i].mac_addr[0],cpes[i].mac_addr[1],cpes[i].mac_addr[2],
+        DHCPMGR_LOG_DEBUG("MAC[%d]-> %02x:%02x:%02x:%02x:%02x:%02x\n", i, cpes[i].mac_addr[0],cpes[i].mac_addr[1],cpes[i].mac_addr[2],
                 cpes[i].mac_addr[3],cpes[i].mac_addr[4],cpes[i].mac_addr[5]);
         if(!memcmp(macArray,cpes[i].mac_addr,6))
             return(1);
@@ -302,12 +302,12 @@ static void deleteDHCPv4ServerPoolOptionPSM(ULONG poolInstanceNumber, ULONG inst
         ERR_CHK(rc);
     }
 
-    DHCPMGR_LOG_INFO("%s: deleting %s\n", __FUNCTION__, param_path);
+    DHCPMGR_LOG_DEBUG("%s: deleting %s\n", __FUNCTION__, param_path);
     retPsmSet = PSM_Del_Record(bus_handle, g_Subsystem, param_path);
 
     if ( retPsmSet != CCSP_SUCCESS )
     {
-        DHCPMGR_LOG_INFO("%s -- failed to delete PSM records, error code %d", __FUNCTION__, retPsmSet);
+        DHCPMGR_LOG_DEBUG("%s -- failed to delete PSM records, error code %d", __FUNCTION__, retPsmSet);
     }
 
 }
@@ -324,12 +324,12 @@ static void deleteDHCPv4ServerPoolPSM(ULONG instanceNumber)
         ERR_CHK(rc);
     }
 
-    DHCPMGR_LOG_INFO("%s: deleting %s\n", __FUNCTION__, param_path);
+    DHCPMGR_LOG_DEBUG("%s: deleting %s\n", __FUNCTION__, param_path);
     retPsmSet = PSM_Del_Record(bus_handle, g_Subsystem, param_path);
 
     if ( retPsmSet != CCSP_SUCCESS )
     {
-        DHCPMGR_LOG_INFO("%s -- failed to delete PSM records, error code %d", __FUNCTION__, retPsmSet);
+        DHCPMGR_LOG_DEBUG("%s -- failed to delete PSM records, error code %d", __FUNCTION__, retPsmSet);
     }
 
 }
@@ -392,11 +392,11 @@ static BOOLEAN writeDHCPv4ServerPoolOptionToPSM(ULONG tblInstancenum, PCOSA_DML_
         }
         retPsmSet = PSM_Set_Record_Value2(bus_handle, g_Subsystem, param_name, ccsp_byte, param_value);
         if (retPsmSet != CCSP_SUCCESS) {
-            DHCPMGR_LOG_INFO("%s Error %d writing %s %s\n", __FUNCTION__, retPsmSet, param_name, param_value);
+            DHCPMGR_LOG_DEBUG("%s Error %d writing %s %s\n", __FUNCTION__, retPsmSet, param_name, param_value);
         }
         else
         {
-            DHCPMGR_LOG_INFO("%s: retPsmGet == CCSP_SUCCESS writing %s = %s \n", __FUNCTION__,param_name,param_value);
+            DHCPMGR_LOG_DEBUG("%s: retPsmGet == CCSP_SUCCESS writing %s = %s \n", __FUNCTION__,param_name,param_value);
         }
         dhcpServerRestart = TRUE;
     }
@@ -437,7 +437,7 @@ static BOOLEAN writeDHCPv4ServerPoolCFGToPSM(PCOSA_DML_DHCPS_POOL_CFG pNewCfg, P
         char* instStr;
         int strLength = strlen("Device.IP.Interface.");
         instStr = &(pNewCfg->Interface[strLength]);
-        DHCPMGR_LOG_INFO("%s: instStr %s\n", __FUNCTION__, instStr);
+        DHCPMGR_LOG_DEBUG("%s: instStr %s\n", __FUNCTION__, instStr);
         rc = strcpy_s(param_value, sizeof(param_value), instStr);
         ERR_CHK(rc);
         _PSM_WRITE_PARAM(PSM_DHCPV4_SERVER_POOL_INTERFACE);
@@ -799,24 +799,24 @@ static void readDHCPv4ServerPoolFromPSM()
     retPsmGet = PsmGetNextLevelInstances(bus_handle, g_Subsystem, PSM_DHCPV4_SERVER_POOL, &poolCnt, &poolList);
     if ( retPsmGet == CCSP_SUCCESS && poolList != NULL )
     {
-        DHCPMGR_LOG_INFO("%s: poolCnt = %d\n", __FUNCTION__, poolCnt);
+        DHCPMGR_LOG_DEBUG("%s: poolCnt = %d\n", __FUNCTION__, poolCnt);
         for (i = 0; i< poolCnt; i++)
         {
-            DHCPMGR_LOG_INFO("%s: pool instance %d\n", __FUNCTION__, poolList[i]);
+            DHCPMGR_LOG_DEBUG("%s: pool instance %d\n", __FUNCTION__, poolList[i]);
 
             if(poolList[i] == 1)
             {
                 // at this time, pool instance 1 is saved in utopia, so it should not be here
                 // We are ignoring it if we see instance 1.
                 // When we save pool 1 in PSM, we also need to change utopia script to reflect it.
-                DHCPMGR_LOG_INFO("%s: pool instance %d is ignored at this time.\n", __FUNCTION__, poolList[i]);
+                DHCPMGR_LOG_DEBUG("%s: pool instance %d is ignored at this time.\n", __FUNCTION__, poolList[i]);
                 continue;
             }
 
             pPoolLinkObj = (PCOSA_DML_DHCPS_POOL_FULL_LINK_OBJ)AnscAllocateMemory(sizeof (COSA_DML_DHCPS_POOL_FULL_LINK_OBJ));
             if(pPoolLinkObj == NULL)
             {
-                DHCPMGR_LOG_INFO("%s: out of memory!!!\n", __FUNCTION__);
+                DHCPMGR_LOG_DEBUG("%s: out of memory!!!\n", __FUNCTION__);
                 continue;
             }
 
@@ -840,13 +840,13 @@ static void readDHCPv4ServerPoolFromPSM()
             retPsmGet1 = PsmGetNextLevelInstances(bus_handle, g_Subsystem, param_name, &saddrCnt, &saddrList);
             if ( retPsmGet1 == CCSP_SUCCESS && saddrList != NULL )
             {
-                DHCPMGR_LOG_INFO("%s: found %d DHCPv4 Server Pool SADDR entry %s\n", __FUNCTION__, saddrCnt, param_name);
-                DHCPMGR_LOG_INFO("%s: not supported for now\n", __FUNCTION__);
+                DHCPMGR_LOG_DEBUG("%s: found %d DHCPv4 Server Pool SADDR entry %s\n", __FUNCTION__, saddrCnt, param_name);
+                DHCPMGR_LOG_DEBUG("%s: not supported for now\n", __FUNCTION__);
                 ((CCSP_MESSAGE_BUS_INFO *)bus_handle)->freefunc(saddrList);
             }
             else
             {
-                DHCPMGR_LOG_INFO("%s: Can't find DHCPv4 Server Pool SADDR entry %s\n", __FUNCTION__, param_name);
+                DHCPMGR_LOG_DEBUG("%s: Can't find DHCPv4 Server Pool SADDR entry %s\n", __FUNCTION__, param_name);
             }
 
             rc = sprintf_s(param_name, sizeof(param_name), PSM_DHCPV4_SERVER_POOL_OPTION, (ULONG)poolList[i]);
@@ -858,7 +858,7 @@ static void readDHCPv4ServerPoolFromPSM()
             retPsmGet1 = PsmGetNextLevelInstances(bus_handle, g_Subsystem, param_name, &optionCnt, &optionList);
             if ( retPsmGet1 == CCSP_SUCCESS && optionList != NULL )
             {
-                DHCPMGR_LOG_INFO("%s: found %u DHCPv4 Server Pool OPTION entry %s\n", __FUNCTION__, optionCnt, param_name);
+                DHCPMGR_LOG_DEBUG("%s: found %u DHCPv4 Server Pool OPTION entry %s\n", __FUNCTION__, optionCnt, param_name);
 
                 for(j=0; j< optionCnt; j++)
                 {
@@ -867,7 +867,7 @@ static void readDHCPv4ServerPoolFromPSM()
                     pOptionLinkObj = (PCOSA_DML_DHCPSV4_OPTION_LINK_OBJ)AnscAllocateMemory(sizeof (COSA_DML_DHCPSV4_OPTION_LINK_OBJ));
                     if(pOptionLinkObj == NULL)
                     {
-                        DHCPMGR_LOG_INFO("%s: out of memory!!!\n", __FUNCTION__);
+                        DHCPMGR_LOG_DEBUG("%s: out of memory!!!\n", __FUNCTION__);
                         continue;
                     }
                     pOption = &(pOptionLinkObj->SPoolOption);
@@ -880,7 +880,7 @@ static void readDHCPv4ServerPoolFromPSM()
             }
             else
             {
-                DHCPMGR_LOG_INFO("%s: Can't find DHCPv4 Server Pool OPTION entry %s\n", __FUNCTION__, param_name);
+                DHCPMGR_LOG_DEBUG("%s: Can't find DHCPv4 Server Pool OPTION entry %s\n", __FUNCTION__, param_name);
             }
             // push pool to the end of list
             AnscSListPushEntryAtBack(&g_dhcpv4_server_pool_list, &pPoolLinkObj->Linkage);
@@ -892,7 +892,7 @@ static void readDHCPv4ServerPoolFromPSM()
     } // pool list
     else
     {
-        DHCPMGR_LOG_INFO("%s: Can't find DHCPv4 Server Pool %s\n", __FUNCTION__, PSM_DHCPV4_SERVER_POOL);
+        DHCPMGR_LOG_DEBUG("%s: Can't find DHCPv4 Server Pool %s\n", __FUNCTION__, PSM_DHCPV4_SERVER_POOL);
     }
     return;
 }
@@ -929,7 +929,7 @@ PCOSA_DML_DHCPC_REQ_OPT CosaDmlDhcpcGetReqOption_Entry(ANSC_HANDLE hInsContext, 
 
     if (!pCxtDhcpcLink)
     {
-        DHCPMGR_LOG_ERROR("%s : pCxtDhcpcLink is NULL",__FUNCTION__);
+        DHCPMGR_LOG_DEBUG("%s : pCxtDhcpcLink is NULL",__FUNCTION__);
         return NULL;
     }
     pSListEntry = AnscSListGetEntryByIndex(&pCxtDhcpcLink->ReqOptionList, InsNumber);
@@ -938,7 +938,7 @@ PCOSA_DML_DHCPC_REQ_OPT CosaDmlDhcpcGetReqOption_Entry(ANSC_HANDLE hInsContext, 
         pCxtLink = ACCESS_COSA_CONTEXT_LINK_OBJECT(pSListEntry);
         if (!pCxtLink)
         {
-            DHCPMGR_LOG_ERROR("%s:pCxtLink is NULL",__FUNCTION__);
+            DHCPMGR_LOG_DEBUG("%s:pCxtLink is NULL",__FUNCTION__);
             return NULL;
         }
         return (PCOSA_DML_DHCPC_REQ_OPT)pCxtLink->hContext;
@@ -965,7 +965,7 @@ PCOSA_DML_DHCP_OPT CosaDmlDhcpcGetSentOption_Entry(ANSC_HANDLE hInsContext, ULON
 
     if (!pCxtDhcpcLink)
     {
-        DHCPMGR_LOG_ERROR("%s:pCxtDhcpcLink is NULL",__FUNCTION__);
+        DHCPMGR_LOG_DEBUG("%s:pCxtDhcpcLink is NULL",__FUNCTION__);
         return NULL;
     }
     pSListEntry = AnscSListGetEntryByIndex(&pCxtDhcpcLink->SendOptionList, InsNumber);
@@ -974,7 +974,7 @@ PCOSA_DML_DHCP_OPT CosaDmlDhcpcGetSentOption_Entry(ANSC_HANDLE hInsContext, ULON
         pCxtLink = ACCESS_COSA_CONTEXT_LINK_OBJECT(pSListEntry);
         if (!pCxtLink)
         {
-            DHCPMGR_LOG_ERROR("%s:pCxtLink is NULL",__FUNCTION__);
+            DHCPMGR_LOG_DEBUG("%s:pCxtLink is NULL",__FUNCTION__);
             return NULL;
         }
         return (PCOSA_DML_DHCP_OPT)pCxtLink->hContext;
@@ -1004,7 +1004,7 @@ CosaDmlDhcpcGetNumberOfEntries
     char* param_value = NULL;
     retPsmGet = PSM_Get_Record_Value2(bus_handle,g_Subsystem, PSM_DHCPMANAGER_CLIENTCOUNT, NULL, &param_value);
     if (retPsmGet != CCSP_SUCCESS) {
-        DHCPMGR_LOG_ERROR("%s Error %d writing %s %s\n", __FUNCTION__, retPsmGet, param_name, param_value);
+        DHCPMGR_LOG_DEBUG("%s Error %d writing %s %s\n", __FUNCTION__, retPsmGet, param_name, param_value);
         return 0;
     }
     else
@@ -1177,12 +1177,12 @@ CosaDmlDhcpcGetInfo
     PCOSA_DML_DHCPC_FULL            pDhcpc            = (PCOSA_DML_DHCPC_FULL)hContext;
 
     if ( pInfo == NULL ){
-		DHCPMGR_LOG_INFO("%s %d: pInfo is NULL...\n", __FUNCTION__, __LINE__);
+		DHCPMGR_LOG_DEBUG("%s %d: pInfo is NULL...\n", __FUNCTION__, __LINE__);
         return ANSC_STATUS_FAILURE;
     }
     if (ulInstanceNumber == 0)
     {
-        DHCPMGR_LOG_INFO("%s %d: ulInstanceNumber is 0...\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_DEBUG("%s %d: ulInstanceNumber is 0...\n", __FUNCTION__, __LINE__);
     }
     if (pDhcpc)
     {
@@ -1597,11 +1597,11 @@ CosaDmlDhcpsEnable
     }
     retPsmSet = PSM_Set_Record_Value2(bus_handle,g_Subsystem, param_name, ccsp_string, param_value);
     if (retPsmSet != CCSP_SUCCESS) {
-        DHCPMGR_LOG_INFO("%s Error %d writing %s %s\n", __FUNCTION__, retPsmSet, param_name, param_value);
+        DHCPMGR_LOG_DEBUG("%s Error %d writing %s %s\n", __FUNCTION__, retPsmSet, param_name, param_value);
     }
     else
     {
-        DHCPMGR_LOG_INFO("%s: retPsmGet == CCSP_SUCCESS reading %s = %s \n", __FUNCTION__,param_name,param_value);
+        DHCPMGR_LOG_DEBUG("%s: retPsmGet == CCSP_SUCCESS reading %s = %s \n", __FUNCTION__,param_name,param_value);
     }
 
     if(!Utopia_Init(&ctx))
@@ -1648,7 +1648,7 @@ CosaDmlDhcpsGetState
     }
     retPsmGet = PSM_Get_Record_Value2(bus_handle,g_Subsystem, param_name, NULL, &param_value);
     if (retPsmGet != CCSP_SUCCESS) {
-        DHCPMGR_LOG_INFO("%s Error %d writing %s %s\n", __FUNCTION__, retPsmGet, param_name, param_value);
+        DHCPMGR_LOG_DEBUG("%s Error %d writing %s %s\n", __FUNCTION__, retPsmGet, param_name, param_value);
     }
     else
     {
@@ -1695,7 +1695,7 @@ CosaDmlDhcpsGetPool
 {
 
     UNREFERENCED_PARAMETER(hContext);
-    DHCPMGR_LOG_INFO("%s: ulIndex = %lu\n", __FUNCTION__, ulIndex);
+    DHCPMGR_LOG_DEBUG("%s: ulIndex = %lu\n", __FUNCTION__, ulIndex);
 
     if(ulIndex == 0){
         // ulIndex start from 0 for the 1st pool
@@ -1725,11 +1725,11 @@ CosaDmlDhcpsGetPool
         PCOSA_DML_DHCPS_POOL_CFG pPoolCfg = NULL;
         PCOSA_DML_DHCPS_POOL_INFO pPoolInfo = NULL;
 
-        DHCPMGR_LOG_INFO("%s: getting DHCPv4 Server pool index %lu\n", __FUNCTION__, ulIndex);
+        DHCPMGR_LOG_DEBUG("%s: getting DHCPv4 Server pool index %lu\n", __FUNCTION__, ulIndex);
         pPoolLinkObj = (PCOSA_DML_DHCPS_POOL_FULL_LINK_OBJ)AnscSListGetEntryByIndex(&g_dhcpv4_server_pool_list,ulIndex-1);
         if(pPoolLinkObj == NULL)
         {
-            DHCPMGR_LOG_INFO("%s: can't find DHCPv4 server pool index %lu\n", __FUNCTION__, ulIndex);
+            DHCPMGR_LOG_DEBUG("%s: can't find DHCPv4 server pool index %lu\n", __FUNCTION__, ulIndex);
             return ANSC_STATUS_CANT_FIND;
         }
         pPool = &(pPoolLinkObj->SPool);
@@ -1737,7 +1737,7 @@ CosaDmlDhcpsGetPool
         // need to copy Cfg and Info
         pPoolCfg = &(pPool->Cfg);
         pPoolInfo = &(pPool->Info);
-        DHCPMGR_LOG_INFO("%s:found index %lu, instancenum %lu\n", __FUNCTION__, ulIndex, pPoolCfg->InstanceNumber);
+        DHCPMGR_LOG_DEBUG("%s:found index %lu, instancenum %lu\n", __FUNCTION__, ulIndex, pPoolCfg->InstanceNumber);
         AnscCopyMemory(&(pEntry->Cfg), pPoolCfg, sizeof(COSA_DML_DHCPS_POOL_CFG));
         AnscCopyMemory(&(pEntry->Info), pPoolInfo, sizeof(COSA_DML_DHCPS_POOL_INFO));
 
@@ -1757,7 +1757,7 @@ CosaDmlDhcpsSetPoolValues
 {
 
     UNREFERENCED_PARAMETER(hContext);
-    DHCPMGR_LOG_INFO("%s: ulIndex = %lu, ulInstanceNumber %lu\n", __FUNCTION__, ulIndex, ulInstanceNumber);
+    DHCPMGR_LOG_DEBUG("%s: ulIndex = %lu, ulInstanceNumber %lu\n", __FUNCTION__, ulIndex, ulInstanceNumber);
 
     if(ulIndex == 0){
         int rc = -1;
@@ -1787,11 +1787,11 @@ CosaDmlDhcpsSetPoolValues
         PCOSA_DML_DHCPS_POOL_FULL_LINK_OBJ pPoolLinkObj=NULL;
         PCOSA_DML_DHCPS_POOL_FULL pPool=NULL;
         PCOSA_DML_DHCPS_POOL_CFG pPoolCfg = NULL;
-        DHCPMGR_LOG_INFO("%s: getting DHCPv4 Server pool index %lu\n", __FUNCTION__, ulIndex);
+        DHCPMGR_LOG_DEBUG("%s: getting DHCPv4 Server pool index %lu\n", __FUNCTION__, ulIndex);
         pPoolLinkObj = (PCOSA_DML_DHCPS_POOL_FULL_LINK_OBJ)AnscSListGetEntryByIndex(&g_dhcpv4_server_pool_list,ulIndex-1);
         if(pPoolLinkObj == NULL)
         {
-            DHCPMGR_LOG_INFO("%s: can't find DHCPv4 server pool index %lu\n", __FUNCTION__, ulIndex);
+            DHCPMGR_LOG_DEBUG("%s: can't find DHCPv4 server pool index %lu\n", __FUNCTION__, ulIndex);
             return ANSC_STATUS_CANT_FIND;
         }
 
@@ -1834,14 +1834,14 @@ static PCOSA_DML_DHCPS_POOL_FULL_LINK_OBJ find_dhcpv4_pool_by_instancenum(ULONG 
     {
         if(curPoolLinkObj->SPool.Cfg.InstanceNumber == instancenum)
         {
-            DHCPMGR_LOG_INFO("%s: found DHCPv4 Server Pool for instance number %lu\n", __FUNCTION__, instancenum);
+            DHCPMGR_LOG_DEBUG("%s: found DHCPv4 Server Pool for instance number %lu\n", __FUNCTION__, instancenum);
             return curPoolLinkObj;
         }
 
         curPoolLinkObj = (PCOSA_DML_DHCPS_POOL_FULL_LINK_OBJ)curPoolLinkObj->Linkage.Next;
     }
 
-    DHCPMGR_LOG_INFO("%s:DHCPv4 Server Pool not found for instance number %lu\n", __FUNCTION__, instancenum);
+    DHCPMGR_LOG_DEBUG("%s:DHCPv4 Server Pool not found for instance number %lu\n", __FUNCTION__, instancenum);
     return NULL;
 
 }
@@ -1869,7 +1869,7 @@ CosaDmlDhcpsAddPool
         pPoolLinkObj = (PCOSA_DML_DHCPS_POOL_FULL_LINK_OBJ)AnscAllocateMemory(sizeof(COSA_DML_DHCPS_POOL_FULL_LINK_OBJ));
         if (!pPoolLinkObj)
         {
-            DHCPMGR_LOG_INFO("%s: Out of Memory!\n", __FUNCTION__);
+            DHCPMGR_LOG_DEBUG("%s: Out of Memory!\n", __FUNCTION__);
             return ANSC_STATUS_FAILURE;
         }
         AnscSListInitializeHeader(&(pPoolLinkObj->StaticAddressList));
@@ -1879,7 +1879,7 @@ CosaDmlDhcpsAddPool
         DHCPV4_POOL_SET_DEFAULTVALUE(pPool);
 
         pPool->Cfg.InstanceNumber = pEntry->Cfg.InstanceNumber;
-        DHCPMGR_LOG_INFO("%s: AnscSListPushEntryAtBack instancenum = %lu\n", __FUNCTION__, pPool->Cfg.InstanceNumber);
+        DHCPMGR_LOG_DEBUG("%s: AnscSListPushEntryAtBack instancenum = %lu\n", __FUNCTION__, pPool->Cfg.InstanceNumber);
         AnscSListPushEntryAtBack(&g_dhcpv4_server_pool_list, &pPoolLinkObj->Linkage);
 
         // Write CFG values to PSM
@@ -1889,8 +1889,8 @@ CosaDmlDhcpsAddPool
 
         if(dhcpServerRestart)
         {
-            DHCPMGR_LOG_INFO("%s: notify sysevent dhcp_server-resync and dhcp_server-restart\n", __FUNCTION__);
-            DHCPMGR_LOG_INFO("%s: notify sysevent dhcp_server-resync and dhcp_server-restart\n", __FUNCTION__);
+            DHCPMGR_LOG_DEBUG("%s: notify sysevent dhcp_server-resync and dhcp_server-restart\n", __FUNCTION__);
+            DHCPMGR_LOG_DEBUG("%s: notify sysevent dhcp_server-resync and dhcp_server-restart\n", __FUNCTION__);
             v_secure_system("sysevent set dhcp_server-resync");
             v_secure_system("sysevent set dhcp_server-restart");
         }
@@ -1911,29 +1911,29 @@ CosaDmlDhcpsDelPool
     PCOSA_DML_DHCPS_POOL_FULL_LINK_OBJ pPoolLinkObj = find_dhcpv4_pool_by_instancenum(ulInstanceNumber);
     if(pPoolLinkObj == NULL)
     {
-        DHCPMGR_LOG_INFO("%s: can't find DHCPv4 server pool instance %lu\n", __FUNCTION__, ulInstanceNumber);
+        DHCPMGR_LOG_DEBUG("%s: can't find DHCPv4 server pool instance %lu\n", __FUNCTION__, ulInstanceNumber);
         return ANSC_STATUS_CANT_FIND;
     }
 
     if(AnscSListQueryDepth( &pPoolLinkObj->StaticAddressList ) != 0)
     {
-        DHCPMGR_LOG_INFO("%s:DHCPv4 server pool %lu is not empty, %d static addresses\n", __FUNCTION__, ulInstanceNumber, AnscSListQueryDepth( &pPoolLinkObj->StaticAddressList ));
+        DHCPMGR_LOG_DEBUG("%s:DHCPv4 server pool %lu is not empty, %d static addresses\n", __FUNCTION__, ulInstanceNumber, AnscSListQueryDepth( &pPoolLinkObj->StaticAddressList ));
         return ANSC_STATUS_CANT_FIND;
     }
 
     if(AnscSListQueryDepth( &pPoolLinkObj->OptionList ) != 0)
     {
-        DHCPMGR_LOG_INFO("%s:DHCPv4 server pool %lu is not empty, %d options\n", __FUNCTION__, ulInstanceNumber, AnscSListQueryDepth( &pPoolLinkObj->OptionList ));
+        DHCPMGR_LOG_DEBUG("%s:DHCPv4 server pool %lu is not empty, %d options\n", __FUNCTION__, ulInstanceNumber, AnscSListQueryDepth( &pPoolLinkObj->OptionList ));
         return ANSC_STATUS_CANT_FIND;
     }
 
-    DHCPMGR_LOG_INFO("%s:pop link instancenum = %lu\n", __FUNCTION__, pPoolLinkObj->SPool.Cfg.InstanceNumber);
+    DHCPMGR_LOG_DEBUG("%s:pop link instancenum = %lu\n", __FUNCTION__, pPoolLinkObj->SPool.Cfg.InstanceNumber);
     AnscSListPopEntryByLink(&g_dhcpv4_server_pool_list, &pPoolLinkObj->Linkage);
 
     deleteDHCPv4ServerPoolPSM(ulInstanceNumber);
     AnscFreeMemory(pPoolLinkObj);
 
-    DHCPMGR_LOG_INFO("%s: notify sysevent dhcp_server-resync and dhcp_server-restart\n", __FUNCTION__);
+    DHCPMGR_LOG_DEBUG("%s: notify sysevent dhcp_server-resync and dhcp_server-restart\n", __FUNCTION__);
     v_secure_system("sysevent set dhcp_server-resync");
     v_secure_system("sysevent set dhcp_server-restart");
     return ANSC_STATUS_SUCCESS;
@@ -1948,7 +1948,7 @@ CosaDmlDhcpsSetPoolCfg
 {
 
     UNREFERENCED_PARAMETER(hContext);
-    DHCPMGR_LOG_INFO("%s: pCfg->InstanceNumber =%lu\n", __FUNCTION__, pCfg->InstanceNumber);
+    DHCPMGR_LOG_DEBUG("%s: pCfg->InstanceNumber =%lu\n", __FUNCTION__, pCfg->InstanceNumber);
 
     if(pCfg->InstanceNumber == 1){
         int rc = -1;
@@ -1995,7 +1995,7 @@ CosaDmlDhcpsSetPoolCfg
 
         if(pPoolLinkObj == NULL)
         {
-            DHCPMGR_LOG_INFO("%s: can't find DHCPv4 server pool instance %lu\n", __FUNCTION__, pCfg->InstanceNumber);
+            DHCPMGR_LOG_DEBUG("%s: can't find DHCPv4 server pool instance %lu\n", __FUNCTION__, pCfg->InstanceNumber);
             return ANSC_STATUS_CANT_FIND;
         }
 
@@ -2006,7 +2006,7 @@ CosaDmlDhcpsSetPoolCfg
             ( is_a_public_addr(ntohl(pCfg->MinAddress.Value)) ||
               is_a_public_addr(ntohl(pCfg->MaxAddress.Value)) ) )
         {
-            DHCPMGR_LOG_INFO("%s: MinAddress %d.%d.%d.%d or MacAddress %d.%d.%d.%d range checking error\n", __FUNCTION__,
+            DHCPMGR_LOG_DEBUG("%s: MinAddress %d.%d.%d.%d or MacAddress %d.%d.%d.%d range checking error\n", __FUNCTION__,
                 pCfg->MinAddress.Dot[0],pCfg->MinAddress.Dot[1],pCfg->MinAddress.Dot[2],pCfg->MinAddress.Dot[3],
                 pCfg->MaxAddress.Dot[0],pCfg->MaxAddress.Dot[1],pCfg->MaxAddress.Dot[2],pCfg->MaxAddress.Dot[3]);
             return ANSC_STATUS_FAILURE;
@@ -2017,8 +2017,8 @@ CosaDmlDhcpsSetPoolCfg
         if(dhcpServerRestart)
         {
             // resync for the second pool
-            DHCPMGR_LOG_INFO("%s: notify sysevent dhcp_server-resync and dhcp_server-restart\n", __FUNCTION__);
-            DHCPMGR_LOG_INFO("%s: notify sysevent dhcp_server-resync and dhcp_server-restart\n", __FUNCTION__);
+            DHCPMGR_LOG_DEBUG("%s: notify sysevent dhcp_server-resync and dhcp_server-restart\n", __FUNCTION__);
+            DHCPMGR_LOG_DEBUG("%s: notify sysevent dhcp_server-resync and dhcp_server-restart\n", __FUNCTION__);
             v_secure_system("sysevent set dhcp_server-resync");
             v_secure_system("sysevent set dhcp_server-restart");
         }
@@ -2036,7 +2036,7 @@ CosaDmlDhcpsGetPoolCfg
 {
 
     UNREFERENCED_PARAMETER(hContext);
-    DHCPMGR_LOG_INFO("%s: pCfg->InstanceNumber =%lu\n", __FUNCTION__, pCfg->InstanceNumber);
+    DHCPMGR_LOG_DEBUG("%s: pCfg->InstanceNumber =%lu\n", __FUNCTION__, pCfg->InstanceNumber);
 
     if(pCfg->InstanceNumber == 1){
         int rc = -1;
@@ -2063,7 +2063,7 @@ CosaDmlDhcpsGetPoolCfg
 
         if(pPoolLinkObj == NULL)
         {
-            DHCPMGR_LOG_INFO("%s: can't find DHCPv4 server pool instance %lu\n", __FUNCTION__, pCfg->InstanceNumber);
+            DHCPMGR_LOG_DEBUG("%s: can't find DHCPv4 server pool instance %lu\n", __FUNCTION__, pCfg->InstanceNumber);
             return ANSC_STATUS_CANT_FIND;
         }
 
@@ -2083,7 +2083,7 @@ CosaDmlDhcpsGetPoolInfo
 {
 
     UNREFERENCED_PARAMETER(hContext);
-    DHCPMGR_LOG_INFO("%s: ulInstanceNumber =%lu\n", __FUNCTION__, ulInstanceNumber);
+    DHCPMGR_LOG_DEBUG("%s: ulInstanceNumber =%lu\n", __FUNCTION__, ulInstanceNumber);
 
     if(ulInstanceNumber == 1) {
         int rc = -1;
@@ -2117,7 +2117,7 @@ CosaDmlDhcpsGetPoolInfo
 
         if(pPoolLinkObj == NULL)
         {
-            DHCPMGR_LOG_INFO("%s: can't find DHCPv4 server pool instance %lu\n", __FUNCTION__, ulInstanceNumber);
+            DHCPMGR_LOG_DEBUG("%s: can't find DHCPv4 server pool instance %lu\n", __FUNCTION__, ulInstanceNumber);
             return ANSC_STATUS_CANT_FIND;
         }
 
@@ -2130,7 +2130,7 @@ CosaDmlDhcpsGetPoolInfo
         /*se_fd = s_sysevent_connect(&se_token);
         if (0 > se_fd) {
 
-            DHCPMGR_LOG_INFO("%s: dhcp_status = syseventerror\n", __FUNCTION__);
+            DHCPMGR_LOG_DEBUG("%s: dhcp_status = syseventerror\n", __FUNCTION__);
 
             rc = strcpy_s(dhcp_status, sizeof(dhcp_status), "syseventError");
             ERR_CHK(rc);
@@ -2140,7 +2140,7 @@ CosaDmlDhcpsGetPoolInfo
             /* Get DHCP Server Status */
             commonSyseventGet("dhcp_server-status", dhcp_status, sizeof(dhcp_status));
 
-            DHCPMGR_LOG_INFO("%s: dhcp_status = %s\n", __FUNCTION__, dhcp_status);
+            DHCPMGR_LOG_DEBUG("%s: dhcp_status = %s\n", __FUNCTION__, dhcp_status);
 
         }
 
@@ -2435,7 +2435,7 @@ CosaDmlDhcpsGetNumberOfOption
         PCOSA_DML_DHCPS_POOL_FULL_LINK_OBJ pPoolLinkObj = find_dhcpv4_pool_by_instancenum(ulPoolInstanceNumber);
         if(pPoolLinkObj == NULL)
         {
-            DHCPMGR_LOG_INFO("%s: can't find DHCPv4 server pool instance %lu\n", __FUNCTION__, ulPoolInstanceNumber);
+            DHCPMGR_LOG_DEBUG("%s: can't find DHCPv4 server pool instance %lu\n", __FUNCTION__, ulPoolInstanceNumber);
             return ANSC_STATUS_CANT_FIND;
         }
         else
@@ -2471,14 +2471,14 @@ CosaDmlDhcpsGetOption
         PCOSA_DML_DHCPS_POOL_FULL_LINK_OBJ pPoolLinkObj = find_dhcpv4_pool_by_instancenum(ulPoolInstanceNumber);
         if(pPoolLinkObj == NULL)
         {
-            DHCPMGR_LOG_INFO("%s: can't find DHCPv4 server pool instance %lu\n", __FUNCTION__, ulPoolInstanceNumber);
+            DHCPMGR_LOG_DEBUG("%s: can't find DHCPv4 server pool instance %lu\n", __FUNCTION__, ulPoolInstanceNumber);
             return ANSC_STATUS_CANT_FIND;
         }
 
         pPoolOptionLinkObj = (PCOSA_DML_DHCPSV4_OPTION_LINK_OBJ)AnscSListGetEntryByIndex(&(pPoolLinkObj->OptionList),ulIndex);
         if(pPoolOptionLinkObj == NULL)
         {
-            DHCPMGR_LOG_INFO("%s: can't find DHCPv4 server pool option index %lu\n", __FUNCTION__, ulIndex);
+            DHCPMGR_LOG_DEBUG("%s: can't find DHCPv4 server pool option index %lu\n", __FUNCTION__, ulIndex);
             return ANSC_STATUS_CANT_FIND;
         }
 
@@ -2519,7 +2519,7 @@ CosaDmlDhcpsGetOptionbyInsNum
         PCOSA_DML_DHCPS_POOL_FULL_LINK_OBJ pPoolLinkObj = find_dhcpv4_pool_by_instancenum(ulPoolInstanceNumber);
         if(pPoolLinkObj == NULL)
         {
-            DHCPMGR_LOG_INFO("%s: can't find DHCPv4 server pool instance %lu\n", __FUNCTION__, ulPoolInstanceNumber);
+            DHCPMGR_LOG_DEBUG("%s: can't find DHCPv4 server pool instance %lu\n", __FUNCTION__, ulPoolInstanceNumber);
             return ANSC_STATUS_CANT_FIND;
         }
 
@@ -2528,7 +2528,7 @@ CosaDmlDhcpsGetOptionbyInsNum
         {
             if(curPoolOptionLinkObj->SPoolOption.InstanceNumber == pEntry->InstanceNumber)
             {
-                DHCPMGR_LOG_INFO("%s: found DHCPv4 Server Pool Option for instance number %lu\n", __FUNCTION__, pEntry->InstanceNumber);
+                DHCPMGR_LOG_DEBUG("%s: found DHCPv4 Server Pool Option for instance number %lu\n", __FUNCTION__, pEntry->InstanceNumber);
                 break;
             }
 
@@ -2537,7 +2537,7 @@ CosaDmlDhcpsGetOptionbyInsNum
 
         if(curPoolOptionLinkObj == NULL)
         {
-            DHCPMGR_LOG_INFO("%s: can't find DHCPv4 server pool option instance %lu\n", __FUNCTION__, pEntry->InstanceNumber);
+            DHCPMGR_LOG_DEBUG("%s: can't find DHCPv4 server pool option instance %lu\n", __FUNCTION__, pEntry->InstanceNumber);
             return ANSC_STATUS_CANT_FIND;
         }
 
@@ -2580,7 +2580,7 @@ CosaDmlDhcpsSetOptionValues
 
         if(pPoolLinkObj == NULL)
         {
-            DHCPMGR_LOG_INFO("%s: can't find DHCPv4 server pool instance %lu\n", __FUNCTION__, ulPoolInstanceNumber);
+            DHCPMGR_LOG_DEBUG("%s: can't find DHCPv4 server pool instance %lu\n", __FUNCTION__, ulPoolInstanceNumber);
             return ANSC_STATUS_CANT_FIND;
         }
 
@@ -2589,7 +2589,7 @@ CosaDmlDhcpsSetOptionValues
         {
             if(curPoolOptionLinkObj->SPoolOption.InstanceNumber == ulInstanceNumber)
             {
-                DHCPMGR_LOG_INFO("%s: found DHCPv4 Server Pool Option for instance number %lu\n", __FUNCTION__, ulInstanceNumber);
+                DHCPMGR_LOG_DEBUG("%s: found DHCPv4 Server Pool Option for instance number %lu\n", __FUNCTION__, ulInstanceNumber);
                 break;
             }
 
@@ -2598,7 +2598,7 @@ CosaDmlDhcpsSetOptionValues
 
         if(curPoolOptionLinkObj == NULL)
         {
-            DHCPMGR_LOG_INFO("%s: can't find DHCPv4 server pool option instance %lu\n", __FUNCTION__, ulInstanceNumber);
+            DHCPMGR_LOG_DEBUG("%s: can't find DHCPv4 server pool option instance %lu\n", __FUNCTION__, ulInstanceNumber);
             return ANSC_STATUS_CANT_FIND;
         }
 
@@ -2608,7 +2608,7 @@ CosaDmlDhcpsSetOptionValues
         pNewEntry = (PCOSA_DML_DHCPSV4_OPTION)AnscAllocateMemory( sizeof(COSA_DML_DHCPSV4_OPTION) );
         if ( !pNewEntry )
         {
-            DHCPMGR_LOG_INFO("%s: Out of memory!\n", __FUNCTION__);
+            DHCPMGR_LOG_DEBUG("%s: Out of memory!\n", __FUNCTION__);
             /* Missing return statement*/
             return ANSC_STATUS_FAILURE;
         }
@@ -2651,7 +2651,7 @@ CosaDmlDhcpsAddOption
         PCOSA_DML_DHCPS_POOL_FULL_LINK_OBJ pPoolLinkObj = find_dhcpv4_pool_by_instancenum(ulPoolInstanceNumber);
         if(pPoolLinkObj == NULL)
         {
-            DHCPMGR_LOG_INFO("%s: can't find DHCPv4 server pool instance %lu\n", __FUNCTION__, ulPoolInstanceNumber);
+            DHCPMGR_LOG_DEBUG("%s: can't find DHCPv4 server pool instance %lu\n", __FUNCTION__, ulPoolInstanceNumber);
             return ANSC_STATUS_CANT_FIND;
         }
         else
@@ -2664,7 +2664,7 @@ CosaDmlDhcpsAddOption
             pOptionLinkObj = (PCOSA_DML_DHCPSV4_OPTION_LINK_OBJ)AnscAllocateMemory(sizeof(COSA_DML_DHCPSV4_OPTION_LINK_OBJ));
             if (!pOptionLinkObj)
             {
-                DHCPMGR_LOG_INFO("%s: Out of Memory!\n", __FUNCTION__);
+                DHCPMGR_LOG_DEBUG("%s: Out of Memory!\n", __FUNCTION__);
                 return ANSC_STATUS_FAILURE;
             }
 
@@ -2672,7 +2672,7 @@ CosaDmlDhcpsAddOption
             DHCPV4_POOLOPTION_SET_DEFAULTVALUE(pPoolOption);
 
             pPoolOption->InstanceNumber = pEntry->InstanceNumber;
-            DHCPMGR_LOG_INFO("%s: AnscSListPushEntryAtBack instancenum = %lu\n", __FUNCTION__, pPoolOption->InstanceNumber);
+            DHCPMGR_LOG_DEBUG("%s: AnscSListPushEntryAtBack instancenum = %lu\n", __FUNCTION__, pPoolOption->InstanceNumber);
             AnscSListPushEntryAtBack(&(pPoolLinkObj->OptionList), &pOptionLinkObj->Linkage);
 
             // Write Option to PSM and update to new option value
@@ -2680,8 +2680,8 @@ CosaDmlDhcpsAddOption
 
             if(dhcpServerRestart)
             {
-                DHCPMGR_LOG_INFO("%s: notify sysevent dhcp_server-resync and dhcp_server-restart\n", __FUNCTION__);
-                DHCPMGR_LOG_INFO("%s: notify sysevent dhcp_server-resync and dhcp_server-restart\n", __FUNCTION__);
+                DHCPMGR_LOG_DEBUG("%s: notify sysevent dhcp_server-resync and dhcp_server-restart\n", __FUNCTION__);
+                DHCPMGR_LOG_DEBUG("%s: notify sysevent dhcp_server-resync and dhcp_server-restart\n", __FUNCTION__);
                 v_secure_system("sysevent set dhcp_server-resync");
                 v_secure_system("sysevent set dhcp_server-restart");
             }
@@ -2708,11 +2708,11 @@ CosaDmlDhcpsDelOption
         return ANSC_STATUS_SUCCESS;
     }
 
-    DHCPMGR_LOG_INFO("SBAPI->CosaDmlDhcpsDelPool:Pool %lu, Instance %lu",ulPoolInstanceNumber, ulInstanceNumber);
+    DHCPMGR_LOG_DEBUG("SBAPI->CosaDmlDhcpsDelPool:Pool %lu, Instance %lu",ulPoolInstanceNumber, ulInstanceNumber);
     PCOSA_DML_DHCPS_POOL_FULL_LINK_OBJ pPoolLinkObj = find_dhcpv4_pool_by_instancenum(ulPoolInstanceNumber);
     if(pPoolLinkObj == NULL)
     {
-        DHCPMGR_LOG_INFO("%s: can't find DHCPv4 server pool %lu\n", __FUNCTION__, ulPoolInstanceNumber);
+        DHCPMGR_LOG_DEBUG("%s: can't find DHCPv4 server pool %lu\n", __FUNCTION__, ulPoolInstanceNumber);
         return ANSC_STATUS_CANT_FIND;
     }
     // find option
@@ -2721,7 +2721,7 @@ CosaDmlDhcpsDelOption
     {
         if(curPoolOptionLinkObj->SPoolOption.InstanceNumber == ulInstanceNumber)
         {
-            DHCPMGR_LOG_INFO("%s: found DHCPv4 Server Pool Option for instance number %lu\n", __FUNCTION__, ulInstanceNumber);
+            DHCPMGR_LOG_DEBUG("%s: found DHCPv4 Server Pool Option for instance number %lu\n", __FUNCTION__, ulInstanceNumber);
             break;
         }
 
@@ -2730,17 +2730,17 @@ CosaDmlDhcpsDelOption
 
     if(curPoolOptionLinkObj == NULL)
     {
-        DHCPMGR_LOG_INFO("%s: can't find DHCPv4 server pool option instance %lu\n", __FUNCTION__, ulInstanceNumber);
+        DHCPMGR_LOG_DEBUG("%s: can't find DHCPv4 server pool option instance %lu\n", __FUNCTION__, ulInstanceNumber);
         return ANSC_STATUS_CANT_FIND;
     }
 
-    DHCPMGR_LOG_INFO("%s:pop link instancenum = %lu\n", __FUNCTION__, curPoolOptionLinkObj->SPoolOption.InstanceNumber);
+    DHCPMGR_LOG_DEBUG("%s:pop link instancenum = %lu\n", __FUNCTION__, curPoolOptionLinkObj->SPoolOption.InstanceNumber);
     AnscSListPopEntryByLink(&(pPoolLinkObj->OptionList), &curPoolOptionLinkObj->Linkage);
 
     deleteDHCPv4ServerPoolOptionPSM(ulPoolInstanceNumber, ulInstanceNumber);
     AnscFreeMemory(curPoolOptionLinkObj);
 
-    DHCPMGR_LOG_INFO("%s: notify sysevent dhcp_server-resync and dhcp_server-restart\n", __FUNCTION__);
+    DHCPMGR_LOG_DEBUG("%s: notify sysevent dhcp_server-resync and dhcp_server-restart\n", __FUNCTION__);
     v_secure_system("sysevent set dhcp_server-resync");
     v_secure_system("sysevent set dhcp_server-restart");
     return ANSC_STATUS_SUCCESS;
@@ -2776,7 +2776,7 @@ CosaDmlDhcpsSetOption
         PCOSA_DML_DHCPS_POOL_FULL_LINK_OBJ pPoolLinkObj = find_dhcpv4_pool_by_instancenum(ulPoolInstanceNumber);
         if(pPoolLinkObj == NULL)
         {
-            DHCPMGR_LOG_INFO("%s: can't find DHCPv4 server pool instance %lu\n", __FUNCTION__, ulPoolInstanceNumber);
+            DHCPMGR_LOG_DEBUG("%s: can't find DHCPv4 server pool instance %lu\n", __FUNCTION__, ulPoolInstanceNumber);
             return ANSC_STATUS_CANT_FIND;
         }
         else
@@ -2791,7 +2791,7 @@ CosaDmlDhcpsSetOption
             {
                 if(curPoolOptionLinkObj->SPoolOption.InstanceNumber == pEntry->InstanceNumber)
                 {
-                    DHCPMGR_LOG_INFO("%s: found DHCPv4 Server Pool Option for instance number %lu\n", __FUNCTION__, pEntry->InstanceNumber);
+                    DHCPMGR_LOG_DEBUG("%s: found DHCPv4 Server Pool Option for instance number %lu\n", __FUNCTION__, pEntry->InstanceNumber);
                     break;
                 }
 
@@ -2800,7 +2800,7 @@ CosaDmlDhcpsSetOption
 
             if(curPoolOptionLinkObj == NULL)
             {
-                DHCPMGR_LOG_INFO("%s: can't find DHCPv4 server pool option instance %lu\n", __FUNCTION__, pEntry->InstanceNumber);
+                DHCPMGR_LOG_DEBUG("%s: can't find DHCPv4 server pool option instance %lu\n", __FUNCTION__, pEntry->InstanceNumber);
                 return ANSC_STATUS_CANT_FIND;
             }
 
@@ -2811,8 +2811,8 @@ CosaDmlDhcpsSetOption
 
             if(dhcpServerRestart)
             {
-                DHCPMGR_LOG_INFO("%s: notify sysevent dhcp_server-resync and dhcp_server-restart\n", __FUNCTION__);
-                DHCPMGR_LOG_INFO("%s: notify sysevent dhcp_server-resync and dhcp_server-restart\n", __FUNCTION__);
+                DHCPMGR_LOG_DEBUG("%s: notify sysevent dhcp_server-resync and dhcp_server-restart\n", __FUNCTION__);
+                DHCPMGR_LOG_DEBUG("%s: notify sysevent dhcp_server-resync and dhcp_server-restart\n", __FUNCTION__);
                 v_secure_system("sysevent set dhcp_server-resync");
                 v_secure_system("sysevent set dhcp_server-restart");
             }
@@ -2853,7 +2853,7 @@ int sbapi_get_dhcpv4_active_number(int index, ULONG minAddress, ULONG maxAddress
         snprintf(buffer,sizeof(buffer),"%s", "/var/dhcpClientList");
         fp=fopen(buffer,"r");
         if(fp == NULL){
-                DHCPMGR_LOG_INFO("failed to open temp lease file\n");
+                DHCPMGR_LOG_DEBUG("failed to open temp lease file\n");
                 return(0);
         }
         while(fgets(buffer,sizeof(buffer),fp)){
@@ -2865,7 +2865,7 @@ int sbapi_get_dhcpv4_active_number(int index, ULONG minAddress, ULONG maxAddress
         if((ipaddr < _ansc_ntohl(minAddress)) || (ipaddr > _ansc_ntohl(maxAddress)))
         {
             //not in pool range, go next
-            DHCPMGR_LOG_INFO("%s: IP=%x, is not in subnet of %x, and %x\n", __FUNCTION__, (unsigned int)ipaddr, (unsigned int)_ansc_ntohl(minAddress), (unsigned int)_ansc_ntohl(maxAddress));
+            DHCPMGR_LOG_DEBUG("%s: IP=%x, is not in subnet of %x, and %x\n", __FUNCTION__, (unsigned int)ipaddr, (unsigned int)_ansc_ntohl(minAddress), (unsigned int)_ansc_ntohl(maxAddress));
             continue;
         }
                 if(!find_arp_entry(ip, LAN_L3_IFNAME,(unsigned char*)mac))
@@ -2911,34 +2911,34 @@ int _cosa_get_dhcps_client(ULONG instancenum, UCHAR *ifName, ULONG minAddress, U
     ULONG tempIPAddr=0;
     errno_t rc = -1;
 
-    DHCPMGR_LOG_INFO("Entered Inside %s\n", __FUNCTION__);
+    DHCPMGR_LOG_DEBUG("Entered Inside %s\n", __FUNCTION__);
 
     fp = fopen(COSA_DML_DHCP_LEASES_FILE, "r");
     if ( !fp )
     {
-        DHCPMGR_LOG_INFO("Opening COSA_DML_DHCP_LEASES_FILE failed %s\n", __FUNCTION__);
+        DHCPMGR_LOG_DEBUG("Opening COSA_DML_DHCP_LEASES_FILE failed %s\n", __FUNCTION__);
         /* the file doesn't exist and no host currently*/
         return -1;
     }
 
-    DHCPMGR_LOG_INFO("Opening COSA_DML_DHCP_LEASES_FILE in a read mode complete %s\n", __FUNCTION__);
+    DHCPMGR_LOG_DEBUG("Opening COSA_DML_DHCP_LEASES_FILE in a read mode complete %s\n", __FUNCTION__);
 
     fpTmp = fopen(COSA_DML_DHCP_LEASES_FILE_TMP, "w");
     if (!fpTmp){
         /* failed to create temp leases file */
 
-        DHCPMGR_LOG_INFO("Opening COSA_DML_DHCP_LEASES_FILE_TMP failed %s\n", __FUNCTION__);
+        DHCPMGR_LOG_DEBUG("Opening COSA_DML_DHCP_LEASES_FILE_TMP failed %s\n", __FUNCTION__);
         fclose(fp);
         return -1;
     }
 
-    DHCPMGR_LOG_INFO("Opening COSA_DML_DHCP_LEASES_FILE_TMP in a write mode complete, %s\n", __FUNCTION__);
+    DHCPMGR_LOG_DEBUG("Opening COSA_DML_DHCP_LEASES_FILE_TMP in a write mode complete, %s\n", __FUNCTION__);
     while(fgets(oneline, sizeof(oneline), fp)){
         fputs(oneline, fpTmp);
     }
 
 
-    DHCPMGR_LOG_INFO("Writing dnsmasq lease info to tmp file complete, %s\n", __FUNCTION__);
+    DHCPMGR_LOG_DEBUG("Writing dnsmasq lease info to tmp file complete, %s\n", __FUNCTION__);
     fclose(fp);
     fclose(fpTmp);
     fp = NULL;
@@ -2947,7 +2947,7 @@ int _cosa_get_dhcps_client(ULONG instancenum, UCHAR *ifName, ULONG minAddress, U
     fp = fopen(COSA_DML_DHCP_LEASES_FILE_TMP, "r");
     if (!fp){
         /* failed to open tmp lease file */
-        DHCPMGR_LOG_INFO("Opening COSA_DML_DHCP_LEASES_FILE_TMP in read mode failed %s\n", __FUNCTION__);
+        DHCPMGR_LOG_DEBUG("Opening COSA_DML_DHCP_LEASES_FILE_TMP in read mode failed %s\n", __FUNCTION__);
         return -1;
     }
 
@@ -3004,7 +3004,7 @@ int _cosa_get_dhcps_client(ULONG instancenum, UCHAR *ifName, ULONG minAddress, U
         tempIPAddr = _ansc_ntohl((ULONG)_ansc_inet_addr(pIP));
         if((tempIPAddr < _ansc_ntohl(minAddress)) || (tempIPAddr > _ansc_ntohl(maxAddress)))
         {
-            DHCPMGR_LOG_INFO("%s: IP=%x, is not in subnet between %x, and %x\n", __FUNCTION__, (unsigned int)tempIPAddr, (unsigned int)_ansc_ntohl(minAddress), (unsigned int)_ansc_ntohl(maxAddress));
+            DHCPMGR_LOG_DEBUG("%s: IP=%x, is not in subnet between %x, and %x\n", __FUNCTION__, (unsigned int)tempIPAddr, (unsigned int)_ansc_ntohl(minAddress), (unsigned int)_ansc_ntohl(maxAddress));
             continue;
         }
 
@@ -3143,7 +3143,7 @@ int _cosa_get_dhcps_client(ULONG instancenum, UCHAR *ifName, ULONG minAddress, U
         if(size == 0)/*No DHCP Clients*/
              goto ErrRet;
 
-        DHCPMGR_LOG_INFO("%s, Done with client parameters\n", __FUNCTION__);
+        DHCPMGR_LOG_DEBUG("%s, Done with client parameters\n", __FUNCTION__);
     /* for option */
 
         fp = fopen(COSA_DML_DHCP_OPTIONS_FILE, "r");
@@ -3220,11 +3220,11 @@ int _cosa_get_dhcps_client(ULONG instancenum, UCHAR *ifName, ULONG minAddress, U
 
         }
     }
-    DHCPMGR_LOG_INFO("%s, Done with Option parameters\n", __FUNCTION__);
+    DHCPMGR_LOG_DEBUG("%s, Done with Option parameters\n", __FUNCTION__);
     if (fp)
         fclose(fp);
     
-    DHCPMGR_LOG_INFO("Exiting from %s without error\n", __FUNCTION__);
+    DHCPMGR_LOG_DEBUG("Exiting from %s without error\n", __FUNCTION__);
     return 0;
 
 ErrRet:
@@ -3243,7 +3243,7 @@ ErrRet:
     }
     
     g_dhcpv4_server_client_count = 0;
-    DHCPMGR_LOG_INFO("Exiting from %s with error\n", __FUNCTION__);
+    DHCPMGR_LOG_DEBUG("Exiting from %s with error\n", __FUNCTION__);
     return(-1);
 }
 
@@ -3503,12 +3503,12 @@ void FillParamUpdateSource(cJSON *partnerObj, char *key, char *paramUpdateSource
         }
         else
         {
-            DHCPMGR_LOG_WARNING("%s - %s UpdateSource is NULL\n", __FUNCTION__, key );
+            DHCPMGR_LOG_DEBUG("%s - %s UpdateSource is NULL\n", __FUNCTION__, key );
         }
     }
     else
     {
-        DHCPMGR_LOG_WARNING("%s - %s Object is NULL\n", __FUNCTION__, key );
+        DHCPMGR_LOG_DEBUG("%s - %s Object is NULL\n", __FUNCTION__, key );
     }
 }
 
@@ -3527,7 +3527,7 @@ void FillPartnerIDJournal
                 }
                 else
                 {
-                      DHCPMGR_LOG_WARNING("%s - PARTNER ID OBJECT Value is NULL\n", __FUNCTION__ );
+                      DHCPMGR_LOG_DEBUG("%s - PARTNER ID OBJECT Value is NULL\n", __FUNCTION__ );
                 }
 }
 
@@ -3548,7 +3548,7 @@ CosaDhcpInitJournal
         int check_ret;
         if (!pPoolCfg)
         {
-                DHCPMGR_LOG_WARNING("%s-%d : NULL param\n" , __FUNCTION__, __LINE__ );
+                DHCPMGR_LOG_DEBUG("%s-%d : NULL param\n" , __FUNCTION__, __LINE__ );
                 return ANSC_STATUS_FAILURE;
         }
 
@@ -3560,7 +3560,7 @@ CosaDhcpInitJournal
          fileRead = fopen( BOOTSTRAP_INFO_FILE, "r" );
          if( fileRead == NULL )
          {
-                 DHCPMGR_LOG_WARNING("%s-%d : Error in opening JSON file\n" , __FUNCTION__, __LINE__ );
+                 DHCPMGR_LOG_DEBUG("%s-%d : Error in opening JSON file\n" , __FUNCTION__, __LINE__ );
                  return ANSC_STATUS_FAILURE;
          }
 
@@ -3568,7 +3568,7 @@ CosaDhcpInitJournal
          len = ftell( fileRead );
          /* Argument cannot be negative*/
          if (len < 0) {
-              DHCPMGR_LOG_WARNING("%s-%d : Error in file handle\n" , __FUNCTION__, __LINE__ );
+              DHCPMGR_LOG_DEBUG("%s-%d : Error in file handle\n" , __FUNCTION__, __LINE__ );
               fclose(fileRead);
               return ANSC_STATUS_FAILURE;
          }
@@ -3580,14 +3580,14 @@ CosaDhcpInitJournal
                 check_ret = fread( data, 1, len, fileRead );
            if (check_ret <= 0)
             {
-                 DHCPMGR_LOG_WARNING("%s-%d : Failed to read data from file \n", __FUNCTION__, __LINE__);
+                 DHCPMGR_LOG_DEBUG("%s-%d : Failed to read data from file \n", __FUNCTION__, __LINE__);
                  fclose( fileRead );
                  return ANSC_STATUS_FAILURE;
             }
          }
          else
          {
-                 DHCPMGR_LOG_WARNING("%s-%d : Memory allocation failed \n", __FUNCTION__, __LINE__);
+                 DHCPMGR_LOG_DEBUG("%s-%d : Memory allocation failed \n", __FUNCTION__, __LINE__);
                  fclose( fileRead );
                  return ANSC_STATUS_FAILURE;
          }
@@ -3597,7 +3597,7 @@ CosaDhcpInitJournal
          data[len] = '\0';
          if ( data == NULL )
          {
-                DHCPMGR_LOG_WARNING("%s-%d : fileRead failed \n", __FUNCTION__, __LINE__);
+                DHCPMGR_LOG_DEBUG("%s-%d : fileRead failed \n", __FUNCTION__, __LINE__);
                 return ANSC_STATUS_FAILURE;
          }
          else if ( strlen(data) != 0)
@@ -3605,7 +3605,7 @@ CosaDhcpInitJournal
                  json = cJSON_Parse( data );
                  if( !json )
                  {
-                         DHCPMGR_LOG_WARNING(  "%s : json file parser error : [%d]\n", __FUNCTION__,__LINE__);
+                         DHCPMGR_LOG_DEBUG(  "%s : json file parser error : [%d]\n", __FUNCTION__,__LINE__);
                          free(data);
                          return ANSC_STATUS_FAILURE;
                  }
@@ -3615,12 +3615,12 @@ CosaDhcpInitJournal
                          {
                                 if ( PartnerID[0] != '\0' )
                                 {
-                                        DHCPMGR_LOG_WARNING("%s : Partner = %s \n", __FUNCTION__, PartnerID);
+                                        DHCPMGR_LOG_DEBUG("%s : Partner = %s \n", __FUNCTION__, PartnerID);
                                         FillPartnerIDJournal(json, PartnerID, pPoolCfg);
                                 }
                                 else
                                 {
-                                        DHCPMGR_LOG_WARNING( "Reading Deafult PartnerID Values \n" );
+                                        DHCPMGR_LOG_DEBUG( "Reading Deafult PartnerID Values \n" );
                                         rc = strcpy_s(PartnerID, sizeof(PartnerID), "comcast");
                                         if(rc != EOK)
                                         {
@@ -3633,7 +3633,7 @@ CosaDhcpInitJournal
                                 }
                         }
                         else{
-                                DHCPMGR_LOG_WARNING("Failed to get Partner ID\n");
+                                DHCPMGR_LOG_DEBUG("Failed to get Partner ID\n");
                         }
                         cJSON_Delete(json);
                 }
@@ -3642,7 +3642,7 @@ CosaDhcpInitJournal
          }
          else
          {
-                DHCPMGR_LOG_WARNING("BOOTSTRAP_INFO_FILE %s is empty\n", BOOTSTRAP_INFO_FILE);
+                DHCPMGR_LOG_DEBUG("BOOTSTRAP_INFO_FILE %s is empty\n", BOOTSTRAP_INFO_FILE);
                 /* Resource leak*/
                 if(data)
                    free(data);

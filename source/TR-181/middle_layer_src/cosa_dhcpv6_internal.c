@@ -437,7 +437,7 @@ CosaDhcpv6BackendGetDhcpv6Info
         pClientCxtLink->bNew           = FALSE;
         pClientCxtLink->hParentTable   = (ANSC_HANDLE)pDhcpv6;
         
-        DHCPMGR_LOG_INFO("%s %d Initialising DHCPv6 client mutex  \n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_DEBUG("%s %d Initialising DHCPv6 client mutex  \n", __FUNCTION__, __LINE__);
         pthread_mutexattr_t attr;
         pthread_mutexattr_init(&attr);
         pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
@@ -533,7 +533,7 @@ CosaDhcpv6BackendGetDhcpv6Info
         }
         else
         {
-            DHCPMGR_LOG_WARNING("CosaDhcpv6BackendGetDhcpv6Info -- CosaDmlDhcpv6cGetServerCfg() return error:%lu.\n", returnStatus);
+            DHCPMGR_LOG_DEBUG("CosaDhcpv6BackendGetDhcpv6Info -- CosaDmlDhcpv6cGetServerCfg() return error:%lu.\n", returnStatus);
         }
  
         /* We begin treat DHCPv6.Client.{i}.SentOption.{i} */
@@ -667,7 +667,7 @@ CosaDhcpv6BackendGetDhcpv6Info
         }
         else
         {
-            DHCPMGR_LOG_WARNING("CosaDhcpv6BackendGetDhcpv6Info -- CosaDmlDhcpv6cGetReceivedOptionCfg() return error:%lu.\n", returnStatus);
+            DHCPMGR_LOG_DEBUG("CosaDhcpv6BackendGetDhcpv6Info -- CosaDmlDhcpv6cGetReceivedOptionCfg() return error:%lu.\n", returnStatus);
         }
         
     }
@@ -909,7 +909,7 @@ CosaDhcpv6BackendGetDhcpv6Info
         }
         else
         {
-            DHCPMGR_LOG_WARNING("CosaDhcpv6BackendGetDhcpv6Info -- CosaDmlDhcpv6cGetServerCfg() return error:%lu.\n", returnStatus);
+            DHCPMGR_LOG_DEBUG("CosaDhcpv6BackendGetDhcpv6Info -- CosaDmlDhcpv6cGetServerCfg() return error:%lu.\n", returnStatus);
         }
 
         /* The following three tables are static table. We can get them one by one
@@ -942,7 +942,7 @@ CosaDhcpv6BackendGetDhcpv6Info
             }
             else
             {
-                DHCPMGR_LOG_WARNING("CosaDhcpv6BackendGetDhcpv6Info -- CosaDmlDhcpv6sGetIPv6Address() return error:%lu.\n", returnStatus);
+                DHCPMGR_LOG_DEBUG("CosaDhcpv6BackendGetDhcpv6Info -- CosaDmlDhcpv6sGetIPv6Address() return error:%lu.\n", returnStatus);
             }
 
             /* DHCPv6.Server.{i}.Pool.{i}.Client.{i}.IPv6Prefix. */
@@ -962,7 +962,7 @@ CosaDhcpv6BackendGetDhcpv6Info
             }
             else
             {
-                DHCPMGR_LOG_WARNING("CosaDhcpv6BackendGetDhcpv6Info -- CosaDmlDhcpv6sGetIPv6Prefix() return error:%lu.\n", returnStatus);
+                DHCPMGR_LOG_DEBUG("CosaDhcpv6BackendGetDhcpv6Info -- CosaDmlDhcpv6sGetIPv6Prefix() return error:%lu.\n", returnStatus);
             }
 
             /* DHCPv6.Server.{i}.Pool.{i}.Client.{i}.Option. */
@@ -982,7 +982,7 @@ CosaDhcpv6BackendGetDhcpv6Info
             }
             else
             {
-                DHCPMGR_LOG_WARNING("CosaDhcpv6BackendGetDhcpv6Info -- CosaDmlDhcpv6sGetIPv6Option() return error:%lu.\n", returnStatus);
+                DHCPMGR_LOG_DEBUG("CosaDhcpv6BackendGetDhcpv6Info -- CosaDmlDhcpv6sGetIPv6Option() return error:%lu.\n", returnStatus);
             }
 
         }

@@ -242,7 +242,7 @@ void* WebServRestart( void *arg )
 #if 0
     if (access(HTTPD_CONF, F_OK) != 0) {
         if (vsystem("cp %s %s", HTTPD_DEF_CONF, HTTPD_CONF) != 0) {
-            DHCPMGR_LOG_INFO("%s: no config file");
+            DHCPMGR_LOG_DEBUG("%s: no config file");
             return -1;
         }
     }
@@ -251,31 +251,31 @@ void* WebServRestart( void *arg )
                 conf->httpport, HTTPD_CONF) != 0
         || vsystem("sed -i ':a;N;$!ba;s#\\$SERVER\\[[^]]*\\] == \"[^\"]*#$SERVER[\"socket\"] == \":%d\"#' %s",
                    conf->httpsport, HTTPD_CONF) != 0) {
-        DHCPMGR_LOG_INFO("%s: fail to set config file");
+        DHCPMGR_LOG_DEBUG("%s: fail to set config file");
         return -1;
     }
 
     if (vsystem("lighttpd -t -f %s", HTTPD_CONF) != 0) {
-        DHCPMGR_LOG_INFO("%s: bad config file format");
+        DHCPMGR_LOG_DEBUG("%s: bad config file format");
         return -1;
     }
 
     if (access(HTTPD_PID, F_OK) == 0) {
         if (vsystem("kill `cat %s`", HTTPD_PID) != 0) {
-            DHCPMGR_LOG_INFO("%s: fail to stop lighttpd");
+            DHCPMGR_LOG_DEBUG("%s: fail to stop lighttpd");
             return -1;
         }
     }
 
     if (vsystem("lighttpd -f %s", HTTPD_CONF) != 0) {
-        DHCPMGR_LOG_INFO("%s: fail to start lighttpd");
+        DHCPMGR_LOG_DEBUG("%s: fail to start lighttpd");
         return -1;
     }
 #endif
     pthread_detach(pthread_self());
-    DHCPMGR_LOG_INFO("%s vsystem %d \n", __FUNCTION__,__LINE__);
+    DHCPMGR_LOG_DEBUG("%s vsystem %d \n", __FUNCTION__,__LINE__);
     if (vsystem("/bin/sh /etc/webgui.sh") != 0) {
-        DHCPMGR_LOG_INFO("fail to restart lighttpd");
+        DHCPMGR_LOG_DEBUG("fail to restart lighttpd");
         return NULL;
     }
 
@@ -299,7 +299,7 @@ void _CosaDmlDcStartZeroConfig()
     FILE    *fileHandle  = NULL;
     int      i           = 0;
 
-    DHCPMGR_LOG_WARNING("_CosaDmlDcStartZeroConfig -- start avahi.\n");
+    DHCPMGR_LOG_DEBUG("_CosaDmlDcStartZeroConfig -- start avahi.\n");
 
     /* If configuration file doesn't exist, create it firstly. */
     fileHandle = fopen(CONFIG_AVAHI_DAEMON_FILENAME, "r" );
@@ -312,7 +312,7 @@ void _CosaDmlDcStartZeroConfig()
 
         if (!fileHandle)
         {
-            DHCPMGR_LOG_WARNING("_CosaDmlDcStartZeroConfig -- create file:%s, error.\n", CONFIG_AVAHI_DAEMON_FILENAME);
+            DHCPMGR_LOG_DEBUG("_CosaDmlDcStartZeroConfig -- create file:%s, error.\n", CONFIG_AVAHI_DAEMON_FILENAME);
             return;
         }
 
@@ -610,7 +610,7 @@ void* bridge_mode_wifi_notifier_thread(void* arg)
     break;
     }
 
-    DHCPMGR_LOG_INFO("%s - Mode:%d Radio:%s SSID:%s\n", __FUNCTION__, atoi( acBridgeMode ), acSetRadioString, acSetSSIDString );
+    DHCPMGR_LOG_DEBUG("%s - Mode:%d Radio:%s SSID:%s\n", __FUNCTION__, atoi( acBridgeMode ), acSetRadioString, acSetSSIDString );
 
 #ifdef CONFIG_CISCO_FEATURE_CISCOCONNECT
     char param[50];
@@ -716,7 +716,7 @@ void* bridge_mode_wifi_notifier_thread(void* arg)
 
     if (ret != CCSP_SUCCESS && faultParam)
     {
-        DHCPMGR_LOG_ERROR("Error:Failed to SetValue for param '%s'\n", faultParam);
+        DHCPMGR_LOG_DEBUG("Error:Failed to SetValue for param '%s'\n", faultParam);
         bus_info->freefunc(faultParam);
         faultParam = NULL;
     }
@@ -735,7 +735,7 @@ void* bridge_mode_wifi_notifier_thread(void* arg)
             );
     if (ret != CCSP_SUCCESS && faultParam)
     {
-        DHCPMGR_LOG_ERROR("Error:Failed to SetValue for param '%s'\n", faultParam);
+        DHCPMGR_LOG_DEBUG("Error:Failed to SetValue for param '%s'\n", faultParam);
         bus_info->freefunc(faultParam);
         faultParam = NULL;
     }
@@ -754,7 +754,7 @@ void* bridge_mode_wifi_notifier_thread(void* arg)
 #endif
     if (ret != CCSP_SUCCESS && faultParam)
     {
-        DHCPMGR_LOG_ERROR("Error:Failed to SetValue for param '%s'\n", faultParam);
+        DHCPMGR_LOG_DEBUG("Error:Failed to SetValue for param '%s'\n", faultParam);
         bus_info->freefunc(faultParam);
         faultParam = NULL;
     }
@@ -777,7 +777,7 @@ void* bridge_mode_wifi_notifier_thread(void* arg)
 
         if (ret != CCSP_SUCCESS && faultParam)
         {
-            DHCPMGR_LOG_ERROR("Error:Failed to SetValue for param '%s'\n", faultParam);
+            DHCPMGR_LOG_DEBUG("Error:Failed to SetValue for param '%s'\n", faultParam);
             bus_info->freefunc(faultParam);
             faultParam = NULL;
         }
@@ -826,21 +826,21 @@ CosaDmlLanMngm_SetConf(ULONG ins, PCOSA_DML_LAN_MANAGEMENT pLanMngm)
         case COSA_DML_LanMode_BridgeStatic:
         {
             bridge_info.mode = BRIDGE_MODE_STATIC;
-            DHCPMGR_LOG_INFO("LanMode:Adv_Bridge_Mode_selected\n");
+            DHCPMGR_LOG_DEBUG("LanMode:Adv_Bridge_Mode_selected\n");
         }
         break; /* COSA_DML_LanMode_BridgeStatic */
 
         case COSA_DML_LanMode_FullBridgeStatic:
         {
             bridge_info.mode = BRIDGE_MODE_FULL_STATIC;
-            DHCPMGR_LOG_INFO("LanMode:Basic_Bridge_Mode_selected\n");
+            DHCPMGR_LOG_DEBUG("LanMode:Basic_Bridge_Mode_selected\n");
         }
         break; /* COSA_DML_LanMode_BridgeStatic */
 
         case COSA_DML_LanMode_Router:
         {
             bridge_info.mode = BRIDGE_MODE_OFF;
-            DHCPMGR_LOG_INFO("LanMode:Router_Mode_selected\n");
+            DHCPMGR_LOG_DEBUG("LanMode:Router_Mode_selected\n");
         }
         break; /* COSA_DML_LanMode_Router */
 
@@ -862,7 +862,7 @@ CosaDmlLanMngm_SetConf(ULONG ins, PCOSA_DML_LAN_MANAGEMENT pLanMngm)
             &nval,
             &valMoCAstatus);
         if( CCSP_SUCCESS == ret ){
-            DHCPMGR_LOG_WARNING("valMoCAstatus[0]->parameterValue = %s\n",valMoCAstatus[0]->parameterValue);
+            DHCPMGR_LOG_DEBUG("valMoCAstatus[0]->parameterValue = %s\n",valMoCAstatus[0]->parameterValue);
             if(strcmp("true", valMoCAstatus[0]->parameterValue)==0)
                 MoCAstate=1;
             else
@@ -871,13 +871,13 @@ CosaDmlLanMngm_SetConf(ULONG ins, PCOSA_DML_LAN_MANAGEMENT pLanMngm)
             if ((syscfg_set_commit(NULL, "MoCA_current_status", buf) != 0))
             {
                 Utopia_Free(&utctx, 0);
-                DHCPMGR_LOG_WARNING("syscfg_set failed\n");
+                DHCPMGR_LOG_DEBUG("syscfg_set failed\n");
                 return -1;
             }
         }
         else
         {
-            DHCPMGR_LOG_ERROR("CcspBaseIf_getParameterValues failed to get MoCA status return vaule = %lu\n",ret);
+            DHCPMGR_LOG_DEBUG("CcspBaseIf_getParameterValues failed to get MoCA status return vaule = %lu\n",ret);
         }
         if(valMoCAstatus){
             free_parameterValStruct_t (bus_handle, nval, valMoCAstatus);
@@ -906,7 +906,7 @@ CosaDmlLanMngm_SetConf(ULONG ins, PCOSA_DML_LAN_MANAGEMENT pLanMngm)
 
             fp1 = fopen("/etc/device.properties", "r");
             if (fp1 == NULL) {
-                DHCPMGR_LOG_ERROR("Error opening properties file! \n");
+                DHCPMGR_LOG_DEBUG("Error opening properties file! \n");
                 Utopia_Free(&utctx, 0);
                 return FALSE;
             }
@@ -925,11 +925,11 @@ CosaDmlLanMngm_SetConf(ULONG ins, PCOSA_DML_LAN_MANAGEMENT pLanMngm)
 
             if (fclose(fp1) != 0) {
                 /* Error reported by pclose() */
-                DHCPMGR_LOG_ERROR("Error closing properties file! \n");
+                DHCPMGR_LOG_DEBUG("Error closing properties file! \n");
             }
 
             if (urlPtr != NULL && urlPtr[0] != 0 && strlen(urlPtr) > 0) {
-                DHCPMGR_LOG_INFO("Reported an ATOM IP of %s \n", urlPtr);
+                DHCPMGR_LOG_DEBUG("Reported an ATOM IP of %s \n", urlPtr);
                 pid_t pid = fork();
 
                 if (pid == -1)
@@ -945,7 +945,7 @@ CosaDmlLanMngm_SetConf(ULONG ins, PCOSA_DML_LAN_MANAGEMENT pLanMngm)
                 {
                     // we are the child
                     char cmd[DATA_SIZE] = {0};
-                    DHCPMGR_LOG_INFO("Sending subnet_change notification to ATOM IP %s \n", urlPtr);
+                    DHCPMGR_LOG_DEBUG("Sending subnet_change notification to ATOM IP %s \n", urlPtr);
                     safec_rc = sprintf_s(cmd, sizeof(cmd), "/usr/bin/sysevent set subnet_change \"RDK|%s|%s\"",
                                          lan.ipaddr,lan.netmask);
                     if(safec_rc < EOK)
@@ -980,7 +980,7 @@ CosaDmlLanMngm_SetConf(ULONG ins, PCOSA_DML_LAN_MANAGEMENT pLanMngm)
             {
                 // we are the child
                 char cmd[DATA_SIZE] = {0};
-                DHCPMGR_LOG_INFO("Sending subnet_change notification \n");
+                DHCPMGR_LOG_DEBUG("Sending subnet_change notification \n");
                 safec_rc = sprintf_s(cmd, sizeof(cmd), "RDK|%s|%s", lan.ipaddr, lan.netmask);
                 if(safec_rc < EOK)
                 {
@@ -1039,7 +1039,7 @@ CosaDmlLanMngm_SetConf(ULONG ins, PCOSA_DML_LAN_MANAGEMENT pLanMngm)
         {
             /* SKYH4-1780 : This will help to set Down state to
              * sysevent 'ipv6_connection_state' */
-            DHCPMGR_LOG_INFO("lan_prefix_clear is setting\n");
+            DHCPMGR_LOG_DEBUG("lan_prefix_clear is setting\n");
             commonSyseventSet("lan_prefix_clear", "");
         }
 #endif
@@ -1090,7 +1090,7 @@ CosaDmlLanMngm_SetConf(ULONG ins, PCOSA_DML_LAN_MANAGEMENT pLanMngm)
     if ((syscfg_set(NULL, "bridge_mode", buf) != 0))
     {
         Utopia_Free(&utctx, 0);
-        DHCPMGR_LOG_WARNING("syscfg_set failed\n");
+        DHCPMGR_LOG_DEBUG("syscfg_set failed\n");
         return -1;
     }
     if(bridge_info.mode == 0)
@@ -1099,14 +1099,14 @@ CosaDmlLanMngm_SetConf(ULONG ins, PCOSA_DML_LAN_MANAGEMENT pLanMngm)
         commonSyseventSet("bridge-stop", "");
         commonSyseventSet("lan-start", "");
         if (DmSetBool("Device.WiFi.SSID.1.Enable", value) != ANSC_STATUS_SUCCESS) {
-            DHCPMGR_LOG_ERROR("Set WiFi.SSID.1 Enable error");
+            DHCPMGR_LOG_DEBUG("Set WiFi.SSID.1 Enable error");
         } else {
-            DHCPMGR_LOG_INFO("Set WiFi.SSID.1 Enable OK");
+            DHCPMGR_LOG_DEBUG("Set WiFi.SSID.1 Enable OK");
         }
         if (DmSetBool("Device.WiFi.SSID.2.Enable", value) != ANSC_STATUS_SUCCESS) {
-            DHCPMGR_LOG_ERROR("Set WiFi.SSID.2 Enable error");
+            DHCPMGR_LOG_DEBUG("Set WiFi.SSID.2 Enable error");
         } else {
-            DHCPMGR_LOG_INFO("Set WiFi.SSID.2 Enable OK");
+            DHCPMGR_LOG_DEBUG("Set WiFi.SSID.2 Enable OK");
         }
     }
     else if(bridge_info.mode == 2)
@@ -1115,29 +1115,29 @@ CosaDmlLanMngm_SetConf(ULONG ins, PCOSA_DML_LAN_MANAGEMENT pLanMngm)
         commonSyseventSet("bridge-start", "");
         commonSyseventSet("lan-stop", "");
         if (DmSetBool("Device.WiFi.SSID.1.Enable", value) != ANSC_STATUS_SUCCESS) {
-            DHCPMGR_LOG_ERROR("Set WiFi.SSID.1 Disable error");
+            DHCPMGR_LOG_DEBUG("Set WiFi.SSID.1 Disable error");
         } else {
-            DHCPMGR_LOG_INFO("Set WiFi.SSID.1 Disable OK");
+            DHCPMGR_LOG_DEBUG("Set WiFi.SSID.1 Disable OK");
         }
         if (DmSetBool("Device.WiFi.SSID.2.Enable", value) != ANSC_STATUS_SUCCESS) {
-            DHCPMGR_LOG_ERROR("Set WiFi.SSID.2 Disable error");
+            DHCPMGR_LOG_DEBUG("Set WiFi.SSID.2 Disable error");
         } else {
-            DHCPMGR_LOG_INFO("Set WiFi.SSID.2 Disable OK");
+            DHCPMGR_LOG_DEBUG("Set WiFi.SSID.2 Disable OK");
         }
     }
     else
     {
-        DHCPMGR_LOG_INFO("Running in different Modes ");
+        DHCPMGR_LOG_DEBUG("Running in different Modes ");
     }
     if (DmSetBool("Device.WiFi.Radio.1.X_CISCO_COM_ApplySetting", 1) != ANSC_STATUS_SUCCESS) {
-        DHCPMGR_LOG_ERROR("Set WiFi.Radio.1.X_CISCO_COM_ApplySetting Enable error");
+        DHCPMGR_LOG_DEBUG("Set WiFi.Radio.1.X_CISCO_COM_ApplySetting Enable error");
     } else {
-        DHCPMGR_LOG_INFO("Set WiFi.Radio.1.X_CISCO_COM_ApplySetting Enable OK");
+        DHCPMGR_LOG_DEBUG("Set WiFi.Radio.1.X_CISCO_COM_ApplySetting Enable OK");
     }
     if (DmSetBool("Device.WiFi.Radio.2.X_CISCO_COM_ApplySetting", 1) != ANSC_STATUS_SUCCESS) {
-        DHCPMGR_LOG_ERROR("Set WiFi.Radio.2.X_CISCO_COM_ApplySetting Enable error");
+        DHCPMGR_LOG_DEBUG("Set WiFi.Radio.2.X_CISCO_COM_ApplySetting Enable error");
     } else {
-        DHCPMGR_LOG_INFO("Set WiFi.Radio.2.X_CISCO_COM_ApplySetting Enable OK");
+        DHCPMGR_LOG_DEBUG("Set WiFi.Radio.2.X_CISCO_COM_ApplySetting Enable OK");
     }
     sleep(1);
     vsystem("/bin/sh /etc/webgui.sh &");
@@ -1149,7 +1149,7 @@ CosaDmlLanMngm_SetConf(ULONG ins, PCOSA_DML_LAN_MANAGEMENT pLanMngm)
         ( is_mesh_enabled( ) )
         )
     {
-        DHCPMGR_LOG_WARNING("Setting MESH to disabled as LanMode is changed to Bridge mode\n");
+        DHCPMGR_LOG_DEBUG("Setting MESH to disabled as LanMode is changed to Bridge mode\n");
         pthread_t tid;
         pthread_create(&tid, NULL, &set_mesh_disabled, NULL);
     }
@@ -1200,7 +1200,7 @@ void* set_mesh_disabled(void* arg)
         );
 
     if( ( ret != CCSP_SUCCESS ) && ( faultParam!=NULL )) {
-        DHCPMGR_LOG_ERROR("%s-%d Failed to set Mesh Enable to false\n",__FUNCTION__,__LINE__);
+        DHCPMGR_LOG_DEBUG("%s-%d Failed to set Mesh Enable to false\n",__FUNCTION__,__LINE__);
         bus_info->freefunc( faultParam );
         return NULL;
     }
@@ -1221,7 +1221,7 @@ int CheckAndGetDevicePropertiesEntry( char *pOutput, int size, char *sDeviceProp
 
     if ( NULL == fp1 )
     {
-        DHCPMGR_LOG_ERROR("Error opening properties file! \n");
+        DHCPMGR_LOG_DEBUG("Error opening properties file! \n");
         return -1;
     }
 

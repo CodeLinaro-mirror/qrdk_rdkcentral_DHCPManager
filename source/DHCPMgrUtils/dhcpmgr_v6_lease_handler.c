@@ -62,7 +62,7 @@ static int exec_shell_cmd(char * command)
 {
     int status = system(command);
     if (status == -1) {
-        DHCPMGR_LOG_ERROR("%s: %d system() failed to run shell\n",__FUNCTION__,__LINE__);
+        DHCPMGR_LOG_DEBUG("%s: %d system() failed to run shell\n",__FUNCTION__,__LINE__);
         return -1;
     }
 
@@ -74,7 +74,7 @@ static int exec_shell_cmd(char * command)
             return -1;
         }
     } else if (WIFSIGNALED(status)) {
-        DHCPMGR_LOG_ERROR("%s %d :Command was terminated by signal %d\n",__FUNCTION__,__LINE__,WTERMSIG(status));
+        DHCPMGR_LOG_DEBUG("%s %d :Command was terminated by signal %d\n",__FUNCTION__,__LINE__,WTERMSIG(status));
     }
     return 0;
 }
@@ -87,7 +87,7 @@ static void processv6LesSysevents(IPv6Events* eventMaps, size_t size, const char
         {
             char sysEventName[256] = {0};
             snprintf(sysEventName, sizeof(sysEventName), eventMaps[i].eventName, IfaceName);
-            CcspTraceInfo(("%s - %d: Setting sysevent %s to %s \n", __FUNCTION__, __LINE__, sysEventName, eventMaps[i].value));
+            DHCPMGR_LOG_DEBUG("%s - %d: Setting sysevent %s to %s \n", __FUNCTION__, __LINE__, sysEventName, eventMaps[i].value);
  //           sysevent_set(sysevent_fd, sysevent_token, sysEventName, eventMaps[i].value, 0);
             ifl_set_event(sysEventName,eventMaps[i].value);
         }
@@ -157,7 +157,7 @@ void DhcpMgr_ProcessV6Lease(PCOSA_DML_DHCPCV6_FULL pDhcp6c)
 
         if (current == NULL) 
         {
-            DHCPMGR_LOG_INFO("%s %d: lease updated for %s \n",__FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
+            DHCPMGR_LOG_DEBUG("%s %d: lease updated for %s \n",__FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
             leaseChanged = TRUE;
         }
         else if(current->isExpired == FALSE && newLease->isExpired == TRUE)
@@ -173,7 +173,7 @@ void DhcpMgr_ProcessV6Lease(PCOSA_DML_DHCPCV6_FULL pDhcp6c)
                          sizeof(current->ia_pd.Prefix)) != 0 ||  
                  current->ia_pd.PrefixLength != newLease->ia_pd.PrefixLength))
             {
-                DHCPMGR_LOG_WARNING("%s %d: Skipping stale DEL for prefix %s/%d on %s "
+                DHCPMGR_LOG_DEBUG("%s %d: Skipping stale DEL for prefix %s/%d on %s "
                                     "(current active prefix is %s)\n",
                                     __FUNCTION__, __LINE__,
                                     newLease->ia_pd.Prefix,
@@ -185,7 +185,7 @@ void DhcpMgr_ProcessV6Lease(PCOSA_DML_DHCPCV6_FULL pDhcp6c)
                 continue;
             }
             DhcpMgr_PublishDhcpV6Event(pDhcp6c, DHCP_LEASE_DEL);
-            DHCPMGR_LOG_INFO("%s %d: lease expired  for %s \n",__FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
+            DHCPMGR_LOG_DEBUG("%s %d: lease expired  for %s \n",__FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
         }
         else 
         {
@@ -195,14 +195,14 @@ void DhcpMgr_ProcessV6Lease(PCOSA_DML_DHCPCV6_FULL pDhcp6c)
             if(newLease->ia_na.assigned == FALSE && current->ia_na.assigned == TRUE)
             {
                 //If we reach this point, only IAPD has been renewed. Use the previous IANA details.
-                DHCPMGR_LOG_INFO("%s %d: IANA is not assigned in this msg. Assuming only IAPD renewed. Using previous IANA details for %s \n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
+                DHCPMGR_LOG_DEBUG("%s %d: IANA is not assigned in this msg. Assuming only IAPD renewed. Using previous IANA details for %s \n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
                 memcpy(&newLease->ia_na, &current->ia_na, sizeof(current->ia_na));
             }
 
             if(newLease->ia_pd.assigned == FALSE && current->ia_pd.assigned == TRUE)
             {
                 // If we reach this point, only IANA has been renewed. Use the previous IAPD details.
-                DHCPMGR_LOG_INFO("%s %d: IAPD is not assigned in this msg. Assuming only IANA renewed. Using previous IAPD details for %s \n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
+                DHCPMGR_LOG_DEBUG("%s %d: IAPD is not assigned in this msg. Assuming only IANA renewed. Using previous IAPD details for %s \n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
                 memcpy(&newLease->ia_pd, &current->ia_pd, sizeof(current->ia_pd));
                 //mapt is part of IAPD. If IAPD is renewed, mapt is also renewed.
                 memcpy(&newLease->mapt, &current->mapt, sizeof(current->mapt));
@@ -211,17 +211,17 @@ void DhcpMgr_ProcessV6Lease(PCOSA_DML_DHCPCV6_FULL pDhcp6c)
             
             if(compare_dhcpv6_plugin_msg(current, newLease) == FALSE)
             {
-                DHCPMGR_LOG_INFO("%s %d: lease changed  for %s \n",__FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
+                DHCPMGR_LOG_DEBUG("%s %d: lease changed  for %s \n",__FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
                 leaseChanged = TRUE;
             }
             else if (newLease->isExpired == FALSE && (newLease->ia_na.assigned == TRUE ||newLease->ia_pd.assigned == TRUE))
             {
                 DhcpMgr_PublishDhcpV6Event(pDhcp6c, DHCP_LEASE_RENEW);
-                DHCPMGR_LOG_INFO("%s %d: lease renewed for %s \n",__FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
+                DHCPMGR_LOG_DEBUG("%s %d: lease renewed for %s \n",__FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
             }
         }
 
-        DHCPMGR_LOG_INFO("%s %d: New lease  : %s \n",__FUNCTION__, __LINE__, newLease->isExpired?"Expired" : "Valid");
+        DHCPMGR_LOG_DEBUG("%s %d: New lease  : %s \n",__FUNCTION__, __LINE__, newLease->isExpired?"Expired" : "Valid");
 
         // Free the current lease
         if(pDhcp6c->currentLease)
@@ -241,19 +241,19 @@ void DhcpMgr_ProcessV6Lease(PCOSA_DML_DHCPCV6_FULL pDhcp6c)
         
         if(DHCPMgr_storeDhcpv6Lease(pDhcp6c) != 0)
         {
-            DHCPMGR_LOG_ERROR("%s %d: Failed to store lease information for interface %s.\n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
+            DHCPMGR_LOG_DEBUG("%s %d: Failed to store lease information for interface %s.\n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
         }
         
         if(leaseChanged)
         {
             //TODO : check any sysvent required for lease update
-            DHCPMGR_LOG_INFO("%s %d: NewLease address %s  \n", __FUNCTION__, __LINE__, newLease->ia_na.address);
-            DHCPMGR_LOG_INFO("%s %d: NewLease prefix %s  \n", __FUNCTION__, __LINE__, newLease->ia_pd.Prefix);
-            DHCPMGR_LOG_INFO("%s %d: NewLease PrefixLength %d  \n", __FUNCTION__, __LINE__, newLease->ia_pd.PrefixLength);
-            DHCPMGR_LOG_INFO("%s %d: NewLease nameserver %s  \n", __FUNCTION__, __LINE__, newLease->dns.nameserver);
-            DHCPMGR_LOG_INFO("%s %d: NewLease nameserver2 %s  \n", __FUNCTION__, __LINE__, newLease->dns.nameserver1);
-            DHCPMGR_LOG_INFO("%s %d: NewLease PreferedLifeTime %d  \n", __FUNCTION__, __LINE__, newLease->ia_pd.PreferedLifeTime);
-            DHCPMGR_LOG_INFO("%s %d: NewLease ValidLifeTime %d  \n", __FUNCTION__, __LINE__, newLease->ia_pd.ValidLifeTime);
+            DHCPMGR_LOG_DEBUG("%s %d: NewLease address %s  \n", __FUNCTION__, __LINE__, newLease->ia_na.address);
+            DHCPMGR_LOG_DEBUG("%s %d: NewLease prefix %s  \n", __FUNCTION__, __LINE__, newLease->ia_pd.Prefix);
+            DHCPMGR_LOG_DEBUG("%s %d: NewLease PrefixLength %d  \n", __FUNCTION__, __LINE__, newLease->ia_pd.PrefixLength);
+            DHCPMGR_LOG_DEBUG("%s %d: NewLease nameserver %s  \n", __FUNCTION__, __LINE__, newLease->dns.nameserver);
+            DHCPMGR_LOG_DEBUG("%s %d: NewLease nameserver2 %s  \n", __FUNCTION__, __LINE__, newLease->dns.nameserver1);
+            DHCPMGR_LOG_DEBUG("%s %d: NewLease PreferedLifeTime %d  \n", __FUNCTION__, __LINE__, newLease->ia_pd.PreferedLifeTime);
+            DHCPMGR_LOG_DEBUG("%s %d: NewLease ValidLifeTime %d  \n", __FUNCTION__, __LINE__, newLease->ia_pd.ValidLifeTime);
             if(newLease->ia_na.assigned == TRUE)
             {
                 configureNetworkInterface(pDhcp6c);
@@ -261,7 +261,7 @@ void DhcpMgr_ProcessV6Lease(PCOSA_DML_DHCPCV6_FULL pDhcp6c)
             ConfigureIpv6Sysevents(pDhcp6c);
             if(newLease->vendor.Assigned == TRUE)
             {
-                DHCPMGR_LOG_INFO("%s %d: NewLease vendor data %s  \n", __FUNCTION__, __LINE__, newLease->vendor.Data);
+                DHCPMGR_LOG_DEBUG("%s %d: NewLease vendor data %s  \n", __FUNCTION__, __LINE__, newLease->vendor.Data);
                 Set_DhcpV6_CustomOption17(pDhcp6c->Cfg.Interface, newLease->vendor.Data, &newLease->ipv6_TimeOffset); 
             }
             DhcpMgr_PublishDhcpV6Event(pDhcp6c, DHCP_LEASE_UPDATE);
@@ -355,7 +355,7 @@ static void configureNetworkInterface(PCOSA_DML_DHCPCV6_FULL pDhcp6c)
 {
     if (pDhcp6c == NULL || pDhcp6c->currentLease == NULL) 
     {
-        DHCPMGR_LOG_ERROR("%s %d: Invalid DHCP client structure or current lease is NULL.\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_DEBUG("%s %d: Invalid DHCP client structure or current lease is NULL.\n", __FUNCTION__, __LINE__);
         return;
     }
 
@@ -386,15 +386,15 @@ static void configureNetworkInterface(PCOSA_DML_DHCPCV6_FULL pDhcp6c)
     }
 
     // Log the configuration details
-    DHCPMGR_LOG_INFO("%s %d: Configuring interface %s with IPv6 address %s\n", __FUNCTION__, __LINE__, interface, ipv6Address);
-    DHCPMGR_LOG_INFO("%s %d: PreferedLifeTime: %s, ValidLifeTime: %s\n", __FUNCTION__, __LINE__, preferredLftStr, validLftStr);
+    DHCPMGR_LOG_DEBUG("%s %d: Configuring interface %s with IPv6 address %s\n", __FUNCTION__, __LINE__, interface, ipv6Address);
+    DHCPMGR_LOG_DEBUG("%s %d: PreferedLifeTime: %s, ValidLifeTime: %s\n", __FUNCTION__, __LINE__, preferredLftStr, validLftStr);
 
     // Use system calls or platform-specific APIs to configure the network interface
     char command[256];
     snprintf(command, sizeof(command), "ip -6 addr add %s dev %s preferred_lft %s valid_lft %s", ipv6Address, interface, preferredLftStr, validLftStr);
     if(exec_shell_cmd(command) != 0)
     {
-        DHCPMGR_LOG_ERROR("%s %d: Failed to configure IPv6 address on interface %s. Command: %s\n", __FUNCTION__, __LINE__, interface, command);
+        DHCPMGR_LOG_DEBUG("%s %d: Failed to configure IPv6 address on interface %s. Command: %s\n", __FUNCTION__, __LINE__, interface, command);
     }
     return;
 }
@@ -413,20 +413,20 @@ void DhcpMgr_clearDHCPv6Lease(PCOSA_DML_DHCPCV6_FULL pDhcp6c)
 {
     if (pDhcp6c == NULL) 
     {
-        DHCPMGR_LOG_ERROR("%s %d: Invalid DHCPv6 client structure.\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_DEBUG("%s %d: Invalid DHCPv6 client structure.\n", __FUNCTION__, __LINE__);
         return;
     }
 
     if (pDhcp6c->currentLease != NULL) 
     {
-        DHCPMGR_LOG_INFO("%s %d: Clearing current DHCPv6 lease for interface %s.\n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
+        DHCPMGR_LOG_DEBUG("%s %d: Clearing current DHCPv6 lease for interface %s.\n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
 
         // Free the memory allocated for the current lease
         free(pDhcp6c->currentLease);
         pDhcp6c->currentLease = NULL;
     }
 
-    DHCPMGR_LOG_INFO("%s %d: Clearing NewLeases linked list for %s \n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
+    DHCPMGR_LOG_DEBUG("%s %d: Clearing NewLeases linked list for %s \n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
     // Free all leases in the NewLeases linked list
     DHCPv6_PLUGIN_MSG *lease = pDhcp6c->NewLeases;
     while (lease != NULL) 
@@ -437,5 +437,5 @@ void DhcpMgr_clearDHCPv6Lease(PCOSA_DML_DHCPCV6_FULL pDhcp6c)
     }
     pDhcp6c->NewLeases = NULL;
 
-    DHCPMGR_LOG_INFO("%s %d: DHCPv6 lease cleared for interface %s.\n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
+    DHCPMGR_LOG_DEBUG("%s %d: DHCPv6 lease cleared for interface %s.\n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
 }

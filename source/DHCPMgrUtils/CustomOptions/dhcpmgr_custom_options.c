@@ -34,7 +34,7 @@ __attribute__((weak)) int Get_DhcpV4_CustomOption60(const char *ifName, char *Op
     (void)ifName;
     (void)OptionValue;
     (void)OptionValueSize;
-    DHCPMGR_LOG_INFO("%s %d Weak implementation of Get_DhcpV4_CustomOption60 \n", __FUNCTION__, __LINE__);
+    DHCPMGR_LOG_DEBUG("%s %d Weak implementation of Get_DhcpV4_CustomOption60 \n", __FUNCTION__, __LINE__);
     return -1;
 }
 
@@ -43,7 +43,7 @@ __attribute__((weak)) int Get_DhcpV4_CustomOption61(const char *ifName, char *Op
     (void)ifName;
     (void)OptionValue;
     (void)OptionValueSize;
-    DHCPMGR_LOG_INFO("%s %d Weak implementation of Get_DhcpV4_CustomOption61 \n", __FUNCTION__, __LINE__);
+    DHCPMGR_LOG_DEBUG("%s %d Weak implementation of Get_DhcpV4_CustomOption61 \n", __FUNCTION__, __LINE__);
     return -1;
 }
 #ifdef EROUTER_DHCP_OPTION_MTA
@@ -51,13 +51,13 @@ __attribute__((weak)) int Get_DhcpV4_CustomOption_mta(char *OptionValue, size_t 
 {
     (void)OptionValue;
     (void)OptionValueSize;
-    DHCPMGR_LOG_INFO("%s %d Weak implementation of Get_DhcpV4_CustomOption_mta \n", __FUNCTION__, __LINE__);
+    DHCPMGR_LOG_DEBUG("%s %d Weak implementation of Get_DhcpV4_CustomOption_mta \n", __FUNCTION__, __LINE__);
     return -1;
 }
 
 __attribute__((weak)) int Set_DhcpV4_CustomOption_mta(const char *OptionValue,char *version) 
 {
-    DHCPMGR_LOG_INFO("%s %d Weak implementation of Set_DhcpV4_CustomOption_mta \n", __FUNCTION__, __LINE__);
+    DHCPMGR_LOG_DEBUG("%s %d Weak implementation of Set_DhcpV4_CustomOption_mta \n", __FUNCTION__, __LINE__);
     return set_mta_config(OptionValue, version);
 }
 #endif
@@ -66,7 +66,7 @@ __attribute__((weak)) int Get_DhcpV6_CustomOption15(const char *ifName, char *Op
     (void)ifName;
     (void)OptionValue;
     (void)OptionValueSize;
-    DHCPMGR_LOG_INFO("%s %d Weak implementation of Get_DhcpV6_CustomOption15 \n", __FUNCTION__, __LINE__);
+    DHCPMGR_LOG_DEBUG("%s %d Weak implementation of Get_DhcpV6_CustomOption15 \n", __FUNCTION__, __LINE__);
     return -1;
 }
 
@@ -75,7 +75,7 @@ __attribute__((weak)) int Get_DhcpV6_CustomOption16(const char *ifName, char *Op
     (void)ifName;
     (void)OptionValue;
     (void)OptionValueSize;
-    DHCPMGR_LOG_INFO("%s %d Weak implementation of Get_DhcpV6_CustomOption16 \n", __FUNCTION__, __LINE__);
+    DHCPMGR_LOG_DEBUG("%s %d Weak implementation of Get_DhcpV6_CustomOption16 \n", __FUNCTION__, __LINE__);
     return -1;
 }
 
@@ -84,7 +84,7 @@ __attribute__((weak)) int Get_DhcpV6_CustomOption17(const char *ifName, char *Op
     (void)ifName;
     (void)OptionValue;
     (void)OptionValueSize;
-    DHCPMGR_LOG_INFO("%s %d Weak implementation of Get_DhcpV6_CustomOption17 \n", __FUNCTION__, __LINE__);
+    DHCPMGR_LOG_DEBUG("%s %d Weak implementation of Get_DhcpV6_CustomOption17 \n", __FUNCTION__, __LINE__);
     return -1;
 }
 
@@ -95,7 +95,7 @@ __attribute__((weak)) int Get_DhcpV6_CustomOption_25(dhcp_opt_list ** send_opt_l
         return RETURN_ERR;
     }
 
-    DHCPMGR_LOG_INFO("%s %d Weak implementation of Get_DhcpV6_CustomOption_25 \n", __FUNCTION__, __LINE__);
+    DHCPMGR_LOG_DEBUG("%s %d Weak implementation of Get_DhcpV6_CustomOption_25 \n", __FUNCTION__, __LINE__);
 
     //Assigning NULL, so that the DHCP server can assign a prefix based on the availability
     return add_dhcp_opt_to_list(send_opt_list, DHCPV6_OPT_25, NULL);
@@ -103,7 +103,7 @@ __attribute__((weak)) int Get_DhcpV6_CustomOption_25(dhcp_opt_list ** send_opt_l
 
 __attribute__((weak)) int Set_DhcpV6_CustomOption17(const char *ifName, const char *OptionValue, uint32_t *ipv6_TimeOffset) 
 {
-    DHCPMGR_LOG_INFO("%s %d Weak implementation of Set_DhcpV6_CustomOption17 \n", __FUNCTION__, __LINE__);
+    DHCPMGR_LOG_DEBUG("%s %d Weak implementation of Set_DhcpV6_CustomOption17 \n", __FUNCTION__, __LINE__);
     return DhcpMgr_Option17Set_Common(ifName, OptionValue, ipv6_TimeOffset);
 }
 
@@ -112,7 +112,7 @@ __attribute__((weak)) int Get_DhcpV4_CustomOption43(const char *ifName, char *Op
     (void)ifName;
     (void)OptionValue;
     (void)OptionValueSize;
-    DHCPMGR_LOG_INFO("%s %d Weak implementation of Get_DhcpV4_CustomOption43 \n", __FUNCTION__, __LINE__);
+    DHCPMGR_LOG_DEBUG("%s %d Weak implementation of Get_DhcpV4_CustomOption43 \n", __FUNCTION__, __LINE__);
     return -1;
 }
 
@@ -120,7 +120,7 @@ __attribute__((weak)) int Set_DhcpV4_CustomOption43(const char *ifName, const ch
 {
     (void)ifName;
     (void)OptionValue;
-    DHCPMGR_LOG_INFO("%s %d Weak implementation of Set_DhcpV4_CustomOption43 \n", __FUNCTION__, __LINE__);
+    DHCPMGR_LOG_DEBUG("%s %d Weak implementation of Set_DhcpV4_CustomOption43 \n", __FUNCTION__, __LINE__);
     return -1;
 }
 
@@ -138,7 +138,7 @@ static char* parse_dhcp_17_suboption(const char *dhcp_option_val, const char *ip
 {
     if (dhcp_option_val == NULL || ip_mode == NULL) 
     {
-        DHCPMGR_LOG_ERROR("%s %d: Invalid arguments..\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_DEBUG("%s %d: Invalid arguments..\n", __FUNCTION__, __LINE__);
         return NULL;
     }
 
@@ -146,7 +146,7 @@ static char* parse_dhcp_17_suboption(const char *dhcp_option_val, const char *ip
     char *dhcp_option_copy = strdup(dhcp_option_val);
     if (dhcp_option_copy == NULL) 
     {
-        DHCPMGR_LOG_ERROR("%s %d: Memory allocation failed..\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_DEBUG("%s %d: Memory allocation failed..\n", __FUNCTION__, __LINE__);
         return NULL;
     }
 
@@ -203,7 +203,7 @@ static char* parse_dhcp_17_suboption(const char *dhcp_option_val, const char *ip
 
         if (new_format == NULL) 
         {
-            DHCPMGR_LOG_ERROR("%s %d: Memory allocation failed..\n", __FUNCTION__, __LINE__);
+            DHCPMGR_LOG_DEBUG("%s %d: Memory allocation failed..\n", __FUNCTION__, __LINE__);
             free(dhcp_option_copy);
             return NULL;
         }
@@ -247,7 +247,7 @@ static int DhcpMgr_Option17Set_Common(const char *ifName, const char *OptionValu
 {
     if (ifName == NULL || OptionValue == NULL)
     {
-        DHCPMGR_LOG_ERROR("%s %d: Invalid args..\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_DEBUG("%s %d: Invalid args..\n", __FUNCTION__, __LINE__);
         return -1;
     }
     char *token, *suboption, *suboption_data;
@@ -255,7 +255,7 @@ static int DhcpMgr_Option17Set_Common(const char *ifName, const char *OptionValu
     int mta_dhcp_option_received = 0;
 
     if (srv_option17 == NULL) {
-        DHCPMGR_LOG_ERROR("%s %d: Memory allocation failed..\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_DEBUG("%s %d: Memory allocation failed..\n", __FUNCTION__, __LINE__);
         return -1;
     }
 
@@ -271,37 +271,37 @@ static int DhcpMgr_Option17Set_Common(const char *ifName, const char *OptionValu
         {
             if (strcmp(suboption, "vendor") == 0) 
             {
-                DHCPMGR_LOG_INFO("Suboption vendor-id is %s in option %s\n", suboption_data, OptionValue);
+                DHCPMGR_LOG_DEBUG("Suboption vendor-id is %s in option %s\n", suboption_data, OptionValue);
                 ifl_set_event("ipv6-vendor-id", suboption_data);
             } else if (strcmp(suboption, "38") == 0) 
             {
-                DHCPMGR_LOG_INFO("Suboption TimeOffset is %s in option %s\n", suboption_data, OptionValue);
+                DHCPMGR_LOG_DEBUG("Suboption TimeOffset is %s in option %s\n", suboption_data, OptionValue);
                 *ipv6_TimeOffset = atoi(suboption_data);
-                DHCPMGR_LOG_INFO("ipv6_TimeOffset value is %u\n", *ipv6_TimeOffset);
+                DHCPMGR_LOG_DEBUG("ipv6_TimeOffset value is %u\n", *ipv6_TimeOffset);
                 //ifl_set_event("ipv6-timeoffset", suboption_data);
                 // Additional processing for TimeOffset can be added here
             } else if (strcmp(suboption, "39") == 0) 
             {
-                DHCPMGR_LOG_INFO("Suboption IP Mode Preference is %s in option %s\n", suboption_data, OptionValue);
+                DHCPMGR_LOG_DEBUG("Suboption IP Mode Preference is %s in option %s\n", suboption_data, OptionValue);
                 ifl_set_event("wan6_ippref", suboption_data);
                 char mta_ip_pref[64] = {0};
                 ifl_get_event("MTA_IP_PREF", mta_ip_pref, sizeof(mta_ip_pref));
                 if (strlen(mta_ip_pref) == 0) 
                 {
-                    DHCPMGR_LOG_INFO("Setting MTA_IP_PREF value to %s\n", suboption_data);
+                    DHCPMGR_LOG_DEBUG("Setting MTA_IP_PREF value to %s\n", suboption_data);
                     ifl_set_event("MTA_IP_PREF", suboption_data);
                     mta_dhcp_option_received = 1;
                 } else 
                 {
-                    DHCPMGR_LOG_INFO("Mta_Ip_Pref value is already set to %s\n", mta_ip_pref);
+                    DHCPMGR_LOG_DEBUG("Mta_Ip_Pref value is already set to %s\n", mta_ip_pref);
                 }
             } else if (strcmp(suboption, "2") == 0) 
             {
-                DHCPMGR_LOG_INFO("Suboption Device Type is %s in option %s\n", suboption_data, OptionValue);
+                DHCPMGR_LOG_DEBUG("Suboption Device Type is %s in option %s\n", suboption_data, OptionValue);
                 ifl_set_event("ipv6-device-type", suboption_data);
             } else if (strcmp(suboption, "3") == 0) 
             {
-                DHCPMGR_LOG_INFO("Suboption List of Embedded Components in eDOCSIS Device is %s in option %s\n", suboption_data, OptionValue);
+                DHCPMGR_LOG_DEBUG("Suboption List of Embedded Components in eDOCSIS Device is %s in option %s\n", suboption_data, OptionValue);
                 ifl_set_event("ipv6-embd-comp-in-device", suboption_data);
             } else if (strcmp(suboption, "2170") == 0 || strcmp(suboption, "2171") == 0) 
             {
@@ -323,7 +323,7 @@ static int DhcpMgr_Option17Set_Common(const char *ifName, const char *OptionValu
                                 
                                 if (strlen(primary_address) == 0) 
                                 {
-                                    DHCPMGR_LOG_INFO("Setting PrimaryAddress value as %s\n", subopt_data);
+                                    DHCPMGR_LOG_DEBUG("Setting PrimaryAddress value as %s\n", subopt_data);
                                     ifl_set_event((strcmp(suboption, "2170") == 0) ? "MTA_DHCPv4_PrimaryAddress" : "MTA_DHCPv6_PrimaryAddress", subopt_data);
                                     mta_dhcp_option_received = 1;
                                 }
@@ -334,7 +334,7 @@ static int DhcpMgr_Option17Set_Common(const char *ifName, const char *OptionValu
                                 
                                 if (strlen(secondary_address) == 0) 
                                 {
-                                    DHCPMGR_LOG_INFO("Setting SecondaryAddress value as %s\n", subopt_data);
+                                    DHCPMGR_LOG_DEBUG("Setting SecondaryAddress value as %s\n", subopt_data);
                                     ifl_set_event((strcmp(suboption, "2170") == 0) ? "MTA_DHCPv4_SecondaryAddress" : "MTA_DHCPv6_SecondaryAddress", subopt_data);
                                     mta_dhcp_option_received = 1;
                                 }
@@ -351,7 +351,7 @@ static int DhcpMgr_Option17Set_Common(const char *ifName, const char *OptionValu
 
     if (mta_dhcp_option_received) 
     {
-        DHCPMGR_LOG_INFO("Setting dhcp_mta_option event as received\n");
+        DHCPMGR_LOG_DEBUG("Setting dhcp_mta_option event as received\n");
         ifl_set_event("dhcp_mta_option", "received");
     }
 
@@ -399,7 +399,7 @@ static int set_mta_config(const char *OptionValue, char *version)
 
     if(OptionValue == NULL)
     {
-        DHCPMGR_LOG_ERROR("%s %d: Invalid args..\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_DEBUG("%s %d: Invalid args..\n", __FUNCTION__, __LINE__);
         return -1;
     }
     if (strcmp(version, "v4") == 0)

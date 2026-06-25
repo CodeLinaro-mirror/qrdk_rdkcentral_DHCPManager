@@ -86,7 +86,7 @@ int create_message_queue(const char *mq_name, mqd_t *mq_desc) {
     *mq_desc = mq_open(mq_name, O_CREAT | O_RDWR | O_NONBLOCK, 0644, &attr);
     
     if (*mq_desc == (mqd_t)-1) {
-        DHCPMGR_LOG_ERROR("%s %d mq_open failed\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_DEBUG("%s %d mq_open failed\n", __FUNCTION__, __LINE__);
         return -1;
     }
     
@@ -98,7 +98,7 @@ int create_message_queue(const char *mq_name, mqd_t *mq_desc) {
 /* Delete (close) a message queue */
 int delete_message_queue(mqd_t mq_desc) {
     if (mq_close(mq_desc) == -1) {
-        DHCPMGR_LOG_ERROR("%s %d mq_close failed\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_DEBUG("%s %d mq_close failed\n", __FUNCTION__, __LINE__);
         return -1;
     }
     
@@ -109,7 +109,7 @@ int delete_message_queue(mqd_t mq_desc) {
 /* Unlink a message queue */
 int unlink_message_queue(const char *mq_name) {
     if (mq_unlink(mq_name) == -1) {
-        DHCPMGR_LOG_ERROR("%s %d mq_unlink failed\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_DEBUG("%s %d mq_unlink failed\n", __FUNCTION__, __LINE__);
         return -1;
     }
     
@@ -131,7 +131,7 @@ int mark_thread_stopped(const char *alias_name) {
             return 0;
         }
     }
-    DHCPMGR_LOG_ERROR("%s %d: Thread for %s not found\n", __FUNCTION__, __LINE__, alias_name);
+    DHCPMGR_LOG_DEBUG("%s %d: Thread for %s not found\n", __FUNCTION__, __LINE__, alias_name);
     pthread_mutex_unlock(&global_mutex);
     return -1;
 }
@@ -151,7 +151,7 @@ int find_or_create_interface(char *info_name, interface_info_t *info_out) {
     DHCPMGR_LOG_DEBUG("%s %d: Interface entry for %s not found, creating new entry\n", __FUNCTION__, __LINE__, info_name);
     /* Create new interface entry */
     if (interface_count >= MAX_INTERFACES) {
-        DHCPMGR_LOG_ERROR("%s %d Maximum number of interfaces reached\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_DEBUG("%s %d Maximum number of interfaces reached\n", __FUNCTION__, __LINE__);
         return -1;
     }
     
@@ -175,7 +175,7 @@ int create_interface_thread(char *info_name)
     char *args = NULL;
     if(info_name == NULL) 
     {
-        DHCPMGR_LOG_ERROR("%s %d: interface name is NULL for interface\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_DEBUG("%s %d: interface name is NULL for interface\n", __FUNCTION__, __LINE__);
         return -1;
     }
     else
@@ -186,7 +186,7 @@ int create_interface_thread(char *info_name)
 
     pthread_t thread_id;
     if (pthread_create(&thread_id, NULL, DhcpMgr_MainController, args) != 0) {
-        DHCPMGR_LOG_ERROR("%s %d pthread_create failed for interface %s\n", __FUNCTION__, __LINE__, info_name);
+        DHCPMGR_LOG_DEBUG("%s %d pthread_create failed for interface %s\n", __FUNCTION__, __LINE__, info_name);
         free(args);
         return -1;
     }
@@ -227,7 +227,7 @@ int DhcpMgr_LockInterfaceQueueMutexByName(const char *if_name)
 
     if (entry == NULL)
     {
-       DHCPMGR_LOG_ERROR("%s %d: Interface %s not found\n", __FUNCTION__, __LINE__, if_name);
+       DHCPMGR_LOG_DEBUG("%s %d: Interface %s not found\n", __FUNCTION__, __LINE__, if_name);
        pthread_mutex_unlock(&global_mutex);
        return -1;
     }
@@ -281,7 +281,7 @@ int DhcpMgr_OpenQueueEnsureThread(dhcp_info_t info)
     char mq_name[MQ_NAME_LEN] = {0};
     if (info.if_name[0] == '\0')
     {
-        DHCPMGR_LOG_ERROR("%s %d Missing interface name in info\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_DEBUG("%s %d Missing interface name in info\n", __FUNCTION__, __LINE__);
         return -1;
     }
 
@@ -291,7 +291,7 @@ int DhcpMgr_OpenQueueEnsureThread(dhcp_info_t info)
     mqd_t mq_desc = mq_open(mq_name, O_WRONLY | O_NONBLOCK);
     if (mq_desc == (mqd_t)-1)
     {
-        DHCPMGR_LOG_ERROR("%s %d Failed to open message queue %s\n", __FUNCTION__, __LINE__, mq_name);
+        DHCPMGR_LOG_DEBUG("%s %d Failed to open message queue %s\n", __FUNCTION__, __LINE__, mq_name);
         // Try to create the queue if it doesn't exist
         mqd_t created_desc = (mqd_t)-1;
         if (create_message_queue(mq_name, &created_desc) == 0)
@@ -301,7 +301,7 @@ int DhcpMgr_OpenQueueEnsureThread(dhcp_info_t info)
         }
         else
         {
-            DHCPMGR_LOG_ERROR("%s %d Unable to create message queue %s\n", __FUNCTION__, __LINE__, mq_name);
+            DHCPMGR_LOG_DEBUG("%s %d Unable to create message queue %s\n", __FUNCTION__, __LINE__, mq_name);
             return -1;
         }
     }
@@ -325,7 +325,7 @@ int DhcpMgr_OpenQueueEnsureThread(dhcp_info_t info)
     pthread_mutex_lock(&global_mutex);
     if (find_or_create_interface(info.if_name, &tmp_info) != 0)
     {
-        DHCPMGR_LOG_ERROR("%s %d Failed to find or create interface entry for %s\n", __FUNCTION__, __LINE__, info.if_name);
+        DHCPMGR_LOG_DEBUG("%s %d Failed to find or create interface entry for %s\n", __FUNCTION__, __LINE__, info.if_name);
         pthread_mutex_unlock(&global_mutex);
         mq_close(mq_desc);
         return -1;
@@ -342,7 +342,7 @@ int DhcpMgr_OpenQueueEnsureThread(dhcp_info_t info)
      */
     if (DhcpMgr_LockInterfaceQueueMutexByName(info.if_name) != 0)
     {
-        DHCPMGR_LOG_ERROR("%s %d Failed to lock q_mutex for %s\n", __FUNCTION__, __LINE__, info.if_name);
+        DHCPMGR_LOG_DEBUG("%s %d Failed to lock q_mutex for %s\n", __FUNCTION__, __LINE__, info.if_name);
         mq_close(mq_desc);
         return -1;
     }
@@ -356,7 +356,7 @@ int DhcpMgr_OpenQueueEnsureThread(dhcp_info_t info)
     pthread_mutex_lock(&global_mutex);
     if (find_or_create_interface(info.if_name, &tmp_info) != 0)
     {
-        DHCPMGR_LOG_ERROR("%s %d Failed to re-read interface entry for %s\n", __FUNCTION__, __LINE__, info.if_name);
+        DHCPMGR_LOG_DEBUG("%s %d Failed to re-read interface entry for %s\n", __FUNCTION__, __LINE__, info.if_name);
         pthread_mutex_unlock(&global_mutex);
         DhcpMgr_UnlockInterfaceQueueMutexByName(info.if_name);
         mq_close(mq_desc);
@@ -367,7 +367,7 @@ int DhcpMgr_OpenQueueEnsureThread(dhcp_info_t info)
     {
         if (create_interface_thread(info.if_name) != 0)
         {
-            DHCPMGR_LOG_ERROR("%s %d Failed to create controller thread for %s\n", __FUNCTION__, __LINE__, mq_name);
+            DHCPMGR_LOG_DEBUG("%s %d Failed to create controller thread for %s\n", __FUNCTION__, __LINE__, mq_name);
             pthread_mutex_unlock(&global_mutex);
             DhcpMgr_UnlockInterfaceQueueMutexByName(info.if_name);
             mq_close(mq_desc);
@@ -390,7 +390,7 @@ int DhcpMgr_OpenQueueEnsureThread(dhcp_info_t info)
     memcpy(&mq_msg.if_info, &tmp_info, sizeof(interface_info_t));
     if (mq_send(mq_desc, (char*)&mq_msg, sizeof(mq_msg), 0) == -1)
     {
-        DHCPMGR_LOG_ERROR("%s %d Failed to send message to queue %s\n", __FUNCTION__, __LINE__, tmp_info.mq_name);
+        DHCPMGR_LOG_DEBUG("%s %d Failed to send message to queue %s\n", __FUNCTION__, __LINE__, tmp_info.mq_name);
         DhcpMgr_UnlockInterfaceQueueMutexByName(info.if_name);
         mq_close(mq_desc);
         return -1;
@@ -561,7 +561,7 @@ CosaGetParamValueString
     {
         if (ANSC_STATUS_FAILURE == RdkBus_GetParamValues(ETH_COMPONENT_NAME, ETH_DBUS_PATH, pParamName, acTmpReturnValue))
         {
-            DHCPMGR_LOG_ERROR("[%s][%d]Failed to get param value\n", __FUNCTION__, __LINE__);
+            DHCPMGR_LOG_DEBUG("[%s][%d]Failed to get param value\n", __FUNCTION__, __LINE__);
             return -1;
         }
         strncpy(pBuffer, acTmpReturnValue, strlen(acTmpReturnValue));
@@ -836,7 +836,7 @@ static int openCommonSyseventConnection() {
         //commonSyseventFd = s_sysevent_connect(&commonSyseventToken);
         if (IFL_SUCCESS != ifl_init_ctx("cosa_apis_util", IFL_CTX_STATIC))
         {
-            DHCPMGR_LOG_ERROR("Failed to init ifl ctx for cosa_apis_util");
+            DHCPMGR_LOG_DEBUG("Failed to init ifl ctx for cosa_apis_util");
         }
         else
         {
@@ -958,14 +958,14 @@ int writeToJson(char *data, char *file)
 {
     if (file == NULL || data == NULL)
     {
-        DHCPMGR_LOG_WARNING("%s : %d Invalid input parameter", __FUNCTION__,__LINE__);
+        DHCPMGR_LOG_DEBUG("%s : %d Invalid input parameter", __FUNCTION__,__LINE__);
         return -1;
     }
     FILE *fp;
     fp = fopen(file, "w");
     if (fp == NULL )
     {
-        DHCPMGR_LOG_WARNING("%s : %d Failed to open file %s\n", __FUNCTION__,__LINE__,file);
+        DHCPMGR_LOG_DEBUG("%s : %d Failed to open file %s\n", __FUNCTION__,__LINE__,file);
         return -1;
     }
 
@@ -992,7 +992,7 @@ ANSC_STATUS UpdateJsonParamLegacy
          fileRead = fopen( PARTNERS_INFO_FILE, "r" );
          if( fileRead == NULL )
          {
-                 DHCPMGR_LOG_WARNING("%s-%d : Error in opening JSON file\n" , __FUNCTION__, __LINE__ );
+                 DHCPMGR_LOG_DEBUG("%s-%d : Error in opening JSON file\n" , __FUNCTION__, __LINE__ );
                  return ANSC_STATUS_FAILURE;
          }
 
@@ -1000,7 +1000,7 @@ ANSC_STATUS UpdateJsonParamLegacy
          len = ftell( fileRead );
          /* Argument cannot be negative*/
          if(len < 0) {
-               DHCPMGR_LOG_WARNING("%s-%d : Error in file handle\n" , __FUNCTION__, __LINE__ );
+               DHCPMGR_LOG_DEBUG("%s-%d : Error in file handle\n" , __FUNCTION__, __LINE__ );
                fclose( fileRead );
                return ANSC_STATUS_FAILURE;
          }
@@ -1011,7 +1011,7 @@ ANSC_STATUS UpdateJsonParamLegacy
                 memset( data, 0, ( sizeof(char) * (len + 1) ));
                 int chk_ret = fread( data, 1, len, fileRead );
                 if(chk_ret <=0){
-                 DHCPMGR_LOG_WARNING("%s-%d : Failed to read the data from file \n", __FUNCTION__, __LINE__);
+                 DHCPMGR_LOG_DEBUG("%s-%d : Failed to read the data from file \n", __FUNCTION__, __LINE__);
                  fclose( fileRead );
                  free(data);
                  return ANSC_STATUS_FAILURE;
@@ -1019,7 +1019,7 @@ ANSC_STATUS UpdateJsonParamLegacy
          }
          else
          {
-                 DHCPMGR_LOG_WARNING("%s-%d : Memory allocation failed \n", __FUNCTION__, __LINE__);
+                 DHCPMGR_LOG_DEBUG("%s-%d : Memory allocation failed \n", __FUNCTION__, __LINE__);
                  fclose( fileRead );
                  return ANSC_STATUS_FAILURE;
          }
@@ -1029,7 +1029,7 @@ ANSC_STATUS UpdateJsonParamLegacy
          data[len]='\0';
          if ( data == NULL )
          {
-                DHCPMGR_LOG_WARNING("%s-%d : fileRead failed \n", __FUNCTION__, __LINE__);
+                DHCPMGR_LOG_DEBUG("%s-%d : fileRead failed \n", __FUNCTION__, __LINE__);
                 return ANSC_STATUS_FAILURE;
          }
          else if ( strlen(data) != 0)
@@ -1037,7 +1037,7 @@ ANSC_STATUS UpdateJsonParamLegacy
                  json = cJSON_Parse( data );
                  if( !json )
                  {
-                         DHCPMGR_LOG_WARNING(  "%s : json file parser error : [%d]\n", __FUNCTION__,__LINE__);
+                         DHCPMGR_LOG_DEBUG(  "%s : json file parser error : [%d]\n", __FUNCTION__,__LINE__);
                          free(data);
                          return ANSC_STATUS_FAILURE;
                  }
@@ -1050,25 +1050,25 @@ ANSC_STATUS UpdateJsonParamLegacy
                                  {
                                          cJSON_ReplaceItemInObject(partnerObj, pKey, cJSON_CreateString(pValue));
                                          cJsonOut = cJSON_Print(json);
-                                         DHCPMGR_LOG_WARNING( "Updated json content is %s\n", cJsonOut);
+                                         DHCPMGR_LOG_DEBUG( "Updated json content is %s\n", cJsonOut);
                                          configUpdateStatus = writeToJson(cJsonOut, PARTNERS_INFO_FILE);
                                          free(cJsonOut);
                                          if ( !configUpdateStatus)
                                          {
-                                                 DHCPMGR_LOG_WARNING( "Updated Value for %s partner\n",PartnerId);
-                                                 DHCPMGR_LOG_WARNING( "Param:%s - Value:%s\n",pKey,pValue);
+                                                 DHCPMGR_LOG_DEBUG( "Updated Value for %s partner\n",PartnerId);
+                                                 DHCPMGR_LOG_DEBUG( "Param:%s - Value:%s\n",pKey,pValue);
                                          }
                                          else
                                         {
-                                                 DHCPMGR_LOG_WARNING( "Failed to update value for %s partner\n",PartnerId);
-                                                 DHCPMGR_LOG_WARNING( "Param:%s\n",pKey);
+                                                 DHCPMGR_LOG_DEBUG( "Failed to update value for %s partner\n",PartnerId);
+                                                 DHCPMGR_LOG_DEBUG( "Param:%s\n",pKey);
                                                  cJSON_Delete(json);
                                                  return ANSC_STATUS_FAILURE;
                                         }
                                  }
                                 else
                                 {
-                                        DHCPMGR_LOG_WARNING("%s - OBJECT  Value is NULL %s\n", pKey,__FUNCTION__ );
+                                        DHCPMGR_LOG_DEBUG("%s - OBJECT  Value is NULL %s\n", pKey,__FUNCTION__ );
                                         cJSON_Delete(json);
                                         return ANSC_STATUS_FAILURE;
                                 }
@@ -1076,7 +1076,7 @@ ANSC_STATUS UpdateJsonParamLegacy
                          }
                          else
                          {
-                                DHCPMGR_LOG_WARNING("%s - PARTNER ID OBJECT Value is NULL\n", __FUNCTION__ );
+                                DHCPMGR_LOG_DEBUG("%s - PARTNER ID OBJECT Value is NULL\n", __FUNCTION__ );
                                 cJSON_Delete(json);
                                 return ANSC_STATUS_FAILURE;
                          }
@@ -1085,7 +1085,7 @@ ANSC_STATUS UpdateJsonParamLegacy
           }
           else
           {
-                DHCPMGR_LOG_WARNING("PARTNERS_INFO_FILE %s is empty\n", PARTNERS_INFO_FILE);
+                DHCPMGR_LOG_DEBUG("PARTNERS_INFO_FILE %s is empty\n", PARTNERS_INFO_FILE);
                 /* Resource leak*/
                 if (data)
                    free(data);
@@ -1113,7 +1113,7 @@ ANSC_STATUS UpdateJsonParam
          fileRead = fopen( BOOTSTRAP_INFO_FILE, "r" );
          if( fileRead == NULL )
          {
-                 DHCPMGR_LOG_WARNING("%s-%d : Error in opening JSON file\n" , __FUNCTION__, __LINE__ );
+                 DHCPMGR_LOG_DEBUG("%s-%d : Error in opening JSON file\n" , __FUNCTION__, __LINE__ );
                  return ANSC_STATUS_FAILURE;
          }
 
@@ -1121,7 +1121,7 @@ ANSC_STATUS UpdateJsonParam
          len = ftell( fileRead );
          /* Argument cannot be negative*/
          if (len < 0) {
-             DHCPMGR_LOG_WARNING("%s-%d : Error in File handle\n" , __FUNCTION__, __LINE__ );
+             DHCPMGR_LOG_DEBUG("%s-%d : Error in File handle\n" , __FUNCTION__, __LINE__ );
              fclose( fileRead );
              return ANSC_STATUS_FAILURE;
          }
@@ -1132,7 +1132,7 @@ ANSC_STATUS UpdateJsonParam
                 memset( data, 0, ( sizeof(char) * (len + 1) ));
                 int chk_ret = fread( data, 1, len, fileRead );
                 if(chk_ret <= 0){
-                 DHCPMGR_LOG_WARNING("%s-%d : Failed to read the data from file \n", __FUNCTION__, __LINE__);
+                 DHCPMGR_LOG_DEBUG("%s-%d : Failed to read the data from file \n", __FUNCTION__, __LINE__);
                  fclose( fileRead );
                  free(data);
                  return ANSC_STATUS_FAILURE;
@@ -1140,7 +1140,7 @@ ANSC_STATUS UpdateJsonParam
          }
          else
          {
-                 DHCPMGR_LOG_WARNING("%s-%d : Memory allocation failed \n", __FUNCTION__, __LINE__);
+                 DHCPMGR_LOG_DEBUG("%s-%d : Memory allocation failed \n", __FUNCTION__, __LINE__);
                  fclose( fileRead );
                  return ANSC_STATUS_FAILURE;
          }
@@ -1150,7 +1150,7 @@ ANSC_STATUS UpdateJsonParam
          data[len] = '\0';
          if ( data == NULL )
          {
-                DHCPMGR_LOG_WARNING("%s-%d : fileRead failed \n", __FUNCTION__, __LINE__);
+                DHCPMGR_LOG_DEBUG("%s-%d : fileRead failed \n", __FUNCTION__, __LINE__);
                 return ANSC_STATUS_FAILURE;
          }
          else if ( strlen(data) != 0)
@@ -1158,7 +1158,7 @@ ANSC_STATUS UpdateJsonParam
                  json = cJSON_Parse( data );
                  if( !json )
                  {
-                         DHCPMGR_LOG_WARNING(  "%s : json file parser error : [%d]\n", __FUNCTION__,__LINE__);
+                         DHCPMGR_LOG_DEBUG(  "%s : json file parser error : [%d]\n", __FUNCTION__,__LINE__);
                          free(data);
                          return ANSC_STATUS_FAILURE;
                  }
@@ -1175,7 +1175,7 @@ ANSC_STATUS UpdateJsonParam
                                          cJSON_ReplaceItemInObject(paramObj, "UpdateSource", cJSON_CreateString(pSource));
 
                                          cJsonOut = cJSON_Print(json);
-                                         DHCPMGR_LOG_WARNING( "Updated json content is %s\n", cJsonOut);
+                                         DHCPMGR_LOG_DEBUG( "Updated json content is %s\n", cJsonOut);
                                          configUpdateStatus = writeToJson(cJsonOut, BOOTSTRAP_INFO_FILE);
                                          unsigned int flags = 0;
                                          FILE *fp = fopen(CLEAR_TRACK_FILE, "r");
@@ -1186,25 +1186,25 @@ ANSC_STATUS UpdateJsonParam
                                          }
                                          if ((flags & NVRAM_BOOTSTRAP_CLEARED) == 0)
                                          {
-                                             DHCPMGR_LOG_WARNING("%s: Updating %s\n", __FUNCTION__, BOOTSTRAP_INFO_FILE_BACKUP);
+                                             DHCPMGR_LOG_DEBUG("%s: Updating %s\n", __FUNCTION__, BOOTSTRAP_INFO_FILE_BACKUP);
                                              writeToJson(cJsonOut, BOOTSTRAP_INFO_FILE_BACKUP);
                                          }
                                          free(cJsonOut);
                                          if ( !configUpdateStatus)
                                          {
-                                                 DHCPMGR_LOG_WARNING( "Bootstrap config update: %s, %s, %s, %s \n", pKey, pValue, PartnerId, pSource);
+                                                 DHCPMGR_LOG_DEBUG( "Bootstrap config update: %s, %s, %s, %s \n", pKey, pValue, PartnerId, pSource);
                                          }
                                          else
                                         {
-                                                 DHCPMGR_LOG_WARNING( "Failed to update value for %s partner\n",PartnerId);
-                                                 DHCPMGR_LOG_WARNING( "Param:%s\n",pKey);
+                                                 DHCPMGR_LOG_DEBUG( "Failed to update value for %s partner\n",PartnerId);
+                                                 DHCPMGR_LOG_DEBUG( "Param:%s\n",pKey);
                                                  cJSON_Delete(json);
                                                  return ANSC_STATUS_FAILURE;
                                         }
                                  }
                                 else
                                 {
-                                        DHCPMGR_LOG_WARNING("%s - OBJECT  Value is NULL %s\n", pKey,__FUNCTION__ );
+                                        DHCPMGR_LOG_DEBUG("%s - OBJECT  Value is NULL %s\n", pKey,__FUNCTION__ );
                                         cJSON_Delete(json);
                                         return ANSC_STATUS_FAILURE;
                                 }
@@ -1212,7 +1212,7 @@ ANSC_STATUS UpdateJsonParam
                          }
                          else
                          {
-                                DHCPMGR_LOG_WARNING("%s - PARTNER ID OBJECT Value is NULL\n", __FUNCTION__ );
+                                DHCPMGR_LOG_DEBUG("%s - PARTNER ID OBJECT Value is NULL\n", __FUNCTION__ );
                                 cJSON_Delete(json);
                                 return ANSC_STATUS_FAILURE;
                          }
@@ -1221,7 +1221,7 @@ ANSC_STATUS UpdateJsonParam
           }
           else
           {
-                DHCPMGR_LOG_WARNING("BOOTSTRAP_INFO_FILE %s is empty\n", BOOTSTRAP_INFO_FILE);
+                DHCPMGR_LOG_DEBUG("BOOTSTRAP_INFO_FILE %s is empty\n", BOOTSTRAP_INFO_FILE);
                 free(data);
                 return ANSC_STATUS_FAILURE;
           }
@@ -1296,7 +1296,7 @@ int lm_get_host_by_mac(char *mac, LM_cmd_common_result_t *pHost){
                                         strncpy(pHost->data.host.l1IfName, ucEntryNameValue, sizeof(pHost->data.host.l1IfName));
                                         pHost->result=0;
                                 }else{
-                                        DHCPMGR_LOG_ERROR("%s failed to get ucEntryParamName = %s\n",__FUNCTION__,ucEntryParamName);
+                                        DHCPMGR_LOG_DEBUG("%s failed to get ucEntryParamName = %s\n",__FUNCTION__,ucEntryParamName);
                                }
 
                             break;
@@ -1316,14 +1316,14 @@ INT PsmWriteParameter( char *pParamName, char *pParamVal )
 
     if( ( NULL == pParamName) || ( NULL == pParamVal ) )
     {
-        DHCPMGR_LOG_ERROR("%s Invalid Input Parameters\n", __FUNCTION__);
+        DHCPMGR_LOG_DEBUG("%s Invalid Input Parameters\n", __FUNCTION__);
         return CCSP_FAILURE;
     }
 
     retPsmSet = PSM_Set_Record_Value2(bus_handle, g_Subsystem, pParamName, ccsp_string, pParamVal);
     if (retPsmSet != CCSP_SUCCESS)
     {
-        DHCPMGR_LOG_INFO("%s Error %d writing %s %s\n", __FUNCTION__, retPsmSet, pParamName, pParamVal);
+        DHCPMGR_LOG_DEBUG("%s Error %d writing %s %s\n", __FUNCTION__, retPsmSet, pParamName, pParamVal);
     }
 
     return retPsmSet;
@@ -1336,13 +1336,13 @@ INT PsmReadParameter( char *pParamName, char *pReturnVal, int returnValLength )
 
     if( ( NULL == pParamName) || ( NULL == pReturnVal ) || ( 0 >= returnValLength ) )
     {
-        DHCPMGR_LOG_ERROR("%s Invalid Input Parameters\n", __FUNCTION__);
+        DHCPMGR_LOG_DEBUG("%s Invalid Input Parameters\n", __FUNCTION__);
         return CCSP_FAILURE;
     }
 
     retPsmGet = PSM_Get_Record_Value2(bus_handle, g_Subsystem, pParamName, NULL, &param_value);
     if (retPsmGet != CCSP_SUCCESS) {
-        DHCPMGR_LOG_ERROR("%s Error %d reading %s\n", __FUNCTION__, retPsmGet, pParamName);
+        DHCPMGR_LOG_DEBUG("%s Error %d reading %s\n", __FUNCTION__, retPsmGet, pParamName);
     }
     else {
         snprintf(pReturnVal, returnValLength, "%s", param_value);
@@ -1357,7 +1357,7 @@ int Dhcp_set_Sysevent_InterfaceEnable(const char *sysevent_key, const char *ifna
 {
     if (sysevent_key == NULL || sysevent_key[0] == '\0' || ifname == NULL || ifname[0] == '\0')
     {
-        DHCPMGR_LOG_ERROR("%s:%d Invalid input parameters\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_DEBUG("%s:%d Invalid input parameters\n", __FUNCTION__, __LINE__);
         return -1;
     }
 
@@ -1365,13 +1365,13 @@ int Dhcp_set_Sysevent_InterfaceEnable(const char *sysevent_key, const char *ifna
     int ret = snprintf(sysevent_value, sizeof(sysevent_value), "%s %d", ifname, enabled ? 1 : 0);
     if (ret < 0 || (size_t)ret >= sizeof(sysevent_value))
     {
-        DHCPMGR_LOG_ERROR("%s:%d Buffer too small for sysevent value\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_DEBUG("%s:%d Buffer too small for sysevent value\n", __FUNCTION__, __LINE__);
         return -1;
     }
 
     if (commonSyseventSet((char *)sysevent_key, sysevent_value) != 0)
     {
-        DHCPMGR_LOG_ERROR("%s:%d Failed to set sysevent %s=%s\n", __FUNCTION__, __LINE__, sysevent_key, sysevent_value);
+        DHCPMGR_LOG_DEBUG("%s:%d Failed to set sysevent %s=%s\n", __FUNCTION__, __LINE__, sysevent_key, sysevent_value);
         return -1;
     }
 
@@ -1382,7 +1382,7 @@ int Dhcp_get_Sysevent_InterfaceEnable(const char *sysevent_key, char *ifname, si
 {
     if (sysevent_key == NULL || sysevent_key[0] == '\0' || ifname == NULL || ifnameLen == 0 || enabled == NULL)
     {
-        DHCPMGR_LOG_ERROR("%s:%d Invalid input parameters\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_DEBUG("%s:%d Invalid input parameters\n", __FUNCTION__, __LINE__);
         return -1;
     }
 
@@ -1403,7 +1403,7 @@ int Dhcp_get_Sysevent_InterfaceEnable(const char *sysevent_key, char *ifname, si
         /* Validate status is exactly 0 or 1 */
         if (status != 0 && status != 1)
         {
-            DHCPMGR_LOG_ERROR("%s:%d Invalid status value %d in sysevent %s (expected 0 or 1)\n",
+            DHCPMGR_LOG_DEBUG("%s:%d Invalid status value %d in sysevent %s (expected 0 or 1)\n",
                               __FUNCTION__, __LINE__, status, sysevent_key);
             return -1;
         }
@@ -1417,14 +1417,14 @@ int Dhcp_get_Sysevent_InterfaceEnable(const char *sysevent_key, char *ifname, si
 
     if (strlen(tmpIfName) >= ifnameLen)
     {
-        DHCPMGR_LOG_ERROR("%s:%d Interface name buffer too small\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_DEBUG("%s:%d Interface name buffer too small\n", __FUNCTION__, __LINE__);
         return -1;
     }
 
     strncpy(ifname, tmpIfName, ifnameLen - 1);
     ifname[ifnameLen - 1] = '\0';
     *enabled = (status == 1) ? TRUE : FALSE;
-    DHCPMGR_LOG_INFO("%s:%d Got sysevent %s=%s, parsed ifname=%s, enabled=%d\n", __FUNCTION__, __LINE__, sysevent_key, sysevent_value, ifname, *enabled);
+    DHCPMGR_LOG_DEBUG("%s:%d Got sysevent %s=%s, parsed ifname=%s, enabled=%d\n", __FUNCTION__, __LINE__, sysevent_key, sysevent_value, ifname, *enabled);
 
     return 0;
 }

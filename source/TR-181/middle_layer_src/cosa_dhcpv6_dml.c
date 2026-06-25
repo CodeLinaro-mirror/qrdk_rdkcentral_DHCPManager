@@ -529,7 +529,7 @@ Client3_AddEntry
     pCxtLink->InstanceNumber   = pDhcpc->Cfg.InstanceNumber;
     *pInsNumber                = pDhcpc->Cfg.InstanceNumber;
 
-    DHCPMGR_LOG_INFO("%s %d Initialising DHCPv6 client mutex  \n", __FUNCTION__, __LINE__);
+    DHCPMGR_LOG_DEBUG("%s %d Initialising DHCPv6 client mutex  \n", __FUNCTION__, __LINE__);
     pthread_mutexattr_t attr;
     pthread_mutexattr_init(&attr);
     pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
@@ -604,7 +604,7 @@ Client3_DelEntry
     /* Normally, two sublinks are empty because our framework will firstly
             call delEntry for them before coming here. We needn't care them.
          */
-    DHCPMGR_LOG_INFO("%s %d Destroy DHCPv4 client mutex  \n", __FUNCTION__, __LINE__);
+    DHCPMGR_LOG_DEBUG("%s %d Destroy DHCPv4 client mutex  \n", __FUNCTION__, __LINE__);
     pthread_mutex_destroy(&pDhcpc->mutex);
     if ( !pCxtLink->bNew )
     {
@@ -1002,7 +1002,7 @@ Client3_SetParamBoolValue
     {
         if (pDhcpc->Cfg.Interface == NULL || pDhcpc->Cfg.Interface[0] == '\0')
         {
-            DHCPMGR_LOG_ERROR("%s %d: Interface name is empty\n", __FUNCTION__, __LINE__);
+            DHCPMGR_LOG_DEBUG("%s %d: Interface name is empty\n", __FUNCTION__, __LINE__);
             return FALSE;
         }
         /* save update to backup */
@@ -1012,7 +1012,7 @@ Client3_SetParamBoolValue
             snprintf(DhcpSysEveSet, sizeof(DhcpSysEveSet),"DHCPCV6_ENABLE_%lu", pDhcpc->Cfg.InstanceNumber);
              if (Dhcp_set_Sysevent_InterfaceEnable(DhcpSysEveSet, pDhcpc->Cfg.Interface, TRUE) != 0)
             {
-                DHCPMGR_LOG_ERROR("%s %d: Failed to set sysevent %s\n", __FUNCTION__, __LINE__, DhcpSysEveSet);
+                DHCPMGR_LOG_DEBUG("%s %d: Failed to set sysevent %s\n", __FUNCTION__, __LINE__, DhcpSysEveSet);
                 //don't return FALSE here as we still want to update the event and act accordingly
             }
         }
@@ -1022,7 +1022,7 @@ Client3_SetParamBoolValue
             snprintf(DhcpSysEveSet, sizeof(DhcpSysEveSet),"DHCPCV6_ENABLE_%lu", pDhcpc->Cfg.InstanceNumber);
             if (Dhcp_set_Sysevent_InterfaceEnable(DhcpSysEveSet, pDhcpc->Cfg.Interface, FALSE) != 0)
             {
-                DHCPMGR_LOG_ERROR("%s %d: Failed to set sysevent %s\n", __FUNCTION__, __LINE__, DhcpSysEveSet);
+                DHCPMGR_LOG_DEBUG("%s %d: Failed to set sysevent %s\n", __FUNCTION__, __LINE__, DhcpSysEveSet);
                 //don't return FALSE here as we still want to update the event and act accordingly
             }
         }
@@ -1057,7 +1057,7 @@ Client3_SetParamBoolValue
     {
         if (pDhcpc->Cfg.bEnabled)
         {
-            DHCPMGR_LOG_INFO("%s %d Renew triggered for DHCPv6 Client %s \n", __FUNCTION__, __LINE__, pDhcpc->Cfg.Interface );
+            DHCPMGR_LOG_DEBUG("%s %d Renew triggered for DHCPv6 Client %s \n", __FUNCTION__, __LINE__, pDhcpc->Cfg.Interface );
             ret_mq_send=1;
         }
         else
@@ -1071,12 +1071,12 @@ Client3_SetParamBoolValue
         DHCPMGR_LOG_DEBUG("%s %d Restart parameter value is %d when DHCPv6 is %d\n", __FUNCTION__, __LINE__, bValue, pDhcpc->Cfg.bEnabled);
         if(pDhcpc->Cfg.bEnabled && bValue)
         {
-            DHCPMGR_LOG_INFO("%s %d Restart triggered for DHCPv6 Client %s \n", __FUNCTION__, __LINE__, pDhcpc->Cfg.Interface );
+            DHCPMGR_LOG_DEBUG("%s %d Restart triggered for DHCPv6 Client %s \n", __FUNCTION__, __LINE__, pDhcpc->Cfg.Interface );
             ret_mq_send=1;
         }
         else
         {
-            DHCPMGR_LOG_WARNING("%s %d Restart triggered for DHCPv6 Client %s when it is disabled \n", __FUNCTION__, __LINE__, pDhcpc->Cfg.Interface );
+            DHCPMGR_LOG_DEBUG("%s %d Restart triggered for DHCPv6 Client %s when it is disabled \n", __FUNCTION__, __LINE__, pDhcpc->Cfg.Interface );
             return TRUE;
         }
     }
@@ -1086,12 +1086,12 @@ Client3_SetParamBoolValue
         DHCPMGR_LOG_DEBUG("%s %d Release parameter value is %d when DHCPv6 is %d\n", __FUNCTION__, __LINE__, bValue, pDhcpc->Cfg.bEnabled);
         if(pDhcpc->Cfg.bEnabled && bValue)
         {
-            DHCPMGR_LOG_INFO("%s %d Release triggered for DHCPv6 Client %s \n", __FUNCTION__, __LINE__, pDhcpc->Cfg.Interface );
+            DHCPMGR_LOG_DEBUG("%s %d Release triggered for DHCPv6 Client %s \n", __FUNCTION__, __LINE__, pDhcpc->Cfg.Interface );
             ret_mq_send=1;
         }
         else
         {
-            DHCPMGR_LOG_WARNING("%s %d Bydefault the bValue is false or Release triggered for DHCPv6 Client %s when it is disabled \n", __FUNCTION__, __LINE__, pDhcpc->Cfg.Interface );
+            DHCPMGR_LOG_DEBUG("%s %d Bydefault the bValue is false or Release triggered for DHCPv6 Client %s when it is disabled \n", __FUNCTION__, __LINE__, pDhcpc->Cfg.Interface );
             return TRUE;
         }
     }
@@ -1112,7 +1112,7 @@ Client3_SetParamBoolValue
         msg_info.value.bValue = bValue;
         msg_info.valueType = DML_SET_MSG_TYPE_BOOL;
         if (DhcpMgr_OpenQueueEnsureThread(msg_info) != 0) {
-            DHCPMGR_LOG_ERROR("%s %d: Failed to enqueue status for %s\n", __FUNCTION__, __LINE__, pDhcpc->Cfg.Interface);
+            DHCPMGR_LOG_DEBUG("%s %d: Failed to enqueue status for %s\n", __FUNCTION__, __LINE__, pDhcpc->Cfg.Interface);
             return FALSE;
         } 
         else 
@@ -3532,7 +3532,7 @@ dhcp6c_mapt_mape_GetParamStringValue
     if (strcmp(ParamName, "MapIpv4Address") == 0)
     {
         //TODO: This is a temporary solution, need to use the BBF MAP. DML from the WanManager
-        DHCPMGR_LOG_ERROR("%s %d MapIpv4Address not available in this context. returning from the device's sysvent db\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_DEBUG("%s %d MapIpv4Address not available in this context. returning from the device's sysvent db\n", __FUNCTION__, __LINE__);
         char temp[256] = {0};
         commonSyseventGet(SYSEVENT_MAPT_IPADDRESS, temp, sizeof(temp));
         if ( AnscSizeOfString(temp) < *pUlSize)
@@ -5750,7 +5750,7 @@ Client4_Synchronize
         pCxtLink->pClientContentList = (PCOSA_DML_DHCPSV6_CLIENTCONTENT)AnscAllocateMemory( count * sizeof(COSA_DML_DHCPSV6_CLIENTCONTENT) );
         if (  !pCxtLink->pClientContentList )
         {
-            DHCPMGR_LOG_WARNING( "Client4_Synchronize -- AnscAllocateMemory error.\n");
+            DHCPMGR_LOG_DEBUG( "Client4_Synchronize -- AnscAllocateMemory error.\n");
              /* Dereference after null check*/
              return ANSC_STATUS_FAILURE;
         }
@@ -5769,7 +5769,7 @@ Client4_Synchronize
 
             if ( returnStatus )
             {
-                DHCPMGR_LOG_WARNING( "Client4_Synchronize -- CosaDmlDhcpv6sGetIPv6Address() error %lu.\n", returnStatus);
+                DHCPMGR_LOG_DEBUG( "Client4_Synchronize -- CosaDmlDhcpv6sGetIPv6Address() error %lu.\n", returnStatus);
             }
 
             returnStatus = CosaDmlDhcpv6sGetIPv6Prefix
@@ -5783,7 +5783,7 @@ Client4_Synchronize
 
             if ( returnStatus )
             {
-                DHCPMGR_LOG_WARNING( "Client4_Synchronize -- CosaDmlDhcpv6sGetIPv6Prefix() error %lu.\n", returnStatus);
+                DHCPMGR_LOG_DEBUG( "Client4_Synchronize -- CosaDmlDhcpv6sGetIPv6Prefix() error %lu.\n", returnStatus);
             }
 
             returnStatus = CosaDmlDhcpv6sGetIPv6Option
@@ -5797,7 +5797,7 @@ Client4_Synchronize
 
             if ( returnStatus )
             {
-                DHCPMGR_LOG_WARNING( "Client4_Synchronize -- CosaDmlDhcpv6sGetIPv6Option() error %lu.\n", returnStatus);
+                DHCPMGR_LOG_DEBUG( "Client4_Synchronize -- CosaDmlDhcpv6sGetIPv6Option() error %lu.\n", returnStatus);
             }
 
         }

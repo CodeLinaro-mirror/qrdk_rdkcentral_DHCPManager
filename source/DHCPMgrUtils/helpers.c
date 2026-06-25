@@ -115,7 +115,7 @@ void* helper_convert( const void *buf, size_t len,
                     }
                     else
                     {
-                        DHCPMGR_LOG_WARNING("Invalid first element\n");
+                        DHCPMGR_LOG_DEBUG("Invalid first element\n");
                         errno = HELPERS_INVALID_FIRST_ELEMENT;
                     }
                 }

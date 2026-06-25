@@ -565,7 +565,7 @@ COSA_Init
     }
     else
     {
-        DHCPMGR_LOG_INFO("!!! haha, catcha !!!\n");
+        DHCPMGR_LOG_DEBUG("!!! haha, catcha !!!\n");
         goto EXIT;
     }
     pGetInsNumberByIndexProc = (COSAGetInstanceNumberByIndexProc)pPlugInfo->AcquireFunction("COSAGetInstanceNumberByIndex");
@@ -592,7 +592,7 @@ COSA_Init
 
     if ( !g_pPnmCcdIf )
     {
-        DHCPMGR_LOG_ERROR("g_pPnmCcdIf is NULL !\n");
+        DHCPMGR_LOG_DEBUG("g_pPnmCcdIf is NULL !\n");
 
         goto EXIT;
     }

@@ -49,16 +49,16 @@ static ANSC_STATUS DhcpMgr_LeaseMonitor_Init()
 {
     if ((ipcListenFd = nn_socket(AF_SP, NN_PULL)) < 0)
     {
-        DHCPMGR_LOG_ERROR("[%s-%d] Failed to create IPC socket\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_DEBUG("[%s-%d] Failed to create IPC socket\n", __FUNCTION__, __LINE__);
         return ANSC_STATUS_FAILURE;
     }
     if ((nn_bind(ipcListenFd, DHCP_MANAGER_ADDR)) < 0)
     {
-        DHCPMGR_LOG_ERROR("[%s-%d] Failed to bind IPC socket\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_DEBUG("[%s-%d] Failed to bind IPC socket\n", __FUNCTION__, __LINE__);
         nn_close(ipcListenFd);
         return ANSC_STATUS_FAILURE;
     }
-    DHCPMGR_LOG_INFO("[%s-%d] IPC Socket initialized and bound successfully\n", __FUNCTION__, __LINE__);
+    DHCPMGR_LOG_DEBUG("[%s-%d] IPC Socket initialized and bound successfully\n", __FUNCTION__, __LINE__);
     return ANSC_STATUS_SUCCESS;
 }
 
@@ -70,18 +70,18 @@ int DhcpMgr_LeaseMonitor_Start()
 
     if(DhcpMgr_LeaseMonitor_Init() != ANSC_STATUS_SUCCESS)
     {
-        DHCPMGR_LOG_ERROR("[%s-%d] Failed to initialise IPC messaging\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_DEBUG("[%s-%d] Failed to initialise IPC messaging\n", __FUNCTION__, __LINE__);
         return -1;
     }
 
     ret = pthread_create(&ipcThreadId, NULL, &DhcpMgr_LeaseMonitor_Thrd, NULL);
     if (0 != ret)
     {
-        DHCPMGR_LOG_ERROR("[%s-%d] Failed to start IPC Thread Error:%d\n", __FUNCTION__, __LINE__, ret);
+        DHCPMGR_LOG_DEBUG("[%s-%d] Failed to start IPC Thread Error:%d\n", __FUNCTION__, __LINE__, ret);
     }
     else
     {
-        DHCPMGR_LOG_INFO("[%s-%d] IPC Thread Started Successfully\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_DEBUG("[%s-%d] IPC Thread Started Successfully\n", __FUNCTION__, __LINE__);
         retStatus = 0;
 
     }
@@ -100,14 +100,14 @@ static void* DhcpMgr_LeaseMonitor_Thrd(void *arg)
     PLUGIN_MSG plugin_msg;
     memset(&plugin_msg, 0, sizeof(PLUGIN_MSG));
 
-    DHCPMGR_LOG_INFO("[%s-%d] DHCP Lease Monitor Thread Started\n", __FUNCTION__, __LINE__);
+    DHCPMGR_LOG_DEBUG("[%s-%d] DHCP Lease Monitor Thread Started\n", __FUNCTION__, __LINE__);
 
     while (bRunning)
     {
         bytes = nn_recv(ipcListenFd, (PLUGIN_MSG *)&plugin_msg, msg_size, 0);
         if (bytes == msg_size)
         {
-           //DHCPMGR_LOG_INFO("[%s-%d] Received valid message of size %d\n", __FUNCTION__, __LINE__, bytes);
+           //DHCPMGR_LOG_DEBUG("[%s-%d] Received valid message of size %d\n", __FUNCTION__, __LINE__, bytes);
             switch (plugin_msg.version)
             {
                 case DHCP_VERSION_4:
@@ -115,7 +115,7 @@ static void* DhcpMgr_LeaseMonitor_Thrd(void *arg)
                     DHCPv4_PLUGIN_MSG *newLease = (DHCPv4_PLUGIN_MSG *) malloc(sizeof(DHCPv4_PLUGIN_MSG));
                     memcpy(newLease,&plugin_msg.data.dhcpv4, sizeof(DHCPv4_PLUGIN_MSG));
                     newLease->next = NULL;
-                    DHCPMGR_LOG_INFO("[%s-%d] Processing DHCPv4 lease for interface: %s\n",__FUNCTION__, __LINE__, plugin_msg.ifname);
+                    DHCPMGR_LOG_DEBUG("[%s-%d] Processing DHCPv4 lease for interface: %s\n",__FUNCTION__, __LINE__, plugin_msg.ifname);
                     DHCPMgr_AddDhcpv4Lease(plugin_msg.ifname, newLease);
 
                     //Adding to the message queue of the respective interface controller thread
@@ -128,7 +128,7 @@ static void* DhcpMgr_LeaseMonitor_Thrd(void *arg)
                     info.value.bValue = FALSE;
                     if (DhcpMgr_OpenQueueEnsureThread(info) != 0)
                     {
-                        DHCPMGR_LOG_ERROR("[%s-%d] Failed to enqueue DHCPv4 lease/control message\n", __FUNCTION__, __LINE__);
+                        DHCPMGR_LOG_DEBUG("[%s-%d] Failed to enqueue DHCPv4 lease/control message\n", __FUNCTION__, __LINE__);
                     }
                     break;
                 }
@@ -137,7 +137,7 @@ static void* DhcpMgr_LeaseMonitor_Thrd(void *arg)
                     DHCPv6_PLUGIN_MSG *newLeasev6 = (DHCPv6_PLUGIN_MSG *) malloc(sizeof(DHCPv6_PLUGIN_MSG));
                     memcpy(newLeasev6,&plugin_msg.data.dhcpv6, sizeof(DHCPv6_PLUGIN_MSG));
                     newLeasev6->next = NULL;
-                    DHCPMGR_LOG_INFO("[%s-%d] Processing DHCPv6  lease for interface: %s\n",__FUNCTION__, __LINE__, plugin_msg.ifname);
+                    DHCPMGR_LOG_DEBUG("[%s-%d] Processing DHCPv6  lease for interface: %s\n",__FUNCTION__, __LINE__, plugin_msg.ifname);
                     DHCPMgr_AddDhcpv6Lease(plugin_msg.ifname, newLeasev6);
 
                     //Adding to the message queue of the respective interface controller thread
@@ -152,27 +152,27 @@ static void* DhcpMgr_LeaseMonitor_Thrd(void *arg)
                     info.value.bValue = FALSE;
                     if (DhcpMgr_OpenQueueEnsureThread(info) != 0)
                     {
-                        DHCPMGR_LOG_ERROR("[%s-%d] Failed to enqueue DHCPv6 lease/control message\n", __FUNCTION__, __LINE__);
+                        DHCPMGR_LOG_DEBUG("[%s-%d] Failed to enqueue DHCPv6 lease/control message\n", __FUNCTION__, __LINE__);
                     }
                     break;
                 }
                 default:
-                    DHCPMGR_LOG_ERROR("[%s-%d] Invalid Message version sent to DhcpManager\n", __FUNCTION__, __LINE__);
+                    DHCPMGR_LOG_DEBUG("[%s-%d] Invalid Message version sent to DhcpManager\n", __FUNCTION__, __LINE__);
                     break;
             }
             memset(&plugin_msg, 0, sizeof(PLUGIN_MSG));
         }
         else if (bytes < 0)
         {
-            DHCPMGR_LOG_ERROR("[%s-%d] Failed to receive message from IPC\n", __FUNCTION__, __LINE__);
+            DHCPMGR_LOG_DEBUG("[%s-%d] Failed to receive message from IPC\n", __FUNCTION__, __LINE__);
         }
         else
         {
-            DHCPMGR_LOG_ERROR("[%s-%d] message size unexpected\n", __FUNCTION__, __LINE__);
+            DHCPMGR_LOG_DEBUG("[%s-%d] message size unexpected\n", __FUNCTION__, __LINE__);
         }
     }
     nn_shutdown(ipcListenFd, 0);
     nn_close(ipcListenFd);
-    DHCPMGR_LOG_INFO("[%s-%d] DHCP Lease Monitor Thread Exiting\n", __FUNCTION__, __LINE__);
+    DHCPMGR_LOG_DEBUG("[%s-%d] DHCP Lease Monitor Thread Exiting\n", __FUNCTION__, __LINE__);
     pthread_exit(NULL);
 }

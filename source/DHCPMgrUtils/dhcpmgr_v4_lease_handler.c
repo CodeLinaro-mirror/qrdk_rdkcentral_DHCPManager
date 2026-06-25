@@ -120,7 +120,7 @@ ANSC_STATUS DhcpMgr_updateDHCPv4DML(PCOSA_DML_DHCPC_FULL pDhcpc)
     DHCPv4_PLUGIN_MSG *current = pDhcpc->currentLease;
     if (current == NULL) 
     {
-        DHCPMGR_LOG_ERROR("%s %d: lease parsing failed %s \n",__FUNCTION__, __LINE__, pDhcpc->Cfg.Interface);
+        DHCPMGR_LOG_DEBUG("%s %d: lease parsing failed %s \n",__FUNCTION__, __LINE__, pDhcpc->Cfg.Interface);
         return ANSC_STATUS_FAILURE;
 
     }
@@ -171,7 +171,7 @@ ANSC_STATUS DhcpMgr_updateDHCPv4DML(PCOSA_DML_DHCPC_FULL pDhcpc)
         pDhcpReqOpt = CosaDmlDhcpcGetReqOption_Entry(pDhcpCxtLink, reqIdx);
         if (!pDhcpReqOpt)
         {
-            DHCPMGR_LOG_ERROR("%s : pDhcpReqOpt is NULL",__FUNCTION__);
+            DHCPMGR_LOG_DEBUG("%s : pDhcpReqOpt is NULL",__FUNCTION__);
             return ANSC_STATUS_FAILURE;
         }
         if (pDhcpReqOpt->Tag == DHCPV4_OPT_120)
@@ -302,7 +302,7 @@ void DhcpMgr_ProcessV4Lease(PCOSA_DML_DHCPC_FULL pDhcpc)
 
         if (current == NULL) 
         {
-            DHCPMGR_LOG_INFO("%s %d: lease updated for %s \n",__FUNCTION__, __LINE__, pDhcpc->Cfg.Interface);
+            DHCPMGR_LOG_DEBUG("%s %d: lease updated for %s \n",__FUNCTION__, __LINE__, pDhcpc->Cfg.Interface);
             leaseChanged = TRUE;
         }
         else if ((current != NULL) &&
@@ -315,19 +315,19 @@ void DhcpMgr_ProcessV4Lease(PCOSA_DML_DHCPC_FULL pDhcpc)
             (strcmp(current->dnsServer1, newLease->dnsServer1) != 0) 
         ))
         {
-            DHCPMGR_LOG_INFO("%s %d: lease updated for %s \n",__FUNCTION__, __LINE__, pDhcpc->Cfg.Interface);
+            DHCPMGR_LOG_DEBUG("%s %d: lease updated for %s \n",__FUNCTION__, __LINE__, pDhcpc->Cfg.Interface);
             leaseChanged = TRUE;
         }
         else if (newLease->isExpired == FALSE && newLease->addressAssigned == TRUE )
         {
             DhcpMgr_PublishDhcpV4Event(pDhcpc, DHCP_LEASE_RENEW);
-            DHCPMGR_LOG_INFO("%s %d: lease renewed for %s \n",__FUNCTION__, __LINE__, pDhcpc->Cfg.Interface);
+            DHCPMGR_LOG_DEBUG("%s %d: lease renewed for %s \n",__FUNCTION__, __LINE__, pDhcpc->Cfg.Interface);
         }
 
         //setting the sysevents for interface specific
         set_inf_sysevents(current, newLease, pDhcpc->Cfg.Interface);
 
-        DHCPMGR_LOG_INFO("%s %d: New lease  : %s \n",__FUNCTION__, __LINE__, newLease->isExpired?"Expired" : "Valid");
+        DHCPMGR_LOG_DEBUG("%s %d: New lease  : %s \n",__FUNCTION__, __LINE__, newLease->isExpired?"Expired" : "Valid");
 
         // Free the current lease
         if(pDhcpc->currentLease)
@@ -347,7 +347,7 @@ void DhcpMgr_ProcessV4Lease(PCOSA_DML_DHCPC_FULL pDhcpc)
 
         if (DHCPMgr_storeDhcpv4Lease(pDhcpc) != 0)
         {
-             DHCPMGR_LOG_ERROR("[%s-%d] Failed to store DHCPv4 lease\n", __FUNCTION__, __LINE__);
+             DHCPMGR_LOG_DEBUG("[%s-%d] Failed to store DHCPv4 lease\n", __FUNCTION__, __LINE__);
         }
         if(leaseChanged)
         {
@@ -359,25 +359,25 @@ void DhcpMgr_ProcessV4Lease(PCOSA_DML_DHCPC_FULL pDhcpc)
             //If DHCP server is not sending MTU, setting the default value of 1500. Can't set 0 as MTU
             if(newLease->mtuSize == 0)
                 newLease->mtuSize = 1500;
-            DHCPMGR_LOG_INFO("%s %d: NewLease->address %s  \n",__FUNCTION__, __LINE__, newLease->address);
-            DHCPMGR_LOG_INFO("%s %d: NewLease->netmask %s  \n",__FUNCTION__, __LINE__, newLease->netmask);
-            DHCPMGR_LOG_INFO("%s %d: NewLease->gateway %s  \n",__FUNCTION__, __LINE__, newLease->gateway );
-            DHCPMGR_LOG_INFO("%s %d: NewLease->dnsServer %s  \n",__FUNCTION__, __LINE__, newLease->dnsServer );
-            DHCPMGR_LOG_INFO("%s %d: NewLease->dnsServer1 %s  \n",__FUNCTION__, __LINE__,  newLease->dnsServer1 );
+            DHCPMGR_LOG_DEBUG("%s %d: NewLease->address %s  \n",__FUNCTION__, __LINE__, newLease->address);
+            DHCPMGR_LOG_DEBUG("%s %d: NewLease->netmask %s  \n",__FUNCTION__, __LINE__, newLease->netmask);
+            DHCPMGR_LOG_DEBUG("%s %d: NewLease->gateway %s  \n",__FUNCTION__, __LINE__, newLease->gateway );
+            DHCPMGR_LOG_DEBUG("%s %d: NewLease->dnsServer %s  \n",__FUNCTION__, __LINE__, newLease->dnsServer );
+            DHCPMGR_LOG_DEBUG("%s %d: NewLease->dnsServer1 %s  \n",__FUNCTION__, __LINE__,  newLease->dnsServer1 );
             configureNetworkInterface(pDhcpc);
 #ifdef EROUTER_DHCP_OPTION_MTA
             if( newLease->mtaOption.Assigned122 == TRUE)
             {
-                DHCPMGR_LOG_INFO("%s %d: NewLease->mtaOption Data %s  \n", __FUNCTION__, __LINE__, newLease->mtaOption.option_122);
+                DHCPMGR_LOG_DEBUG("%s %d: NewLease->mtaOption Data %s  \n", __FUNCTION__, __LINE__, newLease->mtaOption.option_122);
                 Set_DhcpV4_CustomOption_mta(newLease->mtaOption.option_122,"v4");
             }
             if (newLease->mtaOption.Assigned125 == TRUE)
             {
-                DHCPMGR_LOG_INFO("%s %d: NewLease->mtaOption Data %s  \n", __FUNCTION__, __LINE__, newLease->mtaOption.option_125);
+                DHCPMGR_LOG_DEBUG("%s %d: NewLease->mtaOption Data %s  \n", __FUNCTION__, __LINE__, newLease->mtaOption.option_125);
                 Set_DhcpV4_CustomOption_mta(newLease->mtaOption.option_125,"v6");
             }
             
-            DHCPMGR_LOG_INFO("%s %d: Handling EROUTER_DHCP_OPTION_MTA\n", __FUNCTION__, __LINE__);
+            DHCPMGR_LOG_DEBUG("%s %d: Handling EROUTER_DHCP_OPTION_MTA\n", __FUNCTION__, __LINE__);
 #endif
             DhcpMgr_updateDHCPv4DML(pDhcpc);
             DhcpMgr_PublishDhcpV4Event(pDhcpc, DHCP_LEASE_UPDATE);
@@ -423,7 +423,7 @@ void DhcpMgr_clearDHCPv4Lease(PCOSA_DML_DHCPC_FULL pDhcpc)
     }
     pDhcpc->Info.NumIPRouters = 0;
 
-    DHCPMGR_LOG_INFO("%s %d: Clearing current lease for %s \n", __FUNCTION__, __LINE__, pDhcpc->Cfg.Interface);
+    DHCPMGR_LOG_DEBUG("%s %d: Clearing current lease for %s \n", __FUNCTION__, __LINE__, pDhcpc->Cfg.Interface);
     // Free the current lease
     if (pDhcpc->currentLease) 
     {
@@ -431,7 +431,7 @@ void DhcpMgr_clearDHCPv4Lease(PCOSA_DML_DHCPC_FULL pDhcpc)
         pDhcpc->currentLease = NULL;
     }
 
-    DHCPMGR_LOG_INFO("%s %d: Clearing NewLeases linked list for %s \n", __FUNCTION__, __LINE__, pDhcpc->Cfg.Interface);
+    DHCPMGR_LOG_DEBUG("%s %d: Clearing NewLeases linked list for %s \n", __FUNCTION__, __LINE__, pDhcpc->Cfg.Interface);
     // Free all leases in the NewLeases linked list
     DHCPv4_PLUGIN_MSG *lease = pDhcpc->NewLeases;
     while (lease != NULL) 

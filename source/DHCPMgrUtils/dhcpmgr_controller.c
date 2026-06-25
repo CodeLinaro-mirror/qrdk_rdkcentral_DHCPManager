@@ -78,13 +78,13 @@ static void DhcpMgr_UpdateEnableSysevent(ULONG instance, const char *if_name, BO
 
     if (if_name == NULL || if_name[0] == '\0')
     {
-        DHCPMGR_LOG_ERROR("%s %d: Cannot set sysevent %s with empty interface name\n", __FUNCTION__, __LINE__, sysevent_key);
+        DHCPMGR_LOG_DEBUG("%s %d: Cannot set sysevent %s with empty interface name\n", __FUNCTION__, __LINE__, sysevent_key);
         return;
     }
 
     if (Dhcp_set_Sysevent_InterfaceEnable(sysevent_key, if_name, enabled) != 0)
     {
-        DHCPMGR_LOG_ERROR("%s %d: Failed to set sysevent %s\n", __FUNCTION__, __LINE__, sysevent_key);
+        DHCPMGR_LOG_DEBUG("%s %d: Failed to set sysevent %s\n", __FUNCTION__, __LINE__, sysevent_key);
     }
 }
 
@@ -109,22 +109,22 @@ int DhcpMgr_StartMainController()
         retStatus = DhcpMgr_Dhcp_Recovery_Start();
         if (retStatus != 0)
         {
-            DHCPMGR_LOG_ERROR("%s %d - Failed to start dhcp recovery thread\n", __FUNCTION__, __LINE__);
+            DHCPMGR_LOG_DEBUG("%s %d - Failed to start dhcp recovery thread\n", __FUNCTION__, __LINE__);
         }
         else
         {
-            DHCPMGR_LOG_INFO("%s %d - Dhcp crash recovery thread started successfully\n", __FUNCTION__, __LINE__);
+            DHCPMGR_LOG_DEBUG("%s %d - Dhcp crash recovery thread started successfully\n", __FUNCTION__, __LINE__);
         }
     }
     else if (errno != ENOENT)
     {
-        DHCPMGR_LOG_ERROR("%s %d Error deleting %s file (errno=%d)\n", __FUNCTION__, __LINE__, filename, errno);
+        DHCPMGR_LOG_DEBUG("%s %d Error deleting %s file (errno=%d)\n", __FUNCTION__, __LINE__, filename, errno);
     }
 
     retStatus = DhcpMgr_LeaseMonitor_Start();
     if(retStatus < 0)
     {
-        DHCPMGR_LOG_ERROR("%s %d - Lease Monitor Thread failed to start!\n", __FUNCTION__, __LINE__ );
+        DHCPMGR_LOG_DEBUG("%s %d - Lease Monitor Thread failed to start!\n", __FUNCTION__, __LINE__ );
         t2_event_d("DHCPMGR_ERROR_LeaseMonitorStartFail", 1);
     }
 
@@ -151,7 +151,7 @@ static int DhcpMgr_build_dhcpv4_opt_list (PCOSA_CONTEXT_DHCPC_LINK_OBJECT hInsCo
     ULONG                           noOfSentOpt   = 0;
     PCOSA_DML_DHCPC_FULL pDhcpc                   = (PCOSA_DML_DHCPC_FULL)hInsContext->hContext;
 
-    DHCPMGR_LOG_INFO("%s %d: Entered \n",__FUNCTION__, __LINE__);
+    DHCPMGR_LOG_DEBUG("%s %d: Entered \n",__FUNCTION__, __LINE__);
     noOfReqOpt = CosaDmlDhcpcGetNumberOfReqOption(hInsContext, pDhcpc->Cfg.InstanceNumber);
 
     for (ULONG reqIdx = 0; reqIdx < noOfReqOpt; reqIdx++)
@@ -159,7 +159,7 @@ static int DhcpMgr_build_dhcpv4_opt_list (PCOSA_CONTEXT_DHCPC_LINK_OBJECT hInsCo
         pDhcpReqOpt = CosaDmlDhcpcGetReqOption_Entry(hInsContext, reqIdx);
         if (!pDhcpReqOpt)
         {
-            DHCPMGR_LOG_ERROR("%s : pDhcpReqOpt is NULL",__FUNCTION__);
+            DHCPMGR_LOG_DEBUG("%s : pDhcpReqOpt is NULL",__FUNCTION__);
         }
         else if (pDhcpReqOpt->bEnabled)
         {
@@ -174,40 +174,40 @@ static int DhcpMgr_build_dhcpv4_opt_list (PCOSA_CONTEXT_DHCPC_LINK_OBJECT hInsCo
 
         if (!pDhcpSentOpt)
         {
-            DHCPMGR_LOG_ERROR("%s : pDhcpSentOpt is NULL",__FUNCTION__);
+            DHCPMGR_LOG_DEBUG("%s : pDhcpSentOpt is NULL",__FUNCTION__);
         }
         else if (pDhcpSentOpt->bEnabled)
         {
             if(pDhcpSentOpt->Tag == DHCPV4_OPT_60 && strlen((char *)pDhcpSentOpt->Value) <= 0)
             {
-                DHCPMGR_LOG_INFO("%s %d: DHCPv4 option 60 (Vendor Class Identifier) entry found without value. \n", __FUNCTION__, __LINE__);
+                DHCPMGR_LOG_DEBUG("%s %d: DHCPv4 option 60 (Vendor Class Identifier) entry found without value. \n", __FUNCTION__, __LINE__);
                 char optionValue[BUFLEN_512] = {0};
                 int ret = Get_DhcpV4_CustomOption60(pDhcpc->Cfg.Interface, optionValue, sizeof(optionValue));
                 if (ret == 0)
                 {
-                    DHCPMGR_LOG_INFO("%s %d: Adding DHCPv4 option 60 (Vendor Class Identifier) custom value: %s \n", __FUNCTION__, __LINE__, optionValue);
+                    DHCPMGR_LOG_DEBUG("%s %d: Adding DHCPv4 option 60 (Vendor Class Identifier) custom value: %s \n", __FUNCTION__, __LINE__, optionValue);
                     add_dhcp_opt_to_list(send_opt_list, (int)pDhcpSentOpt->Tag, optionValue);
                 }
             }
             else if(pDhcpSentOpt->Tag == DHCPV4_OPT_61 && strlen((char *)pDhcpSentOpt->Value) <= 0)
             {
-                DHCPMGR_LOG_INFO("%s %d: DHCPv4 option 61 (Client Identifier) entry found without value. \n", __FUNCTION__, __LINE__);
+                DHCPMGR_LOG_DEBUG("%s %d: DHCPv4 option 61 (Client Identifier) entry found without value. \n", __FUNCTION__, __LINE__);
                 char optionValue[BUFLEN_256] = {0};
                 int ret = Get_DhcpV4_CustomOption61(pDhcpc->Cfg.Interface, optionValue, sizeof(optionValue));
                 if (ret == 0)
                 {
-                    DHCPMGR_LOG_INFO("%s %d: Adding DHCPv4 option 61 (Client Identifier) custom value: %s \n", __FUNCTION__, __LINE__, optionValue);
+                    DHCPMGR_LOG_DEBUG("%s %d: Adding DHCPv4 option 61 (Client Identifier) custom value: %s \n", __FUNCTION__, __LINE__, optionValue);
                     add_dhcp_opt_to_list(send_opt_list, (int)pDhcpSentOpt->Tag, optionValue);
                 }
             }
             else if(pDhcpSentOpt->Tag == DHCPV4_OPT_43 && strlen((char *)pDhcpSentOpt->Value) <= 0)
             {
-                DHCPMGR_LOG_INFO("%s %d: DHCPv4 option 43 (Vendor-Specific Information) entry found without value. \n", __FUNCTION__, __LINE__);
+                DHCPMGR_LOG_DEBUG("%s %d: DHCPv4 option 43 (Vendor-Specific Information) entry found without value. \n", __FUNCTION__, __LINE__);
                 char optionValue[BUFLEN_512] = {0};
                 int ret = Get_DhcpV4_CustomOption43(pDhcpc->Cfg.Interface, optionValue, sizeof(optionValue));
                 if (ret == 0)
                 {
-                    DHCPMGR_LOG_INFO("%s %d: Adding DHCPv4 option 43 (Vendor-Specific Information) custom value: %s \n", __FUNCTION__, __LINE__, optionValue);
+                    DHCPMGR_LOG_DEBUG("%s %d: Adding DHCPv4 option 43 (Vendor-Specific Information) custom value: %s \n", __FUNCTION__, __LINE__, optionValue);
                     add_dhcp_opt_to_list(send_opt_list, (int)pDhcpSentOpt->Tag, optionValue);
                 }
             }
@@ -240,7 +240,7 @@ static int DhcpMgr_build_dhcpv6_opt_list (PCOSA_CONTEXT_DHCPCV6_LINK_OBJECT hIns
     ULONG                             instanceNum   = 0;
     PCOSA_DML_DHCPCV6_FULL pDhcp6c                   = (PCOSA_DML_DHCPCV6_FULL)hInsContext->hContext;
 
-    DHCPMGR_LOG_INFO("%s %d: Entered \n",__FUNCTION__, __LINE__);
+    DHCPMGR_LOG_DEBUG("%s %d: Entered \n",__FUNCTION__, __LINE__);
     //Build T1 T2 buffer
     char t1T2Buffer[BUFLEN_128] = {0};
     if (pDhcp6c->Cfg.SuggestedT1 != -1 || pDhcp6c->Cfg.SuggestedT2 != -1)
@@ -257,19 +257,19 @@ static int DhcpMgr_build_dhcpv6_opt_list (PCOSA_CONTEXT_DHCPCV6_LINK_OBJECT hIns
         }
 
         snprintf(t1T2Buffer, sizeof(t1T2Buffer), "{\n\t%s\n\t%s\n\t}", t1Buffer, t2Buffer);
-        DHCPMGR_LOG_INFO("%s %d: T1 and T2 values found : %s\n", __FUNCTION__, __LINE__, t1T2Buffer);
+        DHCPMGR_LOG_DEBUG("%s %d: T1 and T2 values found : %s\n", __FUNCTION__, __LINE__, t1T2Buffer);
     }
 
     if(pDhcp6c->Cfg.RequestAddresses == TRUE)
     {
         //Identity Association for Non-temporary Addresses.  OPTION_IA_NA(3) 
-        DHCPMGR_LOG_INFO("%s %d: Adding DHCPv6 option - Number: %d, Value: %s\n", __FUNCTION__, __LINE__, DHCPV6_OPT_3, t1T2Buffer);
+        DHCPMGR_LOG_DEBUG("%s %d: Adding DHCPv6 option - Number: %d, Value: %s\n", __FUNCTION__, __LINE__, DHCPV6_OPT_3, t1T2Buffer);
         add_dhcp_opt_to_list(send_opt_list, DHCPV6_OPT_3, t1T2Buffer);
     }
 
     if(pDhcp6c->Cfg.RequestPrefixes == TRUE)
     {
-        DHCPMGR_LOG_INFO("%s %d: Adding DHCPv6 option - Number: %d, Value: %s\n", __FUNCTION__, __LINE__, DHCPV6_OPT_25, t1T2Buffer);
+        DHCPMGR_LOG_DEBUG("%s %d: Adding DHCPv6 option - Number: %d, Value: %s\n", __FUNCTION__, __LINE__, DHCPV6_OPT_25, t1T2Buffer);
         // Identity Association (IA) for Prefix Delegation option OPTION_IA_PD(25) 
         add_dhcp_opt_to_list(send_opt_list, DHCPV6_OPT_25, t1T2Buffer);
     }
@@ -292,43 +292,43 @@ static int DhcpMgr_build_dhcpv6_opt_list (PCOSA_CONTEXT_DHCPCV6_LINK_OBJECT hIns
                 if(pSentOption->Tag == DHCPV6_OPT_25 && strlen((char *)pSentOption->Value) <= 0)
                 {
                     // Identity Association (IA) for Prefix Delegation option OPTION_IA_PD(25)
-                    DHCPMGR_LOG_INFO("%s %d: Adding DHCPv6 option - Number: %d\n", __FUNCTION__, __LINE__, DHCPV6_OPT_25);
+                    DHCPMGR_LOG_DEBUG("%s %d: Adding DHCPv6 option - Number: %d\n", __FUNCTION__, __LINE__, DHCPV6_OPT_25);
                     if (Get_DhcpV6_CustomOption_25(send_opt_list) != RETURN_OK)
                     {
-                        DHCPMGR_LOG_ERROR("%s %d: Failed to add DHCPv6 option %d.\n", __FUNCTION__, __LINE__, DHCPV6_OPT_25);
+                        DHCPMGR_LOG_DEBUG("%s %d: Failed to add DHCPv6 option %d.\n", __FUNCTION__, __LINE__, DHCPV6_OPT_25);
                         return RETURN_ERR;
                     }
                 }
                 else if(pSentOption->Tag == DHCPV6_OPT_15 && strlen((char *)pSentOption->Value) <= 0)
                 {
-                    DHCPMGR_LOG_INFO("%s %d: DHCPv6 option 15 (User Class Option) entry found without value. \n", __FUNCTION__, __LINE__);
+                    DHCPMGR_LOG_DEBUG("%s %d: DHCPv6 option 15 (User Class Option) entry found without value. \n", __FUNCTION__, __LINE__);
                     char optionValue[BUFLEN_256] = {0};
                     int ret = Get_DhcpV6_CustomOption15(pDhcp6c->Cfg.Interface, optionValue, sizeof(optionValue));
                     if (ret == 0)
                     {
-                        DHCPMGR_LOG_INFO("%s %d: Adding DHCPv6 option 15 (User Class Option) custom value: %s \n", __FUNCTION__, __LINE__, optionValue);
+                        DHCPMGR_LOG_DEBUG("%s %d: Adding DHCPv6 option 15 (User Class Option) custom value: %s \n", __FUNCTION__, __LINE__, optionValue);
                         add_dhcp_opt_to_list(send_opt_list, (int)pSentOption->Tag, optionValue);
                     }
                 }
                 else if(pSentOption->Tag == DHCPV6_OPT_16 && strlen((char *)pSentOption->Value) <= 0)
                 {
-                    DHCPMGR_LOG_INFO("%s %d: DHCPv6 option 16 (Vendor Class Option) entry found without value. \n", __FUNCTION__, __LINE__);
+                    DHCPMGR_LOG_DEBUG("%s %d: DHCPv6 option 16 (Vendor Class Option) entry found without value. \n", __FUNCTION__, __LINE__);
                     char optionValue[BUFLEN_256] = {0};
                     int ret = Get_DhcpV6_CustomOption16(pDhcp6c->Cfg.Interface, optionValue, sizeof(optionValue));
                     if (ret == 0)
                     {
-                        DHCPMGR_LOG_INFO("%s %d: Adding DHCPv6 option 16 (Vendor Class Option) custom value: %s \n", __FUNCTION__, __LINE__, optionValue);
+                        DHCPMGR_LOG_DEBUG("%s %d: Adding DHCPv6 option 16 (Vendor Class Option) custom value: %s \n", __FUNCTION__, __LINE__, optionValue);
                         add_dhcp_opt_to_list(send_opt_list, (int)pSentOption->Tag, optionValue);
                     }
                 }
                 else if(pSentOption->Tag == DHCPV6_OPT_17 && strlen((char *)pSentOption->Value) <= 0)
                 {
-                    DHCPMGR_LOG_INFO("%s %d: DHCPv6 option 17 (Vendor-Specific Information) entry found without value. \n", __FUNCTION__, __LINE__);
+                    DHCPMGR_LOG_DEBUG("%s %d: DHCPv6 option 17 (Vendor-Specific Information) entry found without value. \n", __FUNCTION__, __LINE__);
                     char optionValue[BUFLEN_256] = {0};
                     int ret = Get_DhcpV6_CustomOption17(pDhcp6c->Cfg.Interface, optionValue, sizeof(optionValue));
                     if (ret == 0)
                     {
-                        DHCPMGR_LOG_INFO("%s %d: Adding DHCPv6 option 17 (Vendor-Specific Information) custom value: %s \n", __FUNCTION__, __LINE__, optionValue);
+                        DHCPMGR_LOG_DEBUG("%s %d: Adding DHCPv6 option 17 (Vendor-Specific Information) custom value: %s \n", __FUNCTION__, __LINE__, optionValue);
                         add_dhcp_opt_to_list(send_opt_list, (int)pSentOption->Tag, optionValue);
                     }
                 }
@@ -353,17 +353,17 @@ static int DhcpMgr_build_dhcpv6_opt_list (PCOSA_CONTEXT_DHCPCV6_LINK_OBJECT hIns
             syscfg_get(NULL, "MAPT_Enable", MaptEnable, sizeof(MaptEnable));
             if(strcmp(MaptEnable, "true") == 0)
             {
-                DHCPMGR_LOG_INFO("%s %d: MAPT RFC enabled and  DHCPv6 MAPT option is requested - (Number: %d, RFC Value: %s)\n", __FUNCTION__, __LINE__, opt, MaptEnable);
+                DHCPMGR_LOG_DEBUG("%s %d: MAPT RFC enabled and  DHCPv6 MAPT option is requested - (Number: %d, RFC Value: %s)\n", __FUNCTION__, __LINE__, opt, MaptEnable);
             }
             else
             {
-                DHCPMGR_LOG_WARNING("%s %d: MAPT RFC Disabled and  DHCPv6 MAPT option is requested. Skipping MAPT option - (Number: %d, Value: %s)\n", __FUNCTION__, __LINE__, opt, MaptEnable);
+                DHCPMGR_LOG_DEBUG("%s %d: MAPT RFC Disabled and  DHCPv6 MAPT option is requested. Skipping MAPT option - (Number: %d, Value: %s)\n", __FUNCTION__, __LINE__, opt, MaptEnable);
                 token = strtok(NULL, " , ");
                 continue;
             }
         }
         
-        DHCPMGR_LOG_INFO("Adding Request option : %d\n", opt);
+        DHCPMGR_LOG_DEBUG("Adding Request option : %d\n", opt);
         add_dhcp_opt_to_list(req_opt_list, opt, NULL);
         token = strtok(NULL, " , ");
     }
@@ -386,7 +386,7 @@ static bool DhcpMgr_checkInterfaceStatus(const char * ifName)
 {
     if(ifName == NULL || (strlen(ifName) <=0))
     {
-        DHCPMGR_LOG_ERROR("%s : DHCP interface name is Empty",__FUNCTION__);
+        DHCPMGR_LOG_DEBUG("%s : DHCP interface name is Empty",__FUNCTION__);
         return FALSE;
     }
 
@@ -412,11 +412,11 @@ static bool DhcpMgr_checkInterfaceStatus(const char * ifName)
 
     if ((ifr.ifr_flags & IFF_UP) && (ifr.ifr_flags & IFF_RUNNING)) 
     {
-        DHCPMGR_LOG_INFO("Interface %s is up and running.\n", ifName);
+        DHCPMGR_LOG_DEBUG("Interface %s is up and running.\n", ifName);
     } 
     else 
     {
-        DHCPMGR_LOG_ERROR("Interface %s is down or not running.\n", ifName);
+        DHCPMGR_LOG_DEBUG("Interface %s is down or not running.\n", ifName);
         return FALSE;
     }
     return TRUE;
@@ -436,46 +436,63 @@ static bool DhcpMgr_checkInterfaceStatus(const char * ifName)
 static bool DhcpMgr_checkLinkLocalAddress(const char * interfaceName)
 { 
     // check if interface is ipv6 ready with a link-local address
+    DHCPMGR_LOG_DEBUG("%s %d: Enter DhcpMgr_checkLinkLocalAddress, interfaceName=%s\n", __FUNCTION__, __LINE__, interfaceName ? interfaceName : "NULL");
     unsigned int waitTime = INTF_V6LL_TIMEOUT_IN_MSEC;
+    DHCPMGR_LOG_DEBUG("%s %d: waitTime initialized to %u ms\n", __FUNCTION__, __LINE__, waitTime);
     char cmd[BUFLEN_128] = {0};
     snprintf(cmd, sizeof(cmd), "ip address show dev %s tentative", interfaceName);
+    DHCPMGR_LOG_DEBUG("%s %d: cmd=[%s]\n", __FUNCTION__, __LINE__, cmd);
     while (waitTime > 0)
     {
+        DHCPMGR_LOG_DEBUG("%s %d: waitTime remaining=%u ms\n", __FUNCTION__, __LINE__, waitTime);
         FILE *fp_dad   = NULL;
         char buffer[BUFLEN_256] = {0};
 
         fp_dad = popen(cmd, "r");
+        DHCPMGR_LOG_DEBUG("%s %d: popen(%s) returned fp_dad=%p\n", __FUNCTION__, __LINE__, cmd, (void*)fp_dad);
         if(fp_dad != NULL)
         {
-            if ((fgets(buffer, BUFLEN_256, fp_dad) == NULL) || (strlen(buffer) == 0))
+            char *fgets_ret = fgets(buffer, BUFLEN_256, fp_dad);
+            DHCPMGR_LOG_DEBUG("%s %d: fgets returned=%p, buffer=[%s], strlen(buffer)=%zu\n", __FUNCTION__, __LINE__, (void*)fgets_ret, buffer, strlen(buffer));
+            if ((fgets_ret == NULL) || (strlen(buffer) == 0))
             {
+                DHCPMGR_LOG_DEBUG("%s %d: no tentative address found, breaking out of loop\n", __FUNCTION__, __LINE__);
                 pclose(fp_dad);
                 break;
             }
-            DHCPMGR_LOG_WARNING("%s %d: interface still tentative: %s\n", __FUNCTION__, __LINE__, buffer);
+            DHCPMGR_LOG_DEBUG("%s %d: interface still tentative: %s\n", __FUNCTION__, __LINE__, buffer);
             pclose(fp_dad);
         }
         usleep(INTF_V6LL_INTERVAL_IN_MSEC * USECS_IN_MSEC);
+        DHCPMGR_LOG_DEBUG("%s %d: slept %d ms, decrementing waitTime by %d\n", __FUNCTION__, __LINE__, INTF_V6LL_INTERVAL_IN_MSEC, INTF_V6LL_INTERVAL_IN_MSEC);
         waitTime -= INTF_V6LL_INTERVAL_IN_MSEC;
+        DHCPMGR_LOG_DEBUG("%s %d: waitTime after decrement=%u ms\n", __FUNCTION__, __LINE__, waitTime);
     }
 
+    DHCPMGR_LOG_DEBUG("%s %d: exited while loop, waitTime=%u\n", __FUNCTION__, __LINE__, waitTime);
     if (waitTime <= 0)
     {
-        DHCPMGR_LOG_ERROR("%s %d: interface %s doesnt have link local address\n", __FUNCTION__, __LINE__, interfaceName);
+        DHCPMGR_LOG_DEBUG("%s %d: interface %s doesnt have link local address\n", __FUNCTION__, __LINE__, interfaceName);
         /* No link-local address. Restart IPv6 stack and retry. Rare edge case. */
-        DHCPMGR_LOG_INFO("%s %d force toggle initiated\n", __FUNCTION__, __LINE__);
-        if (sysctl_iface_set("/proc/sys/net/ipv6/conf/%s/disable_ipv6", interfaceName, "1") != 0)
+        DHCPMGR_LOG_DEBUG("%s %d force toggle initiated for interfaceName=%s\n", __FUNCTION__, __LINE__, interfaceName);
+        int ret1 = sysctl_iface_set("/proc/sys/net/ipv6/conf/%s/disable_ipv6", interfaceName, "1");
+        DHCPMGR_LOG_DEBUG("%s %d: sysctl_iface_set disable_ipv6=1 for %s returned %d\n", __FUNCTION__, __LINE__, interfaceName, ret1);
+        if (ret1 != 0)
         {
-            DHCPMGR_LOG_WARNING("%s-%d : Failure writing to /proc file\n", __FUNCTION__, __LINE__);
+            DHCPMGR_LOG_DEBUG("%s-%d : Failure writing to /proc file (disable_ipv6=1) for %s\n", __FUNCTION__, __LINE__, interfaceName);
         }
 
-        if (sysctl_iface_set("/proc/sys/net/ipv6/conf/%s/disable_ipv6", interfaceName, "0") != 0)
+        int ret2 = sysctl_iface_set("/proc/sys/net/ipv6/conf/%s/disable_ipv6", interfaceName, "0");
+        DHCPMGR_LOG_DEBUG("%s %d: sysctl_iface_set disable_ipv6=0 for %s returned %d\n", __FUNCTION__, __LINE__, interfaceName, ret2);
+        if (ret2 != 0)
         {
-            DHCPMGR_LOG_WARNING("%s-%d : Failure writing to /proc file\n", __FUNCTION__, __LINE__);
+            DHCPMGR_LOG_DEBUG("%s-%d : Failure writing to /proc file (disable_ipv6=0) for %s\n", __FUNCTION__, __LINE__, interfaceName);
         }
+        DHCPMGR_LOG_DEBUG("%s %d: returning FALSE for interfaceName=%s\n", __FUNCTION__, __LINE__, interfaceName);
         return FALSE;
     }
 
+    DHCPMGR_LOG_DEBUG("%s %d: returning TRUE, interfaceName=%s has link-local address\n", __FUNCTION__, __LINE__, interfaceName);
     return TRUE;
 }
 
@@ -502,7 +519,7 @@ static void Process_DHCPv4_Handler(char* if_name, dhcp_info_t dml_set_msg)
         }
         if (!pDhcpc)
         {
-            DHCPMGR_LOG_ERROR("%s : pDhcpc is NULL\n",__FUNCTION__);
+            DHCPMGR_LOG_DEBUG("%s : pDhcpc is NULL\n",__FUNCTION__);
             continue;
         }
 
@@ -512,7 +529,7 @@ static void Process_DHCPv4_Handler(char* if_name, dhcp_info_t dml_set_msg)
         {
             if(dml_set_msg.ParamName == NULL)
             {
-                DHCPMGR_LOG_INFO("%s %d: No ParamName received , skip processing DML check\n", __FUNCTION__, __LINE__);
+                DHCPMGR_LOG_DEBUG("%s %d: No ParamName received , skip processing DML check\n", __FUNCTION__, __LINE__);
             }
             else if (strcmp(dml_set_msg.ParamName, "Enable") == 0 )
             {
@@ -520,12 +537,12 @@ static void Process_DHCPv4_Handler(char* if_name, dhcp_info_t dml_set_msg)
                 if (dml_set_msg.value.bValue)
                 {
                     t2_event_d("DHCPMGR_INFO_Dhcpv4ClientEnabled", 1);
-                    DHCPMGR_LOG_INFO("%s %d: DHCPv4 client enabled on interface %s \n", __FUNCTION__, __LINE__, pDhcpc->Cfg.Interface);
+                    DHCPMGR_LOG_DEBUG("%s %d: DHCPv4 client enabled on interface %s \n", __FUNCTION__, __LINE__, pDhcpc->Cfg.Interface);
                 }
                 else
                 {
                     t2_event_d("DHCPMGR_INFO_Dhcpv4ClientDisabled", 1);
-                    DHCPMGR_LOG_INFO("%s %d: DHCPv4 client disabled on interface %s \n", __FUNCTION__, __LINE__, pDhcpc->Cfg.Interface);
+                    DHCPMGR_LOG_DEBUG("%s %d: DHCPv4 client disabled on interface %s \n", __FUNCTION__, __LINE__, pDhcpc->Cfg.Interface);
                 }
             }
             else if (strcmp(dml_set_msg.ParamName, "Renew") == 0 ) 
@@ -542,7 +559,7 @@ static void Process_DHCPv4_Handler(char* if_name, dhcp_info_t dml_set_msg)
             }
             else if (strcmp(dml_set_msg.ParamName, "X_RDK_Release") == 0 )
             {
-                DHCPMGR_LOG_INFO("%s %d: Releasing the IP address and stopping the client\n",__FUNCTION__,__LINE__);
+                DHCPMGR_LOG_DEBUG("%s %d: Releasing the IP address and stopping the client\n",__FUNCTION__,__LINE__);
                 release_ip = 1;
             }
             else if (strcmp(dml_set_msg.ParamName, "Selfheal_ClientRestart") == 0 )
@@ -551,7 +568,7 @@ static void Process_DHCPv4_Handler(char* if_name, dhcp_info_t dml_set_msg)
             }
             else
             {
-                DHCPMGR_LOG_ERROR("%s %d: Unknown ParamName %s received \n", __FUNCTION__, __LINE__, dml_set_msg.ParamName); 
+                DHCPMGR_LOG_DEBUG("%s %d: Unknown ParamName %s received \n", __FUNCTION__, __LINE__, dml_set_msg.ParamName); 
             }
         }
         else
@@ -565,7 +582,7 @@ static void Process_DHCPv4_Handler(char* if_name, dhcp_info_t dml_set_msg)
             if(pDhcpc->Info.Status == COSA_DML_DHCP_STATUS_Disabled)
             {
                 ////DHCP client Enabled, start the client if not started.
-                DHCPMGR_LOG_INFO("%s %d: Starting dhcpv4 client on %s\n",__FUNCTION__, __LINE__, pDhcpc->Cfg.Interface);
+                DHCPMGR_LOG_DEBUG("%s %d: Starting dhcpv4 client on %s\n",__FUNCTION__, __LINE__, pDhcpc->Cfg.Interface);
                 if(DhcpMgr_checkInterfaceStatus(pDhcpc->Cfg.Interface)== FALSE)
                 {
                     pDhcpc->Cfg.bEnabled = FALSE;
@@ -590,26 +607,26 @@ static void Process_DHCPv4_Handler(char* if_name, dhcp_info_t dml_set_msg)
                     if(pDhcpc->Info.ClientProcessId > 0 ) 
                     {
                          pDhcpc->Info.Status = COSA_DML_DHCP_STATUS_Enabled;
-                        DHCPMGR_LOG_INFO("%s %d: dhcpv4 client for %s started PID : %d \n", __FUNCTION__, __LINE__, pDhcpc->Cfg.Interface, pDhcpc->Info.ClientProcessId);
+                        DHCPMGR_LOG_DEBUG("%s %d: dhcpv4 client for %s started PID : %d \n", __FUNCTION__, __LINE__, pDhcpc->Cfg.Interface, pDhcpc->Info.ClientProcessId);
                         DhcpMgr_PublishDhcpV4Event(pDhcpc, DHCP_CLIENT_STARTED);
                     }
                     else
                     {
-                        DHCPMGR_LOG_INFO("%s %d: dhcpv4 client for %s failed to start \n", __FUNCTION__, __LINE__, pDhcpc->Cfg.Interface);
+                        DHCPMGR_LOG_DEBUG("%s %d: dhcpv4 client for %s failed to start \n", __FUNCTION__, __LINE__, pDhcpc->Cfg.Interface);
                         DhcpMgr_PublishDhcpV4Event(pDhcpc, DHCP_CLIENT_FAILED);
                     }
                 }
             }
             else if (pDhcpc->Cfg.Renew == TRUE)
             {
-                DHCPMGR_LOG_INFO("%s %d: Triggering renew for  dhcpv4 client : %s PID : %d\n",__FUNCTION__, __LINE__, pDhcpc->Cfg.Interface, pDhcpc->Info.ClientProcessId);
+                DHCPMGR_LOG_DEBUG("%s %d: Triggering renew for  dhcpv4 client : %s PID : %d\n",__FUNCTION__, __LINE__, pDhcpc->Cfg.Interface, pDhcpc->Info.ClientProcessId);
                 send_dhcpv4_renew(pDhcpc->Info.ClientProcessId);
                 pDhcpc->Cfg.Renew = FALSE;
             }
             else if (pDhcpc->Cfg.Restart == TRUE)
             {
                 //Restart the DHCP client will release the ip  and start the client again to get a new lease.
-                DHCPMGR_LOG_INFO("%s %d: Restarting dhcpv4 client : %s PID : %d\n",__FUNCTION__, __LINE__, pDhcpc->Cfg.Interface, pDhcpc->Info.ClientProcessId);
+                DHCPMGR_LOG_DEBUG("%s %d: Restarting dhcpv4 client : %s PID : %d\n",__FUNCTION__, __LINE__, pDhcpc->Cfg.Interface, pDhcpc->Info.ClientProcessId);
                 send_dhcpv4_release(pDhcpc->Info.ClientProcessId);
                 pDhcpc->Info.Status = COSA_DML_DHCP_STATUS_Disabled;
                 pDhcpc->Cfg.Restart = FALSE;
@@ -621,7 +638,7 @@ static void Process_DHCPv4_Handler(char* if_name, dhcp_info_t dml_set_msg)
             //DHCP client disabled, stop the client if it is running.
             if(pDhcpc->Info.Status == COSA_DML_DHCP_STATUS_Enabled)
             {
-                DHCPMGR_LOG_INFO("%s %d: Stopping the dhcpv4 client : %s PID : %d \n",__FUNCTION__, __LINE__, pDhcpc->Cfg.Interface, pDhcpc->Info.ClientProcessId);
+                DHCPMGR_LOG_DEBUG("%s %d: Stopping the dhcpv4 client : %s PID : %d \n",__FUNCTION__, __LINE__, pDhcpc->Cfg.Interface, pDhcpc->Info.ClientProcessId);
                 if(release_ip)
                 {
                     send_dhcpv4_release(pDhcpc->Info.ClientProcessId);
@@ -674,7 +691,7 @@ static void Process_DHCPv6_Handler(char* if_name, dhcp_info_t dml_set_msg)
         }
         if (!pDhcp6c)
         {
-            DHCPMGR_LOG_ERROR("%s : pDhcp6c is NULL\n",__FUNCTION__);
+            DHCPMGR_LOG_DEBUG("%s : pDhcp6c is NULL\n",__FUNCTION__);
             continue;
         }
         
@@ -684,7 +701,7 @@ static void Process_DHCPv6_Handler(char* if_name, dhcp_info_t dml_set_msg)
         {
             if (dml_set_msg.ParamName == NULL)
             {
-                DHCPMGR_LOG_INFO("%s %d: No ParamName received , skipping processing DML check\n", __FUNCTION__, __LINE__);
+                DHCPMGR_LOG_DEBUG("%s %d: No ParamName received , skipping processing DML check\n", __FUNCTION__, __LINE__);
             }
             else if (strcmp(dml_set_msg.ParamName, "Enable") == 0 )
             {
@@ -692,12 +709,12 @@ static void Process_DHCPv6_Handler(char* if_name, dhcp_info_t dml_set_msg)
                 if (dml_set_msg.value.bValue)
                 {
                     t2_event_d("DHCPMGR_INFO_Dhcpv6ClientEnabled", 1);
-                    DHCPMGR_LOG_INFO("%s %d: DHCPv6 client enabled on interface %s \n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
+                    DHCPMGR_LOG_DEBUG("%s %d: DHCPv6 client enabled on interface %s \n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
                 }
                 else
                 {
                     t2_event_d("DHCPMGR_INFO_Dhcpv6ClientDisabled", 1);
-                    DHCPMGR_LOG_INFO("%s %d: DHCPv6 client disabled on interface %s \n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
+                    DHCPMGR_LOG_DEBUG("%s %d: DHCPv6 client disabled on interface %s \n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
                 }
             }
             else if (strcmp(dml_set_msg.ParamName, "Renew") == 0 ) 
@@ -714,7 +731,7 @@ static void Process_DHCPv6_Handler(char* if_name, dhcp_info_t dml_set_msg)
             }
             else if (strcmp(dml_set_msg.ParamName, "X_RDK_Release") == 0 )
             {
-                DHCPMGR_LOG_INFO("%s %d: Releasing the IP address and stopping the client\n",__FUNCTION__,__LINE__);
+                DHCPMGR_LOG_DEBUG("%s %d: Releasing the IP address and stopping the client\n",__FUNCTION__,__LINE__);
                 release_ip = 1;
             }
             else if (strcmp(dml_set_msg.ParamName, "Selfheal_ClientRestart") == 0 )
@@ -723,7 +740,7 @@ static void Process_DHCPv6_Handler(char* if_name, dhcp_info_t dml_set_msg)
             }
             else
             { 
-                DHCPMGR_LOG_ERROR("%s %d: Unknown ParamName %s received in MQ\n", __FUNCTION__, __LINE__, dml_set_msg.ParamName); 
+                DHCPMGR_LOG_DEBUG("%s %d: Unknown ParamName %s received in MQ\n", __FUNCTION__, __LINE__, dml_set_msg.ParamName); 
             }
         }
         else
@@ -736,7 +753,7 @@ static void Process_DHCPv6_Handler(char* if_name, dhcp_info_t dml_set_msg)
             if(pDhcp6c->Info.Status == COSA_DML_DHCP_STATUS_Disabled)
             {
                 ////DHCP client Enabled, start the client if not started.
-                DHCPMGR_LOG_INFO("%s %d: Starting dhcpv6 client on %s\n",__FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
+                DHCPMGR_LOG_DEBUG("%s %d: Starting dhcpv6 client on %s\n",__FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
                 if(DhcpMgr_checkInterfaceStatus(pDhcp6c->Cfg.Interface)== FALSE)
                 {
                     pDhcp6c->Cfg.bEnabled = FALSE;
@@ -765,26 +782,26 @@ static void Process_DHCPv6_Handler(char* if_name, dhcp_info_t dml_set_msg)
                     if(pDhcp6c->Info.ClientProcessId > 0 ) 
                     {
                         pDhcp6c->Info.Status = COSA_DML_DHCP_STATUS_Enabled;
-                        DHCPMGR_LOG_INFO("%s %d: dhcpv6 client for %s started PID : %d \n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface, pDhcp6c->Info.ClientProcessId);
+                        DHCPMGR_LOG_DEBUG("%s %d: dhcpv6 client for %s started PID : %d \n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface, pDhcp6c->Info.ClientProcessId);
                         DhcpMgr_PublishDhcpV6Event(pDhcp6c, DHCP_CLIENT_STARTED);
                     }
                     else
                     {
-                        DHCPMGR_LOG_INFO("%s %d: dhcpv6 client for %s failed to start \n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
+                        DHCPMGR_LOG_DEBUG("%s %d: dhcpv6 client for %s failed to start \n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
                         DhcpMgr_PublishDhcpV6Event(pDhcp6c, DHCP_CLIENT_FAILED);
                     }
                 }
             } 
             else if (pDhcp6c->Cfg.Renew == TRUE)
             {
-                DHCPMGR_LOG_INFO("%s %d: Triggering renew for  dhcpv6 client : %s PID : %d\n",__FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface, pDhcp6c->Info.ClientProcessId);
+                DHCPMGR_LOG_DEBUG("%s %d: Triggering renew for  dhcpv6 client : %s PID : %d\n",__FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface, pDhcp6c->Info.ClientProcessId);
                 send_dhcpv6_renew(pDhcp6c->Info.ClientProcessId);
                 pDhcp6c->Cfg.Renew = FALSE;
             }
             else if( pDhcp6c->Cfg.Restart == TRUE)
             {
                 //Restart the DHCP client will release the ip  and start the client again to get a new lease.
-                DHCPMGR_LOG_INFO("%s %d: Restarting dhcpv6 client : %s PID : %d\n",__FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface, pDhcp6c->Info.ClientProcessId);
+                DHCPMGR_LOG_DEBUG("%s %d: Restarting dhcpv6 client : %s PID : %d\n",__FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface, pDhcp6c->Info.ClientProcessId);
                 send_dhcpv6_release(pDhcp6c->Info.ClientProcessId);
                 pDhcp6c->Info.Status = COSA_DML_DHCP_STATUS_Disabled;
                 pDhcp6c->Cfg.Restart = FALSE;
@@ -797,7 +814,7 @@ static void Process_DHCPv6_Handler(char* if_name, dhcp_info_t dml_set_msg)
             //DHCP client disabled, stop the client if it is running.
             if(pDhcp6c->Info.Status == COSA_DML_DHCP_STATUS_Enabled)
             {
-                DHCPMGR_LOG_INFO("%s %d: Stopping the dhcpv6 client : %s PID : %d \n",__FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface, pDhcp6c->Info.ClientProcessId);
+                DHCPMGR_LOG_DEBUG("%s %d: Stopping the dhcpv6 client : %s PID : %d \n",__FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface, pDhcp6c->Info.ClientProcessId);
                 //Don't release IP unless specifically mentioned and stop the client.
                 if(release_ip)
                 {
@@ -847,8 +864,8 @@ void* DhcpMgr_MainController( void *args )
     }
     else
     {
-        DHCPMGR_LOG_ERROR("%s %d: Thread argument is NULL\n", __FUNCTION__, __LINE__);
-        DHCPMGR_LOG_ERROR("%s %d: Interface name is empty, cannot mark thread stopped\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_DEBUG("%s %d: Thread argument is NULL\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_DEBUG("%s %d: Interface name is empty, cannot mark thread stopped\n", __FUNCTION__, __LINE__);
         return NULL;
     }
 
@@ -857,7 +874,7 @@ void* DhcpMgr_MainController( void *args )
     mq_desc = mq_open(mq_name, O_RDONLY | O_NONBLOCK);
     if (mq_desc == (mqd_t)-1) 
     {
-        DHCPMGR_LOG_ERROR("%s %d: mq_open failed in thread\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_DEBUG("%s %d: mq_open failed in thread\n", __FUNCTION__, __LINE__);
         mark_thread_stopped(inf_name);
         return NULL;
     }
@@ -913,7 +930,7 @@ void* DhcpMgr_MainController( void *args )
             else
             {
                 /* Real error, exit thread */
-                DHCPMGR_LOG_ERROR("%s %d: mq_receive failed errno=%d (%s)\n",__FUNCTION__, __LINE__, errno, strerror(errno));
+                DHCPMGR_LOG_DEBUG("%s %d: mq_receive failed errno=%d (%s)\n",__FUNCTION__, __LINE__, errno, strerror(errno));
                 break;
             }
         }
@@ -966,7 +983,7 @@ void DHCPMgr_AddDhcpv4Lease(char * ifName, DHCPv4_PLUGIN_MSG *newLease)
 
         if (!pDhcpc)
         {
-            DHCPMGR_LOG_ERROR("%s : pDhcpc is NULL\n",__FUNCTION__);
+            DHCPMGR_LOG_DEBUG("%s : pDhcpc is NULL\n",__FUNCTION__);
             continue;
         }
 
@@ -994,7 +1011,7 @@ void DHCPMgr_AddDhcpv4Lease(char * ifName, DHCPv4_PLUGIN_MSG *newLease)
             //Just the add the new lease details in the list. the controlled thread will hanlde it. 
             newLease->next = NULL;
             interfaceFound = TRUE;
-            DHCPMGR_LOG_INFO("%s %d: New dhcpv4 lease msg added for %s \n", __FUNCTION__, __LINE__, pDhcpc->Cfg.Interface);
+            DHCPMGR_LOG_DEBUG("%s %d: New dhcpv4 lease msg added for %s \n", __FUNCTION__, __LINE__, pDhcpc->Cfg.Interface);
 
             pthread_mutex_unlock(&pDhcpc->mutex); //MUTEX release before break
             break;
@@ -1008,7 +1025,7 @@ void DHCPMgr_AddDhcpv4Lease(char * ifName, DHCPv4_PLUGIN_MSG *newLease)
     {
         //if we are here, we didn't find the correct interface the received lease. free the memory
         free(newLease);
-        DHCPMGR_LOG_ERROR("%s %d: dhcpv4 lease msg not added for ineterface %s. DHCP client may not be running. \n", __FUNCTION__, __LINE__, ifName);
+        DHCPMGR_LOG_DEBUG("%s %d: dhcpv4 lease msg not added for ineterface %s. DHCP client may not be running. \n", __FUNCTION__, __LINE__, ifName);
     }
 
     return;
@@ -1044,7 +1061,7 @@ void DHCPMgr_AddDhcpv6Lease(char * ifName, DHCPv6_PLUGIN_MSG *newLease)
 
         if (!pDhcp6c)
         {
-            DHCPMGR_LOG_ERROR("%s : pDhcp6c is NULL\n",__FUNCTION__);
+            DHCPMGR_LOG_DEBUG("%s : pDhcp6c is NULL\n",__FUNCTION__);
             continue;
         }
 
@@ -1072,7 +1089,7 @@ void DHCPMgr_AddDhcpv6Lease(char * ifName, DHCPv6_PLUGIN_MSG *newLease)
             //Just the add the new lease details in the list. the controlled thread will hanlde it. 
             newLease->next = NULL;
             interfaceFound = TRUE;
-            DHCPMGR_LOG_INFO("%s %d: New DHCPv6 lease msg added for %s \n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
+            DHCPMGR_LOG_DEBUG("%s %d: New DHCPv6 lease msg added for %s \n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
             pthread_mutex_unlock(&pDhcp6c->mutex); //MUTEX release before break
             break;
         }
@@ -1084,7 +1101,7 @@ void DHCPMgr_AddDhcpv6Lease(char * ifName, DHCPv6_PLUGIN_MSG *newLease)
     {
         //if we are here, we didn't find the correct interface the received lease. free the memory
         free(newLease);
-        DHCPMGR_LOG_ERROR("%s %d: dhcpv6 lease msg not added for ineterface %s. DHCP client may not be running. \n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
+        DHCPMGR_LOG_DEBUG("%s %d: dhcpv6 lease msg not added for ineterface %s. DHCP client may not be running. \n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
     }
 
     return;
@@ -1121,14 +1138,14 @@ void processKilled(pid_t pid)
 
         if (!pDhcpc)
         {
-            DHCPMGR_LOG_ERROR("%s : pDhcpc is NULL\n",__FUNCTION__);
+            DHCPMGR_LOG_DEBUG("%s : pDhcpc is NULL\n",__FUNCTION__);
             continue;
         }
 
         //No mutex lock, since this funtions is called from teh sigchild handler. Keep this function simple and quick
         if(pDhcpc->Info.ClientProcessId == pid)
         {
-            DHCPMGR_LOG_INFO("%s %d: DHCpv4 client for %s pid %d is terminated.\n", __FUNCTION__, __LINE__, pDhcpc->Cfg.Interface, pid);
+            DHCPMGR_LOG_DEBUG("%s %d: DHCpv4 client for %s pid %d is terminated.\n", __FUNCTION__, __LINE__, pDhcpc->Cfg.Interface, pid);
             if(pDhcpc->Info.Status == COSA_DML_DHCP_STATUS_Enabled)
             {
                 pDhcpc->Info.Status = COSA_DML_DHCP_STATUS_Disabled;
@@ -1146,7 +1163,7 @@ void processKilled(pid_t pid)
             int ret = DhcpMgr_OpenQueueEnsureThread(info);
             if (ret != 0) 
             {
-                DHCPMGR_LOG_ERROR("%s %d: Failed to enqueue Selfheal_ClientRestart for %s\n", __FUNCTION__, __LINE__, pDhcpc->Cfg.Interface);
+                DHCPMGR_LOG_DEBUG("%s %d: Failed to enqueue Selfheal_ClientRestart for %s\n", __FUNCTION__, __LINE__, pDhcpc->Cfg.Interface);
             }
 
             return;
@@ -1172,14 +1189,14 @@ void processKilled(pid_t pid)
 
         if (!pDhcp6c)
         {
-            DHCPMGR_LOG_ERROR("%s : pDhcp6c is NULL\n",__FUNCTION__);
+            DHCPMGR_LOG_DEBUG("%s : pDhcp6c is NULL\n",__FUNCTION__);
             continue;
         }
 
         //No mutex lock, since this funtions is called from teh sigchild handler. Keep this function simple and quick
         if(pDhcp6c->Info.ClientProcessId == pid)
         {
-            DHCPMGR_LOG_INFO("%s %d: DHCpv6 client for %s pid %d is terminated.\n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface, pid);
+            DHCPMGR_LOG_DEBUG("%s %d: DHCpv6 client for %s pid %d is terminated.\n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface, pid);
             if(pDhcp6c->Info.Status == COSA_DML_DHCP_STATUS_Enabled)
             {
                 pDhcp6c->Info.Status = COSA_DML_DHCP_STATUS_Disabled;
@@ -1197,7 +1214,7 @@ void processKilled(pid_t pid)
             int ret = DhcpMgr_OpenQueueEnsureThread(info);
             if (ret != 0) 
             {
-                DHCPMGR_LOG_ERROR("%s %d: Failed to enqueue Selfheal_ClientRestart for %s\n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
+                DHCPMGR_LOG_DEBUG("%s %d: Failed to enqueue Selfheal_ClientRestart for %s\n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
             }
             
             return;
