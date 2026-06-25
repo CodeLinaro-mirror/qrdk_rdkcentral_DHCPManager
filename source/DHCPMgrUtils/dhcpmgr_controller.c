@@ -442,12 +442,20 @@ static bool DhcpMgr_checkLinkLocalAddress(const char * interfaceName)
     char cmd[BUFLEN_128] = {0};
     snprintf(cmd, sizeof(cmd), "ip address show dev %s tentative", interfaceName);
     DHCPMGR_LOG_INFO("%s %d: cmd=[%s]\n", __FUNCTION__, __LINE__, cmd);
+    /* Block SIGCHLD around popen/pclose to prevent sigchld_handler from
+     * stealing popen's child via waitpid(-1,...), which causes pclose to
+     * hang (ECHILD) or deadlock on the logging mutex. */
+    sigset_t sigchld_mask, old_mask;
+    sigemptyset(&sigchld_mask);
+    sigaddset(&sigchld_mask, SIGCHLD);
+
     while (waitTime > 0)
     {
         DHCPMGR_LOG_INFO("%s %d: waitTime remaining=%u ms\n", __FUNCTION__, __LINE__, waitTime);
         FILE *fp_dad   = NULL;
         char buffer[BUFLEN_256] = {0};
 
+        sigprocmask(SIG_BLOCK, &sigchld_mask, &old_mask);
         fp_dad = popen(cmd, "r");
         DHCPMGR_LOG_INFO("%s %d: popen(%s) returned fp_dad=%p\n", __FUNCTION__, __LINE__, cmd, (void*)fp_dad);
         if(fp_dad != NULL)
@@ -458,11 +466,13 @@ static bool DhcpMgr_checkLinkLocalAddress(const char * interfaceName)
             {
                 DHCPMGR_LOG_INFO("%s %d: no tentative address found, breaking out of loop\n", __FUNCTION__, __LINE__);
                 pclose(fp_dad);
+                sigprocmask(SIG_SETMASK, &old_mask, NULL);
                 break;
             }
             DHCPMGR_LOG_INFO("%s %d: interface still tentative: %s\n", __FUNCTION__, __LINE__, buffer);
             pclose(fp_dad);
         }
+        sigprocmask(SIG_SETMASK, &old_mask, NULL);
         usleep(INTF_V6LL_INTERVAL_IN_MSEC * USECS_IN_MSEC);
         DHCPMGR_LOG_INFO("%s %d: slept %f ms, decrementing waitTime by %f\n", __FUNCTION__, __LINE__, (double)INTF_V6LL_INTERVAL_IN_MSEC, (double)INTF_V6LL_INTERVAL_IN_MSEC);
         waitTime -= INTF_V6LL_INTERVAL_IN_MSEC;
