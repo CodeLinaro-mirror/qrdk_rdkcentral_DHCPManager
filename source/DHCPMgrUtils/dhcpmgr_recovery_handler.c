@@ -53,26 +53,26 @@ int DhcpMgr_Dhcp_Recovery_Start()
 
     if (ret_val != EXIT_SUCCESS) 
     {
-        DHCPMGR_LOG_DEBUG("%s:%d Failed to load DHCP leases\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_INFO("%s:%d Failed to load DHCP leases\n", __FUNCTION__, __LINE__);
         return EXIT_FAIL;
     }
     else
     {
         if (pid_count == 0)
         {
-            DHCPMGR_LOG_DEBUG("%s:%d No PIDs to monitor\n", __FUNCTION__, __LINE__);
+            DHCPMGR_LOG_INFO("%s:%d No PIDs to monitor\n", __FUNCTION__, __LINE__);
             return EXIT_FAIL;
         }
 
         ret_val = pthread_create(&dhcp_pid_mon_thread, NULL, &dhcp_pid_mon, NULL);
         if (0 != ret_val) 
         {
-            DHCPMGR_LOG_DEBUG("%s %d - Failed to start dhcp_pid_mon Thread Error:%d\n", __FUNCTION__, __LINE__, ret_val);
+            DHCPMGR_LOG_INFO("%s %d - Failed to start dhcp_pid_mon Thread Error:%d\n", __FUNCTION__, __LINE__, ret_val);
             return EXIT_FAIL;
         } 
         else 
         {
-            DHCPMGR_LOG_DEBUG("%s %d - dhcp_pid_mon Thread Started Successfully\n", __FUNCTION__, __LINE__);
+            DHCPMGR_LOG_INFO("%s %d - dhcp_pid_mon Thread Started Successfully\n", __FUNCTION__, __LINE__);
             return EXIT_SUCCESS;
         }
     }
@@ -96,7 +96,7 @@ static void DhcpMgr_EnqueueSelfhealRestart(const char *ifname, int dhcpType)
 
     if (ifname == NULL || ifname[0] == '\0')
     {
-        DHCPMGR_LOG_DEBUG("%s:%d Invalid interface name\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_INFO("%s:%d Invalid interface name\n", __FUNCTION__, __LINE__);
         return;
     }
 
@@ -112,7 +112,7 @@ static void DhcpMgr_EnqueueSelfhealRestart(const char *ifname, int dhcpType)
 
     if (DhcpMgr_OpenQueueEnsureThread(info) != 0)
     {
-        DHCPMGR_LOG_DEBUG("%s:%d Failed to enqueue Selfheal restart for %s (type=%d)\n",
+        DHCPMGR_LOG_INFO("%s:%d Failed to enqueue Selfheal restart for %s (type=%d)\n",
                           __FUNCTION__, __LINE__, info.if_name, dhcpType);
     }
 }
@@ -140,7 +140,7 @@ static void DhcpMgr_EnqueueSelfhealRestart(const char *ifname, int dhcpType)
 {
     if (ifName == NULL || sysevRet != 0 || ifName[0] == '\0')
     {        
-        DHCPMGR_LOG_DEBUG("%s:%d Invalid sysevent data, sysevRet=%d, ifName=%s\n", __FUNCTION__, __LINE__, sysevRet, ifName ? ifName : "NULL");
+        DHCPMGR_LOG_INFO("%s:%d Invalid sysevent data, sysevRet=%d, ifName=%s\n", __FUNCTION__, __LINE__, sysevRet, ifName ? ifName : "NULL");
         return;
     }
     *pEnabled = isEnabled;
@@ -153,7 +153,7 @@ static void DhcpMgr_EnqueueSelfhealRestart(const char *ifname, int dhcpType)
         *pStatus = COSA_DML_DHCP_STATUS_Enabled;
     }
     snprintf(cfgInterface, cfgInterfaceSize, "%s", ifName);
-    DHCPMGR_LOG_DEBUG("%s:%d Set status to %s and interface to %s for DHCP type %d\n", __FUNCTION__, __LINE__,
+    DHCPMGR_LOG_INFO("%s:%d Set status to %s and interface to %s for DHCP type %d\n", __FUNCTION__, __LINE__,
                     (*pStatus == COSA_DML_DHCP_STATUS_Enabled) ? "Enabled" : "Disabled",
                     cfgInterface, dhcpType);
     DhcpMgr_EnqueueSelfhealRestart(ifName, dhcpType);
@@ -177,10 +177,10 @@ static void *dhcp_pid_mon(void *args)
         // Attach each process
         if (ptrace(PTRACE_SEIZE, pids[i], NULL, NULL) == -1) 
         {
-            DHCPMGR_LOG_DEBUG("%s:%d PTRACE_SEIZE failed for process %d\n", __FUNCTION__, __LINE__, pids[i]);
+            DHCPMGR_LOG_INFO("%s:%d PTRACE_SEIZE failed for process %d\n", __FUNCTION__, __LINE__, pids[i]);
             continue;
         }
-        DHCPMGR_LOG_DEBUG("%s:%d Monitoring process %d via ptrace...\n", __FUNCTION__, __LINE__, pids[i]);
+        DHCPMGR_LOG_INFO("%s:%d Monitoring process %d via ptrace...\n", __FUNCTION__, __LINE__, pids[i]);
     }
 
     active_pids = pid_count;
@@ -191,7 +191,7 @@ static void *dhcp_pid_mon(void *args)
 
         if (pid == -1) 
         {
-            DHCPMGR_LOG_DEBUG("%s:%d waitpid failed\n", __FUNCTION__, __LINE__);
+            DHCPMGR_LOG_INFO("%s:%d waitpid failed\n", __FUNCTION__, __LINE__);
             continue;
         }
 
@@ -201,7 +201,7 @@ static void *dhcp_pid_mon(void *args)
             for (int i = 0; i < pid_count; i++)
             {
                 if (pids[i] == pid) {
-                    DHCPMGR_LOG_DEBUG("%s:%d Process %d exited!\n", __FUNCTION__, __LINE__, pid);
+                    DHCPMGR_LOG_INFO("%s:%d Process %d exited!\n", __FUNCTION__, __LINE__, pid);
                     processKilled(pid);
                     active_pids--;
                     continue;
@@ -211,21 +211,21 @@ static void *dhcp_pid_mon(void *args)
         else if (WIFSTOPPED(status)) 
         {
             int sig = WSTOPSIG(status);
-            DHCPMGR_LOG_DEBUG("%s:%d Process %d got a signal %d to send\n", __FUNCTION__, __LINE__, pid, sig);
+            DHCPMGR_LOG_INFO("%s:%d Process %d got a signal %d to send\n", __FUNCTION__, __LINE__, pid, sig);
             
             if (ptrace(PTRACE_CONT, pid, NULL, sig) == -1) 
             {
-                DHCPMGR_LOG_DEBUG("%s:%d PTRACE_CONT failed for process %d\n", __FUNCTION__, __LINE__, pid);
+                DHCPMGR_LOG_INFO("%s:%d PTRACE_CONT failed for process %d\n", __FUNCTION__, __LINE__, pid);
             } 
             else 
             {
-                DHCPMGR_LOG_DEBUG("%s:%d Sent signal %d to process %d\n", __FUNCTION__, __LINE__, sig, pid);
+                DHCPMGR_LOG_INFO("%s:%d Sent signal %d to process %d\n", __FUNCTION__, __LINE__, sig, pid);
             }
             continue;
         }
     }
 
-    DHCPMGR_LOG_DEBUG("%s:%d Thread Exited \n", __FUNCTION__, __LINE__);
+    DHCPMGR_LOG_INFO("%s:%d Thread Exited \n", __FUNCTION__, __LINE__);
     pthread_exit(NULL);
 }
 
@@ -248,14 +248,14 @@ int DHCPMgr_storeDhcpv4Lease(PCOSA_DML_DHCPC_FULL data)
 
     if (!data) 
     {
-        DHCPMGR_LOG_DEBUG("%s:%d Invalid arguments\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_INFO("%s:%d Invalid arguments\n", __FUNCTION__, __LINE__);
         return EXIT_FAIL;
     }
 
     // Create the directory if it doesn't exist
     if (Create_Dir_ifnEx(TMP_DIR_PATH) != EXIT_SUCCESS) 
     {
-        DHCPMGR_LOG_DEBUG("%s:%d Failed to create directory\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_INFO("%s:%d Failed to create directory\n", __FUNCTION__, __LINE__);
         return EXIT_FAIL;
     }
 
@@ -264,19 +264,19 @@ int DHCPMgr_storeDhcpv4Lease(PCOSA_DML_DHCPC_FULL data)
 
     if (!file) 
     {
-        DHCPMGR_LOG_DEBUG("%s:%d Failed to open file %s for writing\n", __FUNCTION__, __LINE__, filePath);
+        DHCPMGR_LOG_INFO("%s:%d Failed to open file %s for writing\n", __FUNCTION__, __LINE__, filePath);
         return EXIT_FAIL;
     }
 
     // Storing the current lease as a separate segment to fetch it easily
     if (fwrite(data, sizeof(COSA_DML_DHCPC_FULL), 1, file) != 1) 
     {
-        DHCPMGR_LOG_DEBUG("%s:%d Failed to write data to file %s\n", __FUNCTION__, __LINE__, filePath);
+        DHCPMGR_LOG_INFO("%s:%d Failed to write data to file %s\n", __FUNCTION__, __LINE__, filePath);
         fclose(file);
         return EXIT_FAIL;
     }
 
-    DHCPMGR_LOG_DEBUG("%s:%d Writing DHCP.Client.%lu to file %s\n", __FUNCTION__, __LINE__, data->Cfg.InstanceNumber, filePath);
+    DHCPMGR_LOG_INFO("%s:%d Writing DHCP.Client.%lu to file %s\n", __FUNCTION__, __LINE__, data->Cfg.InstanceNumber, filePath);
 
     if (data->currentLease != NULL) 
     {
@@ -303,14 +303,14 @@ int DHCPMgr_storeDhcpv6Lease(PCOSA_DML_DHCPCV6_FULL data)
 
     if (!data) 
     {
-        DHCPMGR_LOG_DEBUG("%s:%d Invalid arguments\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_INFO("%s:%d Invalid arguments\n", __FUNCTION__, __LINE__);
         return EXIT_FAIL;
     }
 
     // Create the directory if it doesn't exist
     if (Create_Dir_ifnEx(TMP_DIR_PATH) != EXIT_SUCCESS) 
     {
-        DHCPMGR_LOG_DEBUG("%s:%d Failed to create directory\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_INFO("%s:%d Failed to create directory\n", __FUNCTION__, __LINE__);
         return EXIT_FAIL;
     }
 
@@ -319,15 +319,15 @@ int DHCPMgr_storeDhcpv6Lease(PCOSA_DML_DHCPCV6_FULL data)
 
     if (!file) 
     {
-        DHCPMGR_LOG_DEBUG("%s:%d Failed to open file %s for writing\n", __FUNCTION__, __LINE__, filePath);
+        DHCPMGR_LOG_INFO("%s:%d Failed to open file %s for writing\n", __FUNCTION__, __LINE__, filePath);
         return EXIT_FAIL;
     }
 
-    DHCPMGR_LOG_DEBUG("%s:%d Writing DHCP.Client.%lu to file %s\n",  __FUNCTION__, __LINE__, data->Cfg.InstanceNumber, filePath);
+    DHCPMGR_LOG_INFO("%s:%d Writing DHCP.Client.%lu to file %s\n",  __FUNCTION__, __LINE__, data->Cfg.InstanceNumber, filePath);
     
     if (fwrite(data, sizeof(COSA_DML_DHCPCV6_FULL), 1, file) != 1) 
     {
-        DHCPMGR_LOG_DEBUG("%s:%d Failed to write data to file %s\n", __FUNCTION__, __LINE__, filePath);
+        DHCPMGR_LOG_INFO("%s:%d Failed to write data to file %s\n", __FUNCTION__, __LINE__, filePath);
         fclose(file);
         return EXIT_FAIL;
     }
@@ -337,7 +337,7 @@ int DHCPMgr_storeDhcpv6Lease(PCOSA_DML_DHCPCV6_FULL data)
     {
         if(fwrite(data->currentLease, sizeof(DHCPv6_PLUGIN_MSG), 1, file) != 1) 
         {
-            DHCPMGR_LOG_DEBUG("%s:%d Failed to write current lease to file %s\n", __FUNCTION__, __LINE__, filePath);
+            DHCPMGR_LOG_INFO("%s:%d Failed to write current lease to file %s\n", __FUNCTION__, __LINE__, filePath);
             fclose(file);
             return EXIT_FAIL;
         }
@@ -349,7 +349,7 @@ int DHCPMgr_storeDhcpv6Lease(PCOSA_DML_DHCPCV6_FULL data)
 
 static int load_v6dhcp_leases(ULONG clientCount)
 {
-    DHCPMGR_LOG_DEBUG("%s:%d ------ IN\n", __FUNCTION__, __LINE__);
+    DHCPMGR_LOG_INFO("%s:%d ------ IN\n", __FUNCTION__, __LINE__);
     int ret = EXIT_FAIL;
     ULONG ulIndex;
     ULONG instanceNum;
@@ -360,7 +360,7 @@ static int load_v6dhcp_leases(ULONG clientCount)
     
     if (clientCount == 0) 
     {
-        DHCPMGR_LOG_DEBUG("%s:%d No DHCPv6 client entries found\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_INFO("%s:%d No DHCPv6 client entries found\n", __FUNCTION__, __LINE__);
         return EXIT_FAIL;
     }
 
@@ -379,11 +379,11 @@ static int load_v6dhcp_leases(ULONG clientCount)
             pDhcp6cxtLink          = ACCESS_COSA_CONTEXT_DHCPCV6_LINK_OBJECT(pSListEntry);
             pDhcp6c            = (PCOSA_DML_DHCPCV6_FULL)pDhcp6cxtLink->hContext;
         }
-        DHCPMGR_LOG_DEBUG("%s:%d Loading data for DHCPv6.Client.%lu\n", __FUNCTION__, __LINE__, instanceNum);
+        DHCPMGR_LOG_INFO("%s:%d Loading data for DHCPv6.Client.%lu\n", __FUNCTION__, __LINE__, instanceNum);
 
         if (!pDhcp6c) 
         {
-            DHCPMGR_LOG_DEBUG("%s : pDhcp6c is NULL\n", __FUNCTION__);
+            DHCPMGR_LOG_INFO("%s : pDhcp6c is NULL\n", __FUNCTION__);
             continue;
         }
 
@@ -399,7 +399,7 @@ static int load_v6dhcp_leases(ULONG clientCount)
             FILE *file = fopen(FilePattern, "rb");
             if (!file) 
             {
-                DHCPMGR_LOG_DEBUG("%s:%d Failed to open file %s , No file was store for DHCPv6.%lu.Client \n", __FUNCTION__, __LINE__, FilePattern, instanceNum);
+                DHCPMGR_LOG_INFO("%s:%d Failed to open file %s , No file was store for DHCPv6.%lu.Client \n", __FUNCTION__, __LINE__, FilePattern, instanceNum);
                 //If Unable to open file , then we need to check the sysevent to decide the status of the client and 
                 //enqueue restart if needed, as we are not able to fetch the stored pid to check if the client is running or not.
                 DhcpMgr_SetStatusAndEnqueueRestart(sysevRet, isEnabled, ifName,
@@ -413,7 +413,7 @@ static int load_v6dhcp_leases(ULONG clientCount)
 
             if (fread(&storedLease, sizeof(COSA_DML_DHCPCV6_FULL), 1, file) != 1) 
             {
-                DHCPMGR_LOG_DEBUG("%s:%d Failed to read data from file %s\n", __FUNCTION__, __LINE__, FilePattern);
+                DHCPMGR_LOG_INFO("%s:%d Failed to read data from file %s\n", __FUNCTION__, __LINE__, FilePattern);
                 fclose(file);
                 pthread_mutex_unlock(&pDhcp6c->mutex);
                 continue;
@@ -429,13 +429,13 @@ static int load_v6dhcp_leases(ULONG clientCount)
             if (sysevRet == 0 && !isEnabled && !pid_running)
             {
                 /*Sysevent says disabled and PID not running - instance is disabled*/
-                DHCPMGR_LOG_DEBUG("%s:%d Sysevent %s disabled and PID not running, skipping instance %lu\n", __FUNCTION__, __LINE__, sysevent_key, instanceNum);
+                DHCPMGR_LOG_INFO("%s:%d Sysevent %s disabled and PID not running, skipping instance %lu\n", __FUNCTION__, __LINE__, sysevent_key, instanceNum);
                 pDhcp6c->Info.Status = COSA_DML_DHCP_STATUS_Disabled;
             }
             else if (sysevRet == 0 && isEnabled && !pid_running)
             {
                 /*Sysevent says enabled but PID is not running - need restart*/
-                DHCPMGR_LOG_DEBUG("%s:%d PID %d is not running but sysevent %s is enabled, need restart\n", __FUNCTION__, __LINE__, storedLease.Info.ClientProcessId, sysevent_key);
+                DHCPMGR_LOG_INFO("%s:%d PID %d is not running but sysevent %s is enabled, need restart\n", __FUNCTION__, __LINE__, storedLease.Info.ClientProcessId, sysevent_key);
                 DhcpMgr_SetStatusAndEnqueueRestart(sysevRet, isEnabled, ifName,
                     pDhcp6c->Cfg.Interface, sizeof(pDhcp6c->Cfg.Interface),
                     &pDhcp6c->Cfg.bEnabled, &pDhcp6c->Info.Status, DML_DHCPV6);
@@ -444,7 +444,7 @@ static int load_v6dhcp_leases(ULONG clientCount)
             else if (sysevRet == 0 && !isEnabled && pid_running)
             {
                 /*PID is running but sysevent says disabled - mismatch, need restart*/
-                DHCPMGR_LOG_DEBUG("%s:%d PID %d is running but sysevent %s is disabled, need restart\n", __FUNCTION__, __LINE__, storedLease.Info.ClientProcessId, sysevent_key);
+                DHCPMGR_LOG_INFO("%s:%d PID %d is running but sysevent %s is disabled, need restart\n", __FUNCTION__, __LINE__, storedLease.Info.ClientProcessId, sysevent_key);
                 DhcpMgr_SetStatusAndEnqueueRestart(sysevRet, isEnabled, ifName,
                     pDhcp6c->Cfg.Interface, sizeof(pDhcp6c->Cfg.Interface),
                     &pDhcp6c->Cfg.bEnabled, &pDhcp6c->Info.Status, DML_DHCPV6);
@@ -452,7 +452,7 @@ static int load_v6dhcp_leases(ULONG clientCount)
             }
             else
             {
-                DHCPMGR_LOG_DEBUG("%s:%d PID %d is still running\n", __FUNCTION__, __LINE__, storedLease.Info.ClientProcessId);
+                DHCPMGR_LOG_INFO("%s:%d PID %d is still running\n", __FUNCTION__, __LINE__, storedLease.Info.ClientProcessId);
                 pDhcp6c->Info.Status = COSA_DML_DHCP_STATUS_Enabled;
                 pids[pid_count++] = storedLease.Info.ClientProcessId;
                 pDhcp6c->Info.ClientProcessId = storedLease.Info.ClientProcessId;
@@ -463,7 +463,7 @@ static int load_v6dhcp_leases(ULONG clientCount)
                 pDhcp6c->currentLease = (DHCPv6_PLUGIN_MSG *)malloc(sizeof(DHCPv6_PLUGIN_MSG));
                 if (!pDhcp6c->currentLease) 
                 {
-                    DHCPMGR_LOG_DEBUG("%s:%d Failed to allocate memory for currentLease!!!,currentLease is NULL\n",__FUNCTION__, __LINE__);
+                    DHCPMGR_LOG_INFO("%s:%d Failed to allocate memory for currentLease!!!,currentLease is NULL\n",__FUNCTION__, __LINE__);
                     pthread_mutex_unlock(&pDhcp6c->mutex);
                     fclose(file);
                     continue;
@@ -472,13 +472,13 @@ static int load_v6dhcp_leases(ULONG clientCount)
                 memset(pDhcp6c->currentLease, 0, sizeof(DHCPv6_PLUGIN_MSG));
                 if (fread(pDhcp6c->currentLease, sizeof(DHCPv6_PLUGIN_MSG), 1, file) != 1) 
                 {
-                    DHCPMGR_LOG_DEBUG("%s:%d Failed to read current lease from file %s,currentLease is NULL\n", __FUNCTION__, __LINE__, FilePattern);
+                    DHCPMGR_LOG_INFO("%s:%d Failed to read current lease from file %s,currentLease is NULL\n", __FUNCTION__, __LINE__, FilePattern);
                     free(pDhcp6c->currentLease);
                     pDhcp6c->currentLease = NULL;
                 }
                 else
                 {
-                    DHCPMGR_LOG_DEBUG("%s:%d Successfully read current lease from file %s\n", __FUNCTION__, __LINE__, FilePattern);
+                    DHCPMGR_LOG_INFO("%s:%d Successfully read current lease from file %s\n", __FUNCTION__, __LINE__, FilePattern);
                     pDhcp6c->currentLease->next = NULL;
                     ret=EXIT_SUCCESS;
                 }
@@ -490,7 +490,7 @@ static int load_v6dhcp_leases(ULONG clientCount)
         }
         else
         {
-            DHCPMGR_LOG_DEBUG("%s:%d File %s does not exist, No file was stored for DHCPv6.Client.%lu\n", __FUNCTION__, __LINE__, FilePattern, instanceNum);
+            DHCPMGR_LOG_INFO("%s:%d File %s does not exist, No file was stored for DHCPv6.Client.%lu\n", __FUNCTION__, __LINE__, FilePattern, instanceNum);
             //If Unable to open file , then we need to check the sysevent to decide the status of the client and 
             //enqueue restart if needed, as we are not able to fetch the stored pid to check if the client is running or not.
             DhcpMgr_SetStatusAndEnqueueRestart(sysevRet, isEnabled, ifName,
@@ -499,14 +499,14 @@ static int load_v6dhcp_leases(ULONG clientCount)
         }
         pthread_mutex_unlock(&pDhcp6c->mutex);
     }
-    DHCPMGR_LOG_DEBUG("%s:%d ------OUT\n", __FUNCTION__, __LINE__);
+    DHCPMGR_LOG_INFO("%s:%d ------OUT\n", __FUNCTION__, __LINE__);
     return ret;
 }
 
 
 static int load_v4dhcp_leases(ULONG clientCount) 
 {
-        DHCPMGR_LOG_DEBUG("%s:%d ------ IN\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_INFO("%s:%d ------ IN\n", __FUNCTION__, __LINE__);
         ULONG ulIndex;
         ULONG instanceNum;
         PSINGLE_LINK_ENTRY pSListEntry = NULL;
@@ -530,14 +530,14 @@ static int load_v4dhcp_leases(ULONG clientCount)
                 pDhcpCxtLink = ACCESS_COSA_CONTEXT_DHCPC_LINK_OBJECT(pSListEntry);
                 pDhcpc = (PCOSA_DML_DHCPC_FULL)pDhcpCxtLink->hContext;
             }
-            DHCPMGR_LOG_DEBUG("%s:%d Loading data for DHCPv4.Client.%lu\n", __FUNCTION__, __LINE__, instanceNum);
+            DHCPMGR_LOG_INFO("%s:%d Loading data for DHCPv4.Client.%lu\n", __FUNCTION__, __LINE__, instanceNum);
             snprintf(sysevent_key, sizeof(sysevent_key), "DHCPCV4_ENABLE_%lu", instanceNum);
 
             int sysevRet = Dhcp_get_Sysevent_InterfaceEnable(sysevent_key, ifName, sizeof(ifName), &isEnabled);
 
             if (!pDhcpc) 
             {
-                DHCPMGR_LOG_DEBUG("%s : pDhcpc is NULL\n", __FUNCTION__);
+                DHCPMGR_LOG_INFO("%s : pDhcpc is NULL\n", __FUNCTION__);
                 continue;
             }
 
@@ -555,7 +555,7 @@ static int load_v4dhcp_leases(ULONG clientCount)
                     DhcpMgr_SetStatusAndEnqueueRestart(sysevRet, isEnabled, ifName,
                         pDhcpc->Cfg.Interface, sizeof(pDhcpc->Cfg.Interface),
                         &pDhcpc->Cfg.bEnabled, &pDhcpc->Info.Status, DML_DHCPV4);
-                    DHCPMGR_LOG_DEBUG("%s:%d Failed to open file %s , No file was store for DHCPv4.%lu.Client \n", __FUNCTION__, __LINE__, FilePattern, instanceNum);
+                    DHCPMGR_LOG_INFO("%s:%d Failed to open file %s , No file was store for DHCPv4.%lu.Client \n", __FUNCTION__, __LINE__, FilePattern, instanceNum);
                     pthread_mutex_unlock(&pDhcpc->mutex);
                     continue;
                 }
@@ -564,7 +564,7 @@ static int load_v4dhcp_leases(ULONG clientCount)
 
                 if (fread(&storedLease, sizeof(COSA_DML_DHCPC_FULL), 1, file) != 1) 
                 {
-                    DHCPMGR_LOG_DEBUG("%s:%d Failed to read data from file %s\n", __FUNCTION__, __LINE__, FilePattern);
+                    DHCPMGR_LOG_INFO("%s:%d Failed to read data from file %s\n", __FUNCTION__, __LINE__, FilePattern);
                     fclose(file);
                     pthread_mutex_unlock(&pDhcpc->mutex);
                     continue;
@@ -578,13 +578,13 @@ static int load_v4dhcp_leases(ULONG clientCount)
 
                 if (sysevRet == 0 && !isEnabled && !pid_running)
                 {
-                    DHCPMGR_LOG_DEBUG("%s:%d Sysevent %s disabled and PID not running, skipping instance %lu\n", __FUNCTION__, __LINE__, sysevent_key, instanceNum);
+                    DHCPMGR_LOG_INFO("%s:%d Sysevent %s disabled and PID not running, skipping instance %lu\n", __FUNCTION__, __LINE__, sysevent_key, instanceNum);
                     pDhcpc->Info.Status = COSA_DML_DHCP_STATUS_Disabled;
                 }
                 else if (sysevRet == 0 && isEnabled && !pid_running)
                 {
                     /*Sysevent says enabled but PID is not running - need restart*/
-                    DHCPMGR_LOG_DEBUG("%s:%d PID %d is not running but sysevent %s is enabled, need restart\n", __FUNCTION__, __LINE__, storedLease.Info.ClientProcessId, sysevent_key);
+                    DHCPMGR_LOG_INFO("%s:%d PID %d is not running but sysevent %s is enabled, need restart\n", __FUNCTION__, __LINE__, storedLease.Info.ClientProcessId, sysevent_key);
                     DhcpMgr_SetStatusAndEnqueueRestart(sysevRet, isEnabled, ifName,
                         pDhcpc->Cfg.Interface, sizeof(pDhcpc->Cfg.Interface),
                         &pDhcpc->Cfg.bEnabled, &pDhcpc->Info.Status, DML_DHCPV4);
@@ -593,7 +593,7 @@ static int load_v4dhcp_leases(ULONG clientCount)
                 else if (sysevRet == 0 && !isEnabled && pid_running)
                 {
                     /*PID is running but sysevent says disabled - mismatch, need restart*/
-                    DHCPMGR_LOG_DEBUG("%s:%d PID %d is running but sysevent %s is disabled, need restart\n", __FUNCTION__, __LINE__, storedLease.Info.ClientProcessId, sysevent_key);
+                    DHCPMGR_LOG_INFO("%s:%d PID %d is running but sysevent %s is disabled, need restart\n", __FUNCTION__, __LINE__, storedLease.Info.ClientProcessId, sysevent_key);
                     DhcpMgr_SetStatusAndEnqueueRestart(sysevRet, isEnabled, ifName,
                         pDhcpc->Cfg.Interface, sizeof(pDhcpc->Cfg.Interface),
                         &pDhcpc->Cfg.bEnabled, &pDhcpc->Info.Status, DML_DHCPV4);
@@ -601,7 +601,7 @@ static int load_v4dhcp_leases(ULONG clientCount)
                 }
                 else 
                 {
-                    DHCPMGR_LOG_DEBUG("%s:%d PID %d is still running\n", __FUNCTION__, __LINE__, storedLease.Info.ClientProcessId);
+                    DHCPMGR_LOG_INFO("%s:%d PID %d is still running\n", __FUNCTION__, __LINE__, storedLease.Info.ClientProcessId);
                     pDhcpc->Info.Status = COSA_DML_DHCP_STATUS_Enabled;
                     pids[pid_count++] = storedLease.Info.ClientProcessId;
                     pDhcpc->Info.ClientProcessId = storedLease.Info.ClientProcessId;
@@ -613,7 +613,7 @@ static int load_v4dhcp_leases(ULONG clientCount)
                     pDhcpc->currentLease = (DHCPv4_PLUGIN_MSG *)malloc(sizeof(DHCPv4_PLUGIN_MSG));
                     if (!pDhcpc->currentLease)
                     {
-                        DHCPMGR_LOG_DEBUG("%s:%d Failed to allocate memory for currentLease,Current Lease not loaded\n",__FUNCTION__, __LINE__);
+                        DHCPMGR_LOG_INFO("%s:%d Failed to allocate memory for currentLease,Current Lease not loaded\n",__FUNCTION__, __LINE__);
                         fclose(file);
                         pthread_mutex_unlock(&pDhcpc->mutex);
                         continue;
@@ -622,13 +622,13 @@ static int load_v4dhcp_leases(ULONG clientCount)
                     memset(pDhcpc->currentLease, 0, sizeof(DHCPv4_PLUGIN_MSG));
                     if (fread(pDhcpc->currentLease, sizeof(DHCPv4_PLUGIN_MSG), 1, file) != 1)
                     {
-                        DHCPMGR_LOG_DEBUG("%s:%d Failed to read current lease from file %s, Current Lease not loaded\n",__FUNCTION__, __LINE__, FilePattern);
+                        DHCPMGR_LOG_INFO("%s:%d Failed to read current lease from file %s, Current Lease not loaded\n",__FUNCTION__, __LINE__, FilePattern);
                         free(pDhcpc->currentLease);
                         pDhcpc->currentLease = NULL;
                     }
                     else
                     {
-                        DHCPMGR_LOG_DEBUG("%s:%d Successfully read current lease from file %s\n",__FUNCTION__, __LINE__, FilePattern);
+                        DHCPMGR_LOG_INFO("%s:%d Successfully read current lease from file %s\n",__FUNCTION__, __LINE__, FilePattern);
                         pDhcpc->currentLease->next = NULL;
                     }
                     /*even if we fail to read current lease, we can continue as the dhcp client is running already and we don't need current lease right now.*/
@@ -644,11 +644,11 @@ static int load_v4dhcp_leases(ULONG clientCount)
                 DhcpMgr_SetStatusAndEnqueueRestart(sysevRet, isEnabled, ifName,
                     pDhcpc->Cfg.Interface, sizeof(pDhcpc->Cfg.Interface),
                     &pDhcpc->Cfg.bEnabled, &pDhcpc->Info.Status, DML_DHCPV4);
-                DHCPMGR_LOG_DEBUG("%s:%d File %s does not exist, No file was stored for DHCPv4.Client.%lu\n", __FUNCTION__, __LINE__, FilePattern, instanceNum);
+                DHCPMGR_LOG_INFO("%s:%d File %s does not exist, No file was stored for DHCPv4.Client.%lu\n", __FUNCTION__, __LINE__, FilePattern, instanceNum);
             }
             pthread_mutex_unlock(&pDhcpc->mutex);
         }
-        DHCPMGR_LOG_DEBUG("%s:%d ------OUT\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_INFO("%s:%d ------OUT\n", __FUNCTION__, __LINE__);
         return ret;
 }
 
@@ -674,17 +674,17 @@ static int DHCPMgr_loadDhcpLeases()
         ret = load_v4dhcp_leases(dhcpv4_client_count);
         if (ret == EXIT_FAIL)
         {
-            DHCPMGR_LOG_DEBUG("%s:%d Failed to load DHCP leases for v4\n", __FUNCTION__, __LINE__);
+            DHCPMGR_LOG_INFO("%s:%d Failed to load DHCP leases for v4\n", __FUNCTION__, __LINE__);
             retv4 = EXIT_FAIL;
         }
         else
         {
-            DHCPMGR_LOG_DEBUG("%s:%d Loaded DHCP leases for v4 successfully\n", __FUNCTION__, __LINE__);
+            DHCPMGR_LOG_INFO("%s:%d Loaded DHCP leases for v4 successfully\n", __FUNCTION__, __LINE__);
         }
     }
     else
     {
-        DHCPMGR_LOG_DEBUG("%s:%d No DHCPv4 client entries found for recovery\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_INFO("%s:%d No DHCPv4 client entries found for recovery\n", __FUNCTION__, __LINE__);
         retv4 = EXIT_FAIL;
     }
 
@@ -693,23 +693,23 @@ static int DHCPMgr_loadDhcpLeases()
         ret = load_v6dhcp_leases(dhcpv6_client_count);
         if (ret == EXIT_FAIL)
         {
-            DHCPMGR_LOG_DEBUG("%s:%d Failed to load DHCP leases for v6\n", __FUNCTION__, __LINE__);
+            DHCPMGR_LOG_INFO("%s:%d Failed to load DHCP leases for v6\n", __FUNCTION__, __LINE__);
             retv6 = EXIT_FAIL;
         }
         else
         {
-            DHCPMGR_LOG_DEBUG("%s:%d Loaded DHCP leases for v6 successfully\n", __FUNCTION__, __LINE__);
+            DHCPMGR_LOG_INFO("%s:%d Loaded DHCP leases for v6 successfully\n", __FUNCTION__, __LINE__);
         }
     }
     else
     {
-        DHCPMGR_LOG_DEBUG("%s:%d No DHCPv6 client entries found for recovery\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_INFO("%s:%d No DHCPv6 client entries found for recovery\n", __FUNCTION__, __LINE__);
         retv6 = EXIT_FAIL;
     }
 
     if (retv4 == EXIT_FAIL && retv6 == EXIT_FAIL) 
     {
-        DHCPMGR_LOG_DEBUG("%s:%d Failed to load DHCP leases for both v4 and v6\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_INFO("%s:%d Failed to load DHCP leases for both v4 and v6\n", __FUNCTION__, __LINE__);
         return EXIT_FAIL;
     }
    
@@ -733,11 +733,11 @@ void remove_dhcp_lease_file(int instanceNumber, int dhcpVersion)
         snprintf(filePath, sizeof(filePath), "/tmp/Dhcp_manager/dhcpLease_%d_v4", instanceNumber);
         if (remove(filePath) == 0) 
         {
-            DHCPMGR_LOG_DEBUG("%s:%d Successfully removed DHCPv4 lease file %s\n", __FUNCTION__, __LINE__, filePath);
+            DHCPMGR_LOG_INFO("%s:%d Successfully removed DHCPv4 lease file %s\n", __FUNCTION__, __LINE__, filePath);
         } 
         else 
         {
-            DHCPMGR_LOG_DEBUG("%s:%d Failed to remove DHCPv4 lease file %s\n", __FUNCTION__, __LINE__, filePath);
+            DHCPMGR_LOG_INFO("%s:%d Failed to remove DHCPv4 lease file %s\n", __FUNCTION__, __LINE__, filePath);
         }
     }
     else if (dhcpVersion == DHCP_v6) 
@@ -745,11 +745,11 @@ void remove_dhcp_lease_file(int instanceNumber, int dhcpVersion)
         snprintf(filePath, sizeof(filePath), "/tmp/Dhcp_manager/dhcpLease_%d_v6", instanceNumber);
         if (remove(filePath) == 0) 
         {
-            DHCPMGR_LOG_DEBUG("%s:%d Successfully removed DHCPv6 lease file %s\n", __FUNCTION__, __LINE__, filePath);
+            DHCPMGR_LOG_INFO("%s:%d Successfully removed DHCPv6 lease file %s\n", __FUNCTION__, __LINE__, filePath);
         } 
         else 
         {
-            DHCPMGR_LOG_DEBUG("%s:%d Failed to remove DHCPv6 lease file %s\n", __FUNCTION__, __LINE__, filePath);
+            DHCPMGR_LOG_INFO("%s:%d Failed to remove DHCPv6 lease file %s\n", __FUNCTION__, __LINE__, filePath);
         }
     }
 }

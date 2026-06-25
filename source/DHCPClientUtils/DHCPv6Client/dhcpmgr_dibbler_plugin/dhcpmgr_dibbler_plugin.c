@@ -74,9 +74,8 @@
 #undef DHCPMGR_LOG_INFO
 #undef DHCPMGR_LOG_ERROR
 #undef DHCPMGR_LOG_WARNING
-#define DHCPMGR_LOG_INFO(fmt, ...)     PLUGIN_DBG_PRINT("INFO", fmt, ##__VA_ARGS__)
-#define DHCPMGR_LOG_ERROR(fmt, ...)    PLUGIN_DBG_PRINT("ERROR", fmt, ##__VA_ARGS__)
-#define DHCPMGR_LOG_WARNING(fmt, ...)  PLUGIN_DBG_PRINT("WARN", fmt, ##__VA_ARGS__)
+#undef DHCPMGR_LOG_INFO
+#define DHCPMGR_LOG_INFO(fmt, ...)    PLUGIN_DBG_PRINT("DEBUG", fmt, ##__VA_ARGS__)
 
 static int get_and_fill_env_data_dhcp6(DHCPv6_PLUGIN_MSG *dhcpv6_data, char *input_option)
 {
@@ -95,7 +94,7 @@ static int get_and_fill_env_data_dhcp6(DHCPv6_PLUGIN_MSG *dhcpv6_data, char *inp
     }
     else
     {
-        DHCPMGR_LOG_ERROR("[%s-%d] Interface name is missing\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_INFO("[%s-%d] Interface name is missing\n", __FUNCTION__, __LINE__);
     }
 
     /** DHCP Lease state */
@@ -109,7 +108,7 @@ static int get_and_fill_env_data_dhcp6(DHCPv6_PLUGIN_MSG *dhcpv6_data, char *inp
     }
     else
     {
-        DHCPMGR_LOG_ERROR("[%s-%d] Unknown DHCPv6 state: %s\n", __FUNCTION__, __LINE__, input_option);
+        DHCPMGR_LOG_INFO("[%s-%d] Unknown DHCPv6 state: %s\n", __FUNCTION__, __LINE__, input_option);
     }
     
     /** IA_NA (Non-temporary address) */
@@ -272,7 +271,7 @@ static  int send_dhcp6_data_to_leaseMonitor (DHCPv6_PLUGIN_MSG *dhcpv6_data)
     sock = nn_socket(AF_SP, NN_PUSH);
     if (sock < 0)
     {
-        DHCPMGR_LOG_ERROR("[%s-%d] Failed to create the socket , error = [%d][%s]\n", __FUNCTION__, __LINE__, errno, strerror(errno));
+        DHCPMGR_LOG_INFO("[%s-%d] Failed to create the socket , error = [%d][%s]\n", __FUNCTION__, __LINE__, errno, strerror(errno));
         return -1;
     }
 
@@ -281,7 +280,7 @@ static  int send_dhcp6_data_to_leaseMonitor (DHCPv6_PLUGIN_MSG *dhcpv6_data)
     conn = nn_connect(sock, DHCP_MANAGER_ADDR);
     if (conn < 0)
     {
-        DHCPMGR_LOG_ERROR("[%s-%d] Failed to connect to the dhcpmanager [%s], error= [%d][%s] \n", __FUNCTION__, __LINE__, DHCP_MANAGER_ADDR,errno, strerror(errno));
+        DHCPMGR_LOG_INFO("[%s-%d] Failed to connect to the dhcpmanager [%s], error= [%d][%s] \n", __FUNCTION__, __LINE__, DHCP_MANAGER_ADDR,errno, strerror(errno));
         nn_close(sock);
         return -1;
     }
@@ -294,7 +293,7 @@ static  int send_dhcp6_data_to_leaseMonitor (DHCPv6_PLUGIN_MSG *dhcpv6_data)
         if (bytes < 0)
         {
             sleep(1);
-            DHCPMGR_LOG_WARNING("[%s-%d] Sending to dhcpmanager (attempt %d/%d) error=[%d][%s], retrying...\n", __FUNCTION__, __LINE__, i+1, MAX_SEND_THRESHOLD, errno, strerror(errno));
+            DHCPMGR_LOG_INFO("[%s-%d] Sending to dhcpmanager (attempt %d/%d) error=[%d][%s], retrying...\n", __FUNCTION__, __LINE__, i+1, MAX_SEND_THRESHOLD, errno, strerror(errno));
         }
         else
             break;
@@ -303,7 +302,7 @@ static  int send_dhcp6_data_to_leaseMonitor (DHCPv6_PLUGIN_MSG *dhcpv6_data)
     if (bytes > 0)
         DHCPMGR_LOG_INFO("[%s-%d] Successfully sent %d bytes to dhcpmanager \n", __FUNCTION__, __LINE__, bytes);
     else
-        DHCPMGR_LOG_ERROR("[%s-%d] Failed to send data after %d attempts \n", __FUNCTION__, __LINE__, MAX_SEND_THRESHOLD);
+        DHCPMGR_LOG_INFO("[%s-%d] Failed to send data after %d attempts \n", __FUNCTION__, __LINE__, MAX_SEND_THRESHOLD);
     nn_close(sock);
     return (bytes > 0) ? 0 : -1;
 }
@@ -312,7 +311,7 @@ static int handle_dibbler_event(char *input_option)
 {
     if (input_option == NULL)
     {
-        DHCPMGR_LOG_ERROR("[%s][%d] Invalid argument error!!! \n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_INFO("[%s][%d] Invalid argument error!!! \n", __FUNCTION__, __LINE__);
         return -1;
     }
 
@@ -325,7 +324,7 @@ static int handle_dibbler_event(char *input_option)
     ret = get_and_fill_env_data_dhcp6(&data, input_option);
     if (ret != 0)
     {
-        DHCPMGR_LOG_ERROR("[%s][%d] Failed to get DHCPv6 data from environment \n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_INFO("[%s][%d] Failed to get DHCPv6 data from environment \n", __FUNCTION__, __LINE__);
         return -1;
     }
 
@@ -371,7 +370,7 @@ static int handle_dibbler_event(char *input_option)
     if (data.isExpired == false && data.ia_pd.assigned == true &&
         data.ia_pd.PreferedLifeTime == 0 && data.ia_pd.ValidLifeTime == 0)
     {
-        DHCPMGR_LOG_WARNING("[%s][%d] Dropping ADD/UPDATE for prefix with zero lifetimes "  
+        DHCPMGR_LOG_INFO("[%s][%d] Dropping ADD/UPDATE for prefix with zero lifetimes "  
                             "(transient expired prefix from dibbler)\n",  
                             __FUNCTION__, __LINE__);
         return 0;
@@ -381,7 +380,7 @@ static int handle_dibbler_event(char *input_option)
     ret = send_dhcp6_data_to_leaseMonitor(&data);
     if (ret != 0)
     {
-        DHCPMGR_LOG_ERROR("[%s][%d] Failed to send DHCPv6 data to leaseMonitor \n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_INFO("[%s][%d] Failed to send DHCPv6 data to leaseMonitor \n", __FUNCTION__, __LINE__);
         return -1;
     }
 

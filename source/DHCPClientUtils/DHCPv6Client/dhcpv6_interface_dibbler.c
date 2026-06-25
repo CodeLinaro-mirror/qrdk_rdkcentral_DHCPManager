@@ -45,7 +45,7 @@ static int copy_file (char * src, char * dst)
 {
     if ((src == NULL) || (dst == NULL))
     {
-        DHCPMGR_LOG_ERROR("%s %d: Invalid args..\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_INFO("%s %d: Invalid args..\n", __FUNCTION__, __LINE__);
         return FAILURE;
     }
 
@@ -55,7 +55,7 @@ static int copy_file (char * src, char * dst)
     fout = fopen(dst, "wb");
     if (fout == NULL)
     {
-        DHCPMGR_LOG_ERROR("%s %d: failed to open file %s\n", __FUNCTION__, __LINE__, dst);
+        DHCPMGR_LOG_INFO("%s %d: failed to open file %s\n", __FUNCTION__, __LINE__, dst);
         return FAILURE;
     }
     
@@ -63,7 +63,7 @@ static int copy_file (char * src, char * dst)
 
     if (fin == NULL)
     {
-        DHCPMGR_LOG_ERROR("%s %d: failed to open file %s\n", __FUNCTION__, __LINE__, src);
+        DHCPMGR_LOG_INFO("%s %d: failed to open file %s\n", __FUNCTION__, __LINE__, src);
         fclose (fout);
         return FAILURE;
     }
@@ -105,13 +105,13 @@ static int dibbler_get_req_options(FILE * fout,  dhcp_opt_list * req_opt_list)
 {
     if(fout == NULL)
     {
-        DHCPMGR_LOG_ERROR("%s %d: Invalid file pointer.\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_INFO("%s %d: Invalid file pointer.\n", __FUNCTION__, __LINE__);
         return -1;
     }
 
     if(req_opt_list == NULL)
     {
-        DHCPMGR_LOG_WARNING("%s %d: req_opt_list empty.\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_INFO("%s %d: req_opt_list empty.\n", __FUNCTION__, __LINE__);
         return 0;
     }
 
@@ -186,13 +186,13 @@ static int dibbler_get_send_options(FILE * fout,  dhcp_opt_list * send_opt_list)
 {
     if(fout == NULL)
     {
-        DHCPMGR_LOG_ERROR("%s %d: Invalid file pointer.\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_INFO("%s %d: Invalid file pointer.\n", __FUNCTION__, __LINE__);
         return -1;
     }
 
     if(send_opt_list == NULL)
     {
-        DHCPMGR_LOG_WARNING("%s %d: send_opt_list empty.\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_INFO("%s %d: send_opt_list empty.\n", __FUNCTION__, __LINE__);
         return 0;
     }
 
@@ -317,14 +317,14 @@ static int dibbler_client_config_generator(char *config_path, char *interfaceNam
 
     if ((dibbler_get_req_options(fout, req_opt_list)) != SUCCESS)
     {
-        DHCPMGR_LOG_ERROR("%s %d: Unable to get DHCPv6 REQ OPT.\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_INFO("%s %d: Unable to get DHCPv6 REQ OPT.\n", __FUNCTION__, __LINE__);
         return FAILURE;
     }
 
     DHCPMGR_LOG_INFO("%s %d: Constructing SEND option args to dibbler.\n", __FUNCTION__, __LINE__);
     if ((dibbler_get_send_options(fout, send_opt_list) != SUCCESS))
     {
-        DHCPMGR_LOG_ERROR("%s %d: Unable to get DHCPv6 SEND OPT.\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_INFO("%s %d: Unable to get DHCPv6 SEND OPT.\n", __FUNCTION__, __LINE__);
         return FAILURE;
     }
 
@@ -347,20 +347,20 @@ static int dibbler_client_config_generator(char *config_path, char *interfaceNam
     int ret = snprintf(file_path, sizeof(file_path), "%s/%s", config_path, DIBBLER_CLIENT_CONFIG_FILE);
     if (ret <= 0)
     {
-        DHCPMGR_LOG_ERROR("%s %d: unable to contruct filepath\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_INFO("%s %d: unable to contruct filepath\n", __FUNCTION__, __LINE__);
         return FAILURE;
     }
 
     if (copy_file (DIBBLER_TMP_CONFIG_FILE, file_path) != SUCCESS)
     {
-        DHCPMGR_LOG_ERROR("%s %d: unable to copy %s to %s due to %s\n", __FUNCTION__, __LINE__, DIBBLER_TEMPLATE_CONFIG_FILE, file_path, strerror(errno));
+        DHCPMGR_LOG_INFO("%s %d: unable to copy %s to %s due to %s\n", __FUNCTION__, __LINE__, DIBBLER_TEMPLATE_CONFIG_FILE, file_path, strerror(errno));
         return FAILURE;
     }
     
     // dibber-client uses default config to generate DUID, so linking default file to tmp file
 
     if (access(DIBBLER_DEFAULT_CONFIG_FILE, F_OK) == 0) {
-        DHCPMGR_LOG_WARNING("%s %d: link already exists, continuing\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_INFO("%s %d: link already exists, continuing\n", __FUNCTION__, __LINE__);
         return SUCCESS;
     } 
     else 
@@ -370,7 +370,7 @@ static int dibbler_client_config_generator(char *config_path, char *interfaceNam
             DHCPMGR_LOG_INFO("%s %d: link created successfully\n", __FUNCTION__, __LINE__);
             return SUCCESS;
         } else {
-            DHCPMGR_LOG_ERROR("%s %d: unable to create link: %s\n", __FUNCTION__, __LINE__, strerror(errno));
+            DHCPMGR_LOG_INFO("%s %d: unable to create link: %s\n", __FUNCTION__, __LINE__, strerror(errno));
             return FAILURE;
         }
     }
@@ -396,7 +396,7 @@ pid_t start_dhcpv6_client(char *interfaceName, dhcp_opt_list *req_opt_list, dhcp
     pid_t dibbler_pid = 0;
     if ((interfaceName == NULL))
     {
-        DHCPMGR_LOG_ERROR("%s %d: Invalid args..\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_INFO("%s %d: Invalid args..\n", __FUNCTION__, __LINE__);
         return -1;
     }
 
@@ -406,7 +406,7 @@ pid_t start_dhcpv6_client(char *interfaceName, dhcp_opt_list *req_opt_list, dhcp
     dibbler_pid = get_process_pid(DIBBLER_CLIENT, interfaceName, false);
     if (dibbler_pid > 0)
     {
-        DHCPMGR_LOG_ERROR("%s %d: another instance of %s running on %s \n", __FUNCTION__, __LINE__, DIBBLER_CLIENT, interfaceName);
+        DHCPMGR_LOG_INFO("%s %d: another instance of %s running on %s \n", __FUNCTION__, __LINE__, DIBBLER_CLIENT, interfaceName);
         return dibbler_pid;
     }
 
@@ -424,7 +424,7 @@ pid_t start_dhcpv6_client(char *interfaceName, dhcp_opt_list *req_opt_list, dhcp
     
     if (dibbler_client_config_generator(config_path,interfaceName, req_opt_list, send_opt_list) != SUCCESS)
     {
-        DHCPMGR_LOG_ERROR("%s %d: Unable to create dibbler conf.\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_INFO("%s %d: Unable to create dibbler conf.\n", __FUNCTION__, __LINE__);
         return FAILURE;
 
     }
@@ -437,7 +437,7 @@ pid_t start_dhcpv6_client(char *interfaceName, dhcp_opt_list *req_opt_list, dhcp
     pid_t ret = start_exe2(DIBBLER_CLIENT_PATH, cmd_args);
     if (ret <= 0)
     {
-        DHCPMGR_LOG_ERROR("%s %d: unable to start dibbler-client %d.\n", __FUNCTION__, __LINE__, ret);
+        DHCPMGR_LOG_INFO("%s %d: unable to start dibbler-client %d.\n", __FUNCTION__, __LINE__, ret);
         t2_event_d("DHCPMGR_ERROR_Dhcpv6ClientStartFail", 1);
         return FAILURE;
     }
@@ -445,7 +445,7 @@ pid_t start_dhcpv6_client(char *interfaceName, dhcp_opt_list *req_opt_list, dhcp
     //dibbler-client will demonize a child thread during start, so we need to collect the exited main thread
     if (collect_waiting_process(ret, DIBBLER_CLIENT_TERMINATE_TIMEOUT) != SUCCESS)
     {
-        DHCPMGR_LOG_WARNING("%s %d: unable to collect pid for %d.\n", __FUNCTION__, __LINE__, ret);
+        DHCPMGR_LOG_INFO("%s %d: unable to collect pid for %d.\n", __FUNCTION__, __LINE__, ret);
     }
     struct timespec ts = {3, 0};
     nanosleep(&ts, NULL);
@@ -506,13 +506,13 @@ int send_dhcpv6_release(pid_t processID) {
 
     if (processID <= 0)
     {
-        DHCPMGR_LOG_ERROR("%s %d: unable to get pid of dibbler\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_INFO("%s %d: unable to get pid of dibbler\n", __FUNCTION__, __LINE__);
         return FAILURE;
     }
 
     if (signal_process(processID, SIGTERM) != RETURN_OK)
     {
-        DHCPMGR_LOG_ERROR("%s %d: unable to send signal to pid %d\n", __FUNCTION__, __LINE__, processID);
+        DHCPMGR_LOG_INFO("%s %d: unable to send signal to pid %d\n", __FUNCTION__, __LINE__, processID);
          return FAILURE;
     }
     struct timespec ts = {2, 0};

@@ -31,9 +31,8 @@
 #undef DHCPMGR_LOG_INFO
 #undef DHCPMGR_LOG_ERROR
 #undef DHCPMGR_LOG_WARNING
-#define DHCPMGR_LOG_INFO(fmt, ...)     PLUGIN_DBG_PRINT("INFO", fmt, ##__VA_ARGS__)
-#define DHCPMGR_LOG_ERROR(fmt, ...)    PLUGIN_DBG_PRINT("ERROR", fmt, ##__VA_ARGS__)
-#define DHCPMGR_LOG_WARNING(fmt, ...)  PLUGIN_DBG_PRINT("WARN", fmt, ##__VA_ARGS__)
+#undef DHCPMGR_LOG_INFO
+#define DHCPMGR_LOG_INFO(fmt, ...)    PLUGIN_DBG_PRINT("DEBUG", fmt, ##__VA_ARGS__)
 
 typedef struct udhcpc_env_t
 {
@@ -128,7 +127,7 @@ static int get_and_fill_env_data (DHCPv4_PLUGIN_MSG *dhcpv4_data, udhcpc_env_t* 
     }
     else
     {
-        DHCPMGR_LOG_ERROR("[%s-%d] Server id is not available in dhcp ack \n",  __FUNCTION__,__LINE__);
+        DHCPMGR_LOG_INFO("[%s-%d] Server id is not available in dhcp ack \n",  __FUNCTION__,__LINE__);
     }
 
     /** DHCP State */
@@ -138,7 +137,7 @@ static int get_and_fill_env_data (DHCPv4_PLUGIN_MSG *dhcpv4_data, udhcpc_env_t* 
     }
     else
     {
-        DHCPMGR_LOG_ERROR("[%s-%d] dhcp state is not available in dhcp ack \n",  __FUNCTION__,__LINE__);
+        DHCPMGR_LOG_INFO("[%s-%d] dhcp state is not available in dhcp ack \n",  __FUNCTION__,__LINE__);
     }
 
     if ( (strcmp(pinfo->input_option, "bound") == 0) || (strcmp(pinfo->input_option, "renew") == 0))
@@ -152,7 +151,7 @@ static int get_and_fill_env_data (DHCPv4_PLUGIN_MSG *dhcpv4_data, udhcpc_env_t* 
         }
         else
         {
-            DHCPMGR_LOG_ERROR("[%s-%d] IP address is not available \n", __FUNCTION__,__LINE__);
+            DHCPMGR_LOG_INFO("[%s-%d] IP address is not available \n", __FUNCTION__,__LINE__);
         }
 
         /** Subnet mask. */
@@ -162,7 +161,7 @@ static int get_and_fill_env_data (DHCPv4_PLUGIN_MSG *dhcpv4_data, udhcpc_env_t* 
         }
         else
         {
-            DHCPMGR_LOG_ERROR("[%s-%d] Subnet is not available \n", __FUNCTION__,__LINE__);
+            DHCPMGR_LOG_INFO("[%s-%d] Subnet is not available \n", __FUNCTION__,__LINE__);
         }
 
         /** Gateway. */
@@ -172,7 +171,7 @@ static int get_and_fill_env_data (DHCPv4_PLUGIN_MSG *dhcpv4_data, udhcpc_env_t* 
         }
         else
         {
-            DHCPMGR_LOG_ERROR("[%s-%d] GW address is not available in dhcp ack \n", __FUNCTION__,__LINE__);
+            DHCPMGR_LOG_INFO("[%s-%d] GW address is not available in dhcp ack \n", __FUNCTION__,__LINE__);
         }
 
 
@@ -199,7 +198,7 @@ static int get_and_fill_env_data (DHCPv4_PLUGIN_MSG *dhcpv4_data, udhcpc_env_t* 
         }
         else
         {
-            DHCPMGR_LOG_ERROR("[%s-%d] DNS server is not available in dhcp ack \n",  __FUNCTION__,__LINE__);
+            DHCPMGR_LOG_INFO("[%s-%d] DNS server is not available in dhcp ack \n",  __FUNCTION__,__LINE__);
         }
 
         /** Lease time. */
@@ -209,7 +208,7 @@ static int get_and_fill_env_data (DHCPv4_PLUGIN_MSG *dhcpv4_data, udhcpc_env_t* 
         }
         else
         {
-            DHCPMGR_LOG_ERROR("[%s-%d] Lease time is not available in dhcp ack \n",  __FUNCTION__,__LINE__);
+            DHCPMGR_LOG_INFO("[%s-%d] Lease time is not available in dhcp ack \n",  __FUNCTION__,__LINE__);
         }
 
         /** Renewel time. */
@@ -223,7 +222,7 @@ static int get_and_fill_env_data (DHCPv4_PLUGIN_MSG *dhcpv4_data, udhcpc_env_t* 
         }
         else
         {
-            DHCPMGR_LOG_ERROR("[%s-%d] Renewl time is not available in dhcp ack \n",  __FUNCTION__,__LINE__);
+            DHCPMGR_LOG_INFO("[%s-%d] Renewl time is not available in dhcp ack \n",  __FUNCTION__,__LINE__);
         }
 
         /** Rebinding time. */
@@ -237,7 +236,7 @@ static int get_and_fill_env_data (DHCPv4_PLUGIN_MSG *dhcpv4_data, udhcpc_env_t* 
         }
         else
         {
-            DHCPMGR_LOG_ERROR("[%s-%d] Rebinding time is not available in dhcp ack \n",  __FUNCTION__,__LINE__);
+            DHCPMGR_LOG_INFO("[%s-%d] Rebinding time is not available in dhcp ack \n",  __FUNCTION__,__LINE__);
         }
 
         /** TimeZone. */
@@ -247,7 +246,7 @@ static int get_and_fill_env_data (DHCPv4_PLUGIN_MSG *dhcpv4_data, udhcpc_env_t* 
         }
         else
         {
-            DHCPMGR_LOG_ERROR("[%s-%d] Timezone is not available in dhcp ack \n",  __FUNCTION__,__LINE__);
+            DHCPMGR_LOG_INFO("[%s-%d] Timezone is not available in dhcp ack \n",  __FUNCTION__,__LINE__);
         }
 
         /** Timeoffset. */
@@ -258,7 +257,7 @@ static int get_and_fill_env_data (DHCPv4_PLUGIN_MSG *dhcpv4_data, udhcpc_env_t* 
         }
         else
         {
-            DHCPMGR_LOG_ERROR("[%s-%d] Timeoffset is not available in dhcp ack \n",  __FUNCTION__,__LINE__);
+            DHCPMGR_LOG_INFO("[%s-%d] Timeoffset is not available in dhcp ack \n",  __FUNCTION__,__LINE__);
         }
         /* opt122 and opt125 for MTA */
         if ((env = getenv(DHCP_MTA_IPV4)) != NULL)
@@ -266,38 +265,38 @@ static int get_and_fill_env_data (DHCPv4_PLUGIN_MSG *dhcpv4_data, udhcpc_env_t* 
             strncpy(dhcpv4_data->mtaOption.option_122, env, sizeof(dhcpv4_data->mtaOption.option_122));
             if ('\0' == dhcpv4_data->mtaOption.option_122[0])
             {
-                DHCPMGR_LOG_ERROR("[%s-%d] Failed to copy data for MTA IPv4 option \n", __FUNCTION__, __LINE__);
+                DHCPMGR_LOG_INFO("[%s-%d] Failed to copy data for MTA IPv4 option \n", __FUNCTION__, __LINE__);
             }
             dhcpv4_data->mtaOption.Assigned122 = 1;
         }
         else
         {
-            DHCPMGR_LOG_WARNING("[%s-%d] MTA DHCP option 122 (IPv4 option) is not available in dhcp ack \n",  __FUNCTION__,__LINE__);
+            DHCPMGR_LOG_INFO("[%s-%d] MTA DHCP option 122 (IPv4 option) is not available in dhcp ack \n",  __FUNCTION__,__LINE__);
         }
         if ((env = getenv(DHCP_MTA_IPV6)) != NULL)
         {
             strncpy(dhcpv4_data->mtaOption.option_125, env, sizeof(dhcpv4_data->mtaOption.option_125));
             if ('\0' == dhcpv4_data->mtaOption.option_125[0])
             {
-                DHCPMGR_LOG_ERROR("[%s-%d] Failed to copy data for MTA IPv6 option \n", __FUNCTION__, __LINE__);
+                DHCPMGR_LOG_INFO("[%s-%d] Failed to copy data for MTA IPv6 option \n", __FUNCTION__, __LINE__);
             }
             dhcpv4_data->mtaOption.Assigned125 = 1;
         }
         else
         {
-            DHCPMGR_LOG_WARNING("[%s-%d] MTA DHCP option 125 (IPv6 option) is not available in dhcp ack \n",  __FUNCTION__,__LINE__);
+            DHCPMGR_LOG_INFO("[%s-%d] MTA DHCP option 125 (IPv6 option) is not available in dhcp ack \n",  __FUNCTION__,__LINE__);
         }
         if ((env = getenv(DHCP_BOOT_FILE)) != NULL)
         {
             strncpy(dhcpv4_data->mtaOption.cOption67, env, sizeof(dhcpv4_data->mtaOption.cOption67));
             if ('\0' == dhcpv4_data->mtaOption.cOption67[0])
             {
-                DHCPMGR_LOG_ERROR("[%s-%d] Failed to copy data for MTA option 67 \n", __FUNCTION__, __LINE__);
+                DHCPMGR_LOG_INFO("[%s-%d] Failed to copy data for MTA option 67 \n", __FUNCTION__, __LINE__);
             }
         }
         else
         {
-            DHCPMGR_LOG_WARNING("[%s-%d] MTA bootfile (option67) is not available in dhcp ack \n",  __FUNCTION__,__LINE__);
+            DHCPMGR_LOG_INFO("[%s-%d] MTA bootfile (option67) is not available in dhcp ack \n",  __FUNCTION__,__LINE__);
         }
         /** TFTP server address */
         if ((env = getenv (DHCP_TFTP_SERVER)) != NULL)
@@ -305,36 +304,36 @@ static int get_and_fill_env_data (DHCPv4_PLUGIN_MSG *dhcpv4_data, udhcpc_env_t* 
             strncpy(dhcpv4_data->cTftpServer, env, sizeof(dhcpv4_data->cTftpServer));
             if ('\0' == dhcpv4_data->cTftpServer[0])
             {
-                DHCPMGR_LOG_ERROR("[%s-%d] Failed to copy data for TFTP server address \n", __FUNCTION__, __LINE__);
+                DHCPMGR_LOG_INFO("[%s-%d] Failed to copy data for TFTP server address \n", __FUNCTION__, __LINE__);
             }
         }
         else
         {
-            DHCPMGR_LOG_WARNING("[%s-%d] TFTP server address is not available in dhcp ack \n",  __FUNCTION__,__LINE__);
+            DHCPMGR_LOG_INFO("[%s-%d] TFTP server address is not available in dhcp ack \n",  __FUNCTION__,__LINE__);
         }
         if ((env = getenv(DHCP_HOST_NAME)) != NULL)
         {
             strncpy(dhcpv4_data->cHostName, env, sizeof(dhcpv4_data->cHostName));
             if ('\0' == dhcpv4_data->cHostName[0])
             {
-                DHCPMGR_LOG_ERROR("[%s-%d] Failed to copy data for HostName \n", __FUNCTION__, __LINE__);
+                DHCPMGR_LOG_INFO("[%s-%d] Failed to copy data for HostName \n", __FUNCTION__, __LINE__);
             }
         }
         else
         {
-            DHCPMGR_LOG_WARNING("[%s-%d] HostName is not available in dhcp ack \n",  __FUNCTION__,__LINE__);
+            DHCPMGR_LOG_INFO("[%s-%d] HostName is not available in dhcp ack \n",  __FUNCTION__,__LINE__);
         }
         if((env = getenv(DHCP_DOMAIN_NAME)) != NULL)
         {
             strncpy(dhcpv4_data->cDomainName, env, sizeof(dhcpv4_data->cDomainName));
             if ('\0' == dhcpv4_data->cDomainName[0])
             {
-                DHCPMGR_LOG_ERROR("[%s-%d] Failed to copy data for DomainName \n", __FUNCTION__, __LINE__);
+                DHCPMGR_LOG_INFO("[%s-%d] Failed to copy data for DomainName \n", __FUNCTION__, __LINE__);
             }
         }
         else
         {
-            DHCPMGR_LOG_WARNING("[%s-%d] DomainName is not available in dhcp ack \n",  __FUNCTION__,__LINE__);
+            DHCPMGR_LOG_INFO("[%s-%d] DomainName is not available in dhcp ack \n",  __FUNCTION__,__LINE__);
         }
         /** UpstreamCurrRate. **/
         if ((env = getenv(DHCP_UPSTREAMRATE)) != NULL)
@@ -343,7 +342,7 @@ static int get_and_fill_env_data (DHCPv4_PLUGIN_MSG *dhcpv4_data, udhcpc_env_t* 
         }
         else
         {
-            DHCPMGR_LOG_ERROR("[%s-%d] Upstreamrate is not available in dhcp ack \n",  __FUNCTION__,__LINE__);
+            DHCPMGR_LOG_INFO("[%s-%d] Upstreamrate is not available in dhcp ack \n",  __FUNCTION__,__LINE__);
         }
 
         /** DownsteamCurRrate */
@@ -353,7 +352,7 @@ static int get_and_fill_env_data (DHCPv4_PLUGIN_MSG *dhcpv4_data, udhcpc_env_t* 
         }
         else
         {
-            DHCPMGR_LOG_ERROR("[%s-%d] Upstreamrate is not available in dhcp ack \n",  __FUNCTION__,__LINE__);
+            DHCPMGR_LOG_INFO("[%s-%d] Upstreamrate is not available in dhcp ack \n",  __FUNCTION__,__LINE__);
         }
     }
     else if ((strcmp(pinfo->input_option, "leasefail") == 0))
@@ -403,7 +402,7 @@ static int send_dhcp4_data_to_leaseMonitor (DHCPv4_PLUGIN_MSG *dhcpv4_data)
     sock = nn_socket(AF_SP, NN_PUSH);
     if (sock < 0)
     {
-        DHCPMGR_LOG_ERROR("[%s-%d] Failed to create the socket , error = [%d][%s]\n", __FUNCTION__, __LINE__, errno, strerror(errno));
+        DHCPMGR_LOG_INFO("[%s-%d] Failed to create the socket , error = [%d][%s]\n", __FUNCTION__, __LINE__, errno, strerror(errno));
         return -1;
     }
 
@@ -412,7 +411,7 @@ static int send_dhcp4_data_to_leaseMonitor (DHCPv4_PLUGIN_MSG *dhcpv4_data)
     conn = nn_connect(sock, DHCP_MANAGER_ADDR);
     if (conn < 0)
     {
-        DHCPMGR_LOG_ERROR("[%s-%d] Failed to connect to the dhcpmanager [%s], error= [%d][%s] \n", __FUNCTION__, __LINE__, DHCP_MANAGER_ADDR,errno, strerror(errno));
+        DHCPMGR_LOG_INFO("[%s-%d] Failed to connect to the dhcpmanager [%s], error= [%d][%s] \n", __FUNCTION__, __LINE__, DHCP_MANAGER_ADDR,errno, strerror(errno));
         nn_close(sock);
         return -1;
     }
@@ -425,7 +424,7 @@ static int send_dhcp4_data_to_leaseMonitor (DHCPv4_PLUGIN_MSG *dhcpv4_data)
         if (bytes < 0)
         {
             sleep(1);
-            DHCPMGR_LOG_WARNING("[%s-%d] Sending to dhcpmanager (attempt %d/%d) error=[%d][%s], retrying...\n", __FUNCTION__, __LINE__, i+1, MAX_SEND_THRESHOLD, errno, strerror(errno));
+            DHCPMGR_LOG_INFO("[%s-%d] Sending to dhcpmanager (attempt %d/%d) error=[%d][%s], retrying...\n", __FUNCTION__, __LINE__, i+1, MAX_SEND_THRESHOLD, errno, strerror(errno));
         }
         else
             break;
@@ -434,7 +433,7 @@ static int send_dhcp4_data_to_leaseMonitor (DHCPv4_PLUGIN_MSG *dhcpv4_data)
     if (bytes > 0)
         DHCPMGR_LOG_INFO("[%s-%d] Successfully sent %d bytes to dhcpmanager \n", __FUNCTION__, __LINE__, bytes);
     else
-        DHCPMGR_LOG_ERROR("[%s-%d] Failed to send data after %d attempts \n", __FUNCTION__, __LINE__, MAX_SEND_THRESHOLD);
+        DHCPMGR_LOG_INFO("[%s-%d] Failed to send data after %d attempts \n", __FUNCTION__, __LINE__, MAX_SEND_THRESHOLD);
     nn_close(sock);
     return (bytes > 0) ? 0 : -1;
 }
@@ -446,7 +445,7 @@ static int handle_events (udhcpc_env_t *pinfo)
      */
     if (pinfo == NULL)
     {
-        DHCPMGR_LOG_ERROR("[%s][%d] Invalid argument error!!! \n", __FUNCTION__,__LINE__);
+        DHCPMGR_LOG_INFO("[%s][%d] Invalid argument error!!! \n", __FUNCTION__,__LINE__);
         return -1;
     }
  
@@ -458,7 +457,7 @@ static int handle_events (udhcpc_env_t *pinfo)
     ret = get_and_fill_env_data (&data, pinfo);
     if (ret != 0)
     {
-        DHCPMGR_LOG_ERROR("[%s][%d] Failed to get dhcpv4 data from envoironment \n", __FUNCTION__,__LINE__);
+        DHCPMGR_LOG_INFO("[%s][%d] Failed to get dhcpv4 data from envoironment \n", __FUNCTION__,__LINE__);
          return -1;
     }
 
@@ -494,7 +493,7 @@ static int handle_events (udhcpc_env_t *pinfo)
     ret = send_dhcp4_data_to_leaseMonitor(&data);
     if (ret != 0)
     {
-        DHCPMGR_LOG_ERROR("[%s][%d] Failed to send dhcpv4 data to leaseMonitor \n", __FUNCTION__,__LINE__);
+        DHCPMGR_LOG_INFO("[%s][%d] Failed to send dhcpv4 data to leaseMonitor \n", __FUNCTION__,__LINE__);
          return -1;
     }
     return ret;
@@ -521,7 +520,7 @@ int main(int argc, char *argv[])
     {    
         if (handle_events(&info) != 0)
         {
-            DHCPMGR_LOG_ERROR("%s:%d handle_event failed for %s\n",__FUNCTION__,__LINE__,argv[1]);
+            DHCPMGR_LOG_INFO("%s:%d handle_event failed for %s\n",__FUNCTION__,__LINE__,argv[1]);
         }
     }
 
