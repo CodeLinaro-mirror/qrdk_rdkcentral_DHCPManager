@@ -29,9 +29,6 @@
 } while(0)
 
 #undef DHCPMGR_LOG_INFO
-#undef DHCPMGR_LOG_ERROR
-#undef DHCPMGR_LOG_WARNING
-#undef DHCPMGR_LOG_INFO
 #define DHCPMGR_LOG_INFO(fmt, ...)    PLUGIN_DBG_PRINT("DEBUG", fmt, ##__VA_ARGS__)
 
 typedef struct udhcpc_env_t

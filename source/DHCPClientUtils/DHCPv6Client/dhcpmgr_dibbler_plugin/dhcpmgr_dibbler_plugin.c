@@ -72,9 +72,6 @@
 } while(0)
 
 #undef DHCPMGR_LOG_INFO
-#undef DHCPMGR_LOG_ERROR
-#undef DHCPMGR_LOG_WARNING
-#undef DHCPMGR_LOG_INFO
 #define DHCPMGR_LOG_INFO(fmt, ...)    PLUGIN_DBG_PRINT("DEBUG", fmt, ##__VA_ARGS__)
 
 static int get_and_fill_env_data_dhcp6(DHCPv6_PLUGIN_MSG *dhcpv6_data, char *input_option)
@@ -391,7 +388,7 @@ int main(int argc, char *argv[])
 {
     if (argc < 2 || !argv || !argv[1] || strlen(argv[1]) == 0)
     {
-        DHCPMGR_LOG_ERROR ("%s:%d Invalid arguments\n", __FUNCTION__,__LINE__);
+        DHCPMGR_LOG_INFO ("%s:%d Invalid arguments\n", __FUNCTION__,__LINE__);
         return -1;
     }
 
