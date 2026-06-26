@@ -276,10 +276,22 @@ static int DhcpMgr_Option17Set_Common(const char *ifName, const char *OptionValu
             } else if (strcmp(suboption, "38") == 0) 
             {
                 DHCPMGR_LOG_INFO("Suboption TimeOffset is %s in option %s\n", suboption_data, OptionValue);
-                *ipv6_TimeOffset = atoi(suboption_data);
-                DHCPMGR_LOG_INFO("ipv6_TimeOffset value is %u\n", *ipv6_TimeOffset);
-                //ifl_set_event("ipv6-timeoffset", suboption_data);
-                // Additional processing for TimeOffset can be added here
+                /* suboption_data is a colon-separated hex byte string (e.g. "ff:ff:b9:b0")
+                 * representing a 32-bit big-endian signed integer. atoi() cannot parse
+                 * this format and returns 0. Parse the bytes explicitly instead. */
+                unsigned int b0 = 0, b1 = 0, b2 = 0, b3 = 0;
+                if (sscanf(suboption_data, "%02x:%02x:%02x:%02x", &b0, &b1, &b2, &b3) == 4)
+                {
+                    int32_t signed_offset = (int32_t)(((uint32_t)b0 << 24) | ((uint32_t)b1 << 16) |
+                                                      ((uint32_t)b2 << 8)  | (uint32_t)b3);
+                    *ipv6_TimeOffset = (uint32_t)signed_offset;
+                }
+                else
+                {
+                    /* Fallback for a plain decimal string */
+                    *ipv6_TimeOffset = (uint32_t)(int32_t)atoi(suboption_data);
+                }
+                DHCPMGR_LOG_INFO("ipv6_TimeOffset value is %d\n", (int32_t)*ipv6_TimeOffset);
             } else if (strcmp(suboption, "39") == 0) 
             {
                 DHCPMGR_LOG_INFO("Suboption IP Mode Preference is %s in option %s\n", suboption_data, OptionValue);
