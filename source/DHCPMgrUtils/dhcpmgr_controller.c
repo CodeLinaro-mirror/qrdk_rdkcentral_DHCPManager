@@ -969,8 +969,8 @@ void* DhcpMgr_MainController( void *args )
     /*
      * Hold q_mutex around mark_thread_stopped + mq_close so that a concurrent
      * DhcpMgr_OpenQueueEnsureThread cannot deliver a message to a queue that is
-     * already being closed. q_mutex is acquired here alone; global_mutex is not
-     * held across this section.
+     * already being closed. Note: mark_thread_stopped() acquires global_mutex
+     * internally, so the effective lock order here is q_mutex -> global_mutex.
      */
     if (DhcpMgr_LockInterfaceQueueMutexByName(inf_name) == 0)
     {
