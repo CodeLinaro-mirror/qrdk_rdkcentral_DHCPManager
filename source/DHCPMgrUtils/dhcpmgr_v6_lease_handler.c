@@ -62,7 +62,7 @@ static int exec_shell_cmd(char * command)
 {
     int status = system(command);
     if (status == -1) {
-        DHCPMGR_LOG_INFO("%s: %d system() failed to run shell\n",__FUNCTION__,__LINE__);
+        DHCPMGR_LOG_ERROR("%s: %d system() failed to run shell\n",__FUNCTION__,__LINE__);
         return -1;
     }
 
@@ -74,7 +74,7 @@ static int exec_shell_cmd(char * command)
             return -1;
         }
     } else if (WIFSIGNALED(status)) {
-        DHCPMGR_LOG_INFO("%s %d :Command was terminated by signal %d\n",__FUNCTION__,__LINE__,WTERMSIG(status));
+        DHCPMGR_LOG_ERROR("%s %d :Command was terminated by signal %d\n",__FUNCTION__,__LINE__,WTERMSIG(status));
     }
     return 0;
 }
@@ -173,7 +173,7 @@ void DhcpMgr_ProcessV6Lease(PCOSA_DML_DHCPCV6_FULL pDhcp6c)
                          sizeof(current->ia_pd.Prefix)) != 0 ||  
                  current->ia_pd.PrefixLength != newLease->ia_pd.PrefixLength))
             {
-                DHCPMGR_LOG_INFO("%s %d: Skipping stale DEL for prefix %s/%d on %s "
+                DHCPMGR_LOG_WARNING("%s %d: Skipping stale DEL for prefix %s/%d on %s "
                                     "(current active prefix is %s)\n",
                                     __FUNCTION__, __LINE__,
                                     newLease->ia_pd.Prefix,
@@ -241,7 +241,7 @@ void DhcpMgr_ProcessV6Lease(PCOSA_DML_DHCPCV6_FULL pDhcp6c)
         
         if(DHCPMgr_storeDhcpv6Lease(pDhcp6c) != 0)
         {
-            DHCPMGR_LOG_INFO("%s %d: Failed to store lease information for interface %s.\n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
+            DHCPMGR_LOG_ERROR("%s %d: Failed to store lease information for interface %s.\n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
         }
         
         if(leaseChanged)
@@ -355,7 +355,7 @@ static void configureNetworkInterface(PCOSA_DML_DHCPCV6_FULL pDhcp6c)
 {
     if (pDhcp6c == NULL || pDhcp6c->currentLease == NULL) 
     {
-        DHCPMGR_LOG_INFO("%s %d: Invalid DHCP client structure or current lease is NULL.\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_ERROR("%s %d: Invalid DHCP client structure or current lease is NULL.\n", __FUNCTION__, __LINE__);
         return;
     }
 
@@ -394,7 +394,7 @@ static void configureNetworkInterface(PCOSA_DML_DHCPCV6_FULL pDhcp6c)
     snprintf(command, sizeof(command), "ip -6 addr add %s dev %s preferred_lft %s valid_lft %s", ipv6Address, interface, preferredLftStr, validLftStr);
     if(exec_shell_cmd(command) != 0)
     {
-        DHCPMGR_LOG_INFO("%s %d: Failed to configure IPv6 address on interface %s. Command: %s\n", __FUNCTION__, __LINE__, interface, command);
+        DHCPMGR_LOG_ERROR("%s %d: Failed to configure IPv6 address on interface %s. Command: %s\n", __FUNCTION__, __LINE__, interface, command);
     }
     return;
 }
@@ -413,7 +413,7 @@ void DhcpMgr_clearDHCPv6Lease(PCOSA_DML_DHCPCV6_FULL pDhcp6c)
 {
     if (pDhcp6c == NULL) 
     {
-        DHCPMGR_LOG_INFO("%s %d: Invalid DHCPv6 client structure.\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_ERROR("%s %d: Invalid DHCPv6 client structure.\n", __FUNCTION__, __LINE__);
         return;
     }
 

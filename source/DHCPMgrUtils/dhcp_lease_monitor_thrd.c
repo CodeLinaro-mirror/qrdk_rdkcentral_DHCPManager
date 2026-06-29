@@ -49,12 +49,12 @@ static ANSC_STATUS DhcpMgr_LeaseMonitor_Init()
 {
     if ((ipcListenFd = nn_socket(AF_SP, NN_PULL)) < 0)
     {
-        DHCPMGR_LOG_INFO("[%s-%d] Failed to create IPC socket\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_ERROR("[%s-%d] Failed to create IPC socket\n", __FUNCTION__, __LINE__);
         return ANSC_STATUS_FAILURE;
     }
     if ((nn_bind(ipcListenFd, DHCP_MANAGER_ADDR)) < 0)
     {
-        DHCPMGR_LOG_INFO("[%s-%d] Failed to bind IPC socket\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_ERROR("[%s-%d] Failed to bind IPC socket\n", __FUNCTION__, __LINE__);
         nn_close(ipcListenFd);
         return ANSC_STATUS_FAILURE;
     }
@@ -70,14 +70,14 @@ int DhcpMgr_LeaseMonitor_Start()
 
     if(DhcpMgr_LeaseMonitor_Init() != ANSC_STATUS_SUCCESS)
     {
-        DHCPMGR_LOG_INFO("[%s-%d] Failed to initialise IPC messaging\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_ERROR("[%s-%d] Failed to initialise IPC messaging\n", __FUNCTION__, __LINE__);
         return -1;
     }
 
     ret = pthread_create(&ipcThreadId, NULL, &DhcpMgr_LeaseMonitor_Thrd, NULL);
     if (0 != ret)
     {
-        DHCPMGR_LOG_INFO("[%s-%d] Failed to start IPC Thread Error:%d\n", __FUNCTION__, __LINE__, ret);
+        DHCPMGR_LOG_ERROR("[%s-%d] Failed to start IPC Thread Error:%d\n", __FUNCTION__, __LINE__, ret);
     }
     else
     {
@@ -128,7 +128,7 @@ static void* DhcpMgr_LeaseMonitor_Thrd(void *arg)
                     info.value.bValue = FALSE;
                     if (DhcpMgr_OpenQueueEnsureThread(info) != 0)
                     {
-                        DHCPMGR_LOG_INFO("[%s-%d] Failed to enqueue DHCPv4 lease/control message\n", __FUNCTION__, __LINE__);
+                        DHCPMGR_LOG_ERROR("[%s-%d] Failed to enqueue DHCPv4 lease/control message\n", __FUNCTION__, __LINE__);
                     }
                     break;
                 }
@@ -152,23 +152,23 @@ static void* DhcpMgr_LeaseMonitor_Thrd(void *arg)
                     info.value.bValue = FALSE;
                     if (DhcpMgr_OpenQueueEnsureThread(info) != 0)
                     {
-                        DHCPMGR_LOG_INFO("[%s-%d] Failed to enqueue DHCPv6 lease/control message\n", __FUNCTION__, __LINE__);
+                        DHCPMGR_LOG_ERROR("[%s-%d] Failed to enqueue DHCPv6 lease/control message\n", __FUNCTION__, __LINE__);
                     }
                     break;
                 }
                 default:
-                    DHCPMGR_LOG_INFO("[%s-%d] Invalid Message version sent to DhcpManager\n", __FUNCTION__, __LINE__);
+                    DHCPMGR_LOG_ERROR("[%s-%d] Invalid Message version sent to DhcpManager\n", __FUNCTION__, __LINE__);
                     break;
             }
             memset(&plugin_msg, 0, sizeof(PLUGIN_MSG));
         }
         else if (bytes < 0)
         {
-            DHCPMGR_LOG_INFO("[%s-%d] Failed to receive message from IPC\n", __FUNCTION__, __LINE__);
+            DHCPMGR_LOG_ERROR("[%s-%d] Failed to receive message from IPC\n", __FUNCTION__, __LINE__);
         }
         else
         {
-            DHCPMGR_LOG_INFO("[%s-%d] message size unexpected\n", __FUNCTION__, __LINE__);
+            DHCPMGR_LOG_ERROR("[%s-%d] message size unexpected\n", __FUNCTION__, __LINE__);
         }
     }
     nn_shutdown(ipcListenFd, 0);

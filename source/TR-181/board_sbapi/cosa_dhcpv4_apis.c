@@ -929,7 +929,7 @@ PCOSA_DML_DHCPC_REQ_OPT CosaDmlDhcpcGetReqOption_Entry(ANSC_HANDLE hInsContext, 
 
     if (!pCxtDhcpcLink)
     {
-        DHCPMGR_LOG_INFO("%s : pCxtDhcpcLink is NULL",__FUNCTION__);
+        DHCPMGR_LOG_ERROR("%s : pCxtDhcpcLink is NULL",__FUNCTION__);
         return NULL;
     }
     pSListEntry = AnscSListGetEntryByIndex(&pCxtDhcpcLink->ReqOptionList, InsNumber);
@@ -938,7 +938,7 @@ PCOSA_DML_DHCPC_REQ_OPT CosaDmlDhcpcGetReqOption_Entry(ANSC_HANDLE hInsContext, 
         pCxtLink = ACCESS_COSA_CONTEXT_LINK_OBJECT(pSListEntry);
         if (!pCxtLink)
         {
-            DHCPMGR_LOG_INFO("%s:pCxtLink is NULL",__FUNCTION__);
+            DHCPMGR_LOG_ERROR("%s:pCxtLink is NULL",__FUNCTION__);
             return NULL;
         }
         return (PCOSA_DML_DHCPC_REQ_OPT)pCxtLink->hContext;
@@ -965,7 +965,7 @@ PCOSA_DML_DHCP_OPT CosaDmlDhcpcGetSentOption_Entry(ANSC_HANDLE hInsContext, ULON
 
     if (!pCxtDhcpcLink)
     {
-        DHCPMGR_LOG_INFO("%s:pCxtDhcpcLink is NULL",__FUNCTION__);
+        DHCPMGR_LOG_ERROR("%s:pCxtDhcpcLink is NULL",__FUNCTION__);
         return NULL;
     }
     pSListEntry = AnscSListGetEntryByIndex(&pCxtDhcpcLink->SendOptionList, InsNumber);
@@ -974,7 +974,7 @@ PCOSA_DML_DHCP_OPT CosaDmlDhcpcGetSentOption_Entry(ANSC_HANDLE hInsContext, ULON
         pCxtLink = ACCESS_COSA_CONTEXT_LINK_OBJECT(pSListEntry);
         if (!pCxtLink)
         {
-            DHCPMGR_LOG_INFO("%s:pCxtLink is NULL",__FUNCTION__);
+            DHCPMGR_LOG_ERROR("%s:pCxtLink is NULL",__FUNCTION__);
             return NULL;
         }
         return (PCOSA_DML_DHCP_OPT)pCxtLink->hContext;
@@ -1004,7 +1004,7 @@ CosaDmlDhcpcGetNumberOfEntries
     char* param_value = NULL;
     retPsmGet = PSM_Get_Record_Value2(bus_handle,g_Subsystem, PSM_DHCPMANAGER_CLIENTCOUNT, NULL, &param_value);
     if (retPsmGet != CCSP_SUCCESS) {
-        DHCPMGR_LOG_INFO("%s Error %d writing %s %s\n", __FUNCTION__, retPsmGet, param_name, param_value);
+        DHCPMGR_LOG_ERROR("%s Error %d writing %s %s\n", __FUNCTION__, retPsmGet, param_name, param_value);
         return 0;
     }
     else
@@ -3503,12 +3503,12 @@ void FillParamUpdateSource(cJSON *partnerObj, char *key, char *paramUpdateSource
         }
         else
         {
-            DHCPMGR_LOG_INFO("%s - %s UpdateSource is NULL\n", __FUNCTION__, key );
+            DHCPMGR_LOG_WARNING("%s - %s UpdateSource is NULL\n", __FUNCTION__, key );
         }
     }
     else
     {
-        DHCPMGR_LOG_INFO("%s - %s Object is NULL\n", __FUNCTION__, key );
+        DHCPMGR_LOG_WARNING("%s - %s Object is NULL\n", __FUNCTION__, key );
     }
 }
 
@@ -3527,7 +3527,7 @@ void FillPartnerIDJournal
                 }
                 else
                 {
-                      DHCPMGR_LOG_INFO("%s - PARTNER ID OBJECT Value is NULL\n", __FUNCTION__ );
+                      DHCPMGR_LOG_WARNING("%s - PARTNER ID OBJECT Value is NULL\n", __FUNCTION__ );
                 }
 }
 
@@ -3548,7 +3548,7 @@ CosaDhcpInitJournal
         int check_ret;
         if (!pPoolCfg)
         {
-                DHCPMGR_LOG_INFO("%s-%d : NULL param\n" , __FUNCTION__, __LINE__ );
+                DHCPMGR_LOG_WARNING("%s-%d : NULL param\n" , __FUNCTION__, __LINE__ );
                 return ANSC_STATUS_FAILURE;
         }
 
@@ -3560,7 +3560,7 @@ CosaDhcpInitJournal
          fileRead = fopen( BOOTSTRAP_INFO_FILE, "r" );
          if( fileRead == NULL )
          {
-                 DHCPMGR_LOG_INFO("%s-%d : Error in opening JSON file\n" , __FUNCTION__, __LINE__ );
+                 DHCPMGR_LOG_WARNING("%s-%d : Error in opening JSON file\n" , __FUNCTION__, __LINE__ );
                  return ANSC_STATUS_FAILURE;
          }
 
@@ -3568,7 +3568,7 @@ CosaDhcpInitJournal
          len = ftell( fileRead );
          /* Argument cannot be negative*/
          if (len < 0) {
-              DHCPMGR_LOG_INFO("%s-%d : Error in file handle\n" , __FUNCTION__, __LINE__ );
+              DHCPMGR_LOG_WARNING("%s-%d : Error in file handle\n" , __FUNCTION__, __LINE__ );
               fclose(fileRead);
               return ANSC_STATUS_FAILURE;
          }
@@ -3580,14 +3580,14 @@ CosaDhcpInitJournal
                 check_ret = fread( data, 1, len, fileRead );
            if (check_ret <= 0)
             {
-                 DHCPMGR_LOG_INFO("%s-%d : Failed to read data from file \n", __FUNCTION__, __LINE__);
+                 DHCPMGR_LOG_WARNING("%s-%d : Failed to read data from file \n", __FUNCTION__, __LINE__);
                  fclose( fileRead );
                  return ANSC_STATUS_FAILURE;
             }
          }
          else
          {
-                 DHCPMGR_LOG_INFO("%s-%d : Memory allocation failed \n", __FUNCTION__, __LINE__);
+                 DHCPMGR_LOG_WARNING("%s-%d : Memory allocation failed \n", __FUNCTION__, __LINE__);
                  fclose( fileRead );
                  return ANSC_STATUS_FAILURE;
          }
@@ -3597,7 +3597,7 @@ CosaDhcpInitJournal
          data[len] = '\0';
          if ( data == NULL )
          {
-                DHCPMGR_LOG_INFO("%s-%d : fileRead failed \n", __FUNCTION__, __LINE__);
+                DHCPMGR_LOG_WARNING("%s-%d : fileRead failed \n", __FUNCTION__, __LINE__);
                 return ANSC_STATUS_FAILURE;
          }
          else if ( strlen(data) != 0)
@@ -3605,7 +3605,7 @@ CosaDhcpInitJournal
                  json = cJSON_Parse( data );
                  if( !json )
                  {
-                         DHCPMGR_LOG_INFO(  "%s : json file parser error : [%d]\n", __FUNCTION__,__LINE__);
+                         DHCPMGR_LOG_WARNING(  "%s : json file parser error : [%d]\n", __FUNCTION__,__LINE__);
                          free(data);
                          return ANSC_STATUS_FAILURE;
                  }
@@ -3615,12 +3615,12 @@ CosaDhcpInitJournal
                          {
                                 if ( PartnerID[0] != '\0' )
                                 {
-                                        DHCPMGR_LOG_INFO("%s : Partner = %s \n", __FUNCTION__, PartnerID);
+                                        DHCPMGR_LOG_WARNING("%s : Partner = %s \n", __FUNCTION__, PartnerID);
                                         FillPartnerIDJournal(json, PartnerID, pPoolCfg);
                                 }
                                 else
                                 {
-                                        DHCPMGR_LOG_INFO( "Reading Deafult PartnerID Values \n" );
+                                        DHCPMGR_LOG_WARNING( "Reading Deafult PartnerID Values \n" );
                                         rc = strcpy_s(PartnerID, sizeof(PartnerID), "comcast");
                                         if(rc != EOK)
                                         {
@@ -3633,7 +3633,7 @@ CosaDhcpInitJournal
                                 }
                         }
                         else{
-                                DHCPMGR_LOG_INFO("Failed to get Partner ID\n");
+                                DHCPMGR_LOG_WARNING("Failed to get Partner ID\n");
                         }
                         cJSON_Delete(json);
                 }
@@ -3642,7 +3642,7 @@ CosaDhcpInitJournal
          }
          else
          {
-                DHCPMGR_LOG_INFO("BOOTSTRAP_INFO_FILE %s is empty\n", BOOTSTRAP_INFO_FILE);
+                DHCPMGR_LOG_WARNING("BOOTSTRAP_INFO_FILE %s is empty\n", BOOTSTRAP_INFO_FILE);
                 /* Resource leak*/
                 if(data)
                    free(data);

@@ -120,7 +120,7 @@ ANSC_STATUS DhcpMgr_updateDHCPv4DML(PCOSA_DML_DHCPC_FULL pDhcpc)
     DHCPv4_PLUGIN_MSG *current = pDhcpc->currentLease;
     if (current == NULL) 
     {
-        DHCPMGR_LOG_INFO("%s %d: lease parsing failed %s \n",__FUNCTION__, __LINE__, pDhcpc->Cfg.Interface);
+        DHCPMGR_LOG_ERROR("%s %d: lease parsing failed %s \n",__FUNCTION__, __LINE__, pDhcpc->Cfg.Interface);
         return ANSC_STATUS_FAILURE;
 
     }
@@ -171,7 +171,7 @@ ANSC_STATUS DhcpMgr_updateDHCPv4DML(PCOSA_DML_DHCPC_FULL pDhcpc)
         pDhcpReqOpt = CosaDmlDhcpcGetReqOption_Entry(pDhcpCxtLink, reqIdx);
         if (!pDhcpReqOpt)
         {
-            DHCPMGR_LOG_INFO("%s : pDhcpReqOpt is NULL",__FUNCTION__);
+            DHCPMGR_LOG_ERROR("%s : pDhcpReqOpt is NULL",__FUNCTION__);
             return ANSC_STATUS_FAILURE;
         }
         if (pDhcpReqOpt->Tag == DHCPV4_OPT_120)
@@ -347,7 +347,7 @@ void DhcpMgr_ProcessV4Lease(PCOSA_DML_DHCPC_FULL pDhcpc)
 
         if (DHCPMgr_storeDhcpv4Lease(pDhcpc) != 0)
         {
-             DHCPMGR_LOG_INFO("[%s-%d] Failed to store DHCPv4 lease\n", __FUNCTION__, __LINE__);
+             DHCPMGR_LOG_ERROR("[%s-%d] Failed to store DHCPv4 lease\n", __FUNCTION__, __LINE__);
         }
         if(leaseChanged)
         {

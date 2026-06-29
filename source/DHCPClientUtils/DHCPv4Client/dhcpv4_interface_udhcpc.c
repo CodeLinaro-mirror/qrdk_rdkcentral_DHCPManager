@@ -46,13 +46,13 @@ static int udhcpc_get_req_options (char * buff, dhcp_opt_list * req_opt_list)
 
     if (buff == NULL)
     {
-        DHCPMGR_LOG_INFO(" %s %d: Invalid args..\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_ERROR(" %s %d: Invalid args..\n", __FUNCTION__, __LINE__);
         return FAILURE;
     }
 
     if (req_opt_list == NULL)
     {
-        DHCPMGR_LOG_INFO("%s %d: No req option sent to udhcpc.\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_ERROR("%s %d: No req option sent to udhcpc.\n", __FUNCTION__, __LINE__);
         return SUCCESS;
     }
 
@@ -95,14 +95,14 @@ static int hex_to_ascii(const char *hex, char *ascii, size_t ascii_len)
 {
     if (hex == NULL || ascii == NULL || ascii_len == 0)
     {
-        DHCPMGR_LOG_INFO("%s %d: Invalid arguments.\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_ERROR("%s %d: Invalid arguments.\n", __FUNCTION__, __LINE__);
         return -1;
     }
 
     size_t hex_len = strlen(hex);
     if (hex_len % 2 != 0 || (hex_len / 2) >= ascii_len)
     {
-        DHCPMGR_LOG_INFO("%s %d: Invalid hex string length.\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_ERROR("%s %d: Invalid hex string length.\n", __FUNCTION__, __LINE__);
         return -1;
     }
 
@@ -131,13 +131,13 @@ static int udhcpc_get_send_options (char * buff, dhcp_opt_list * send_opt_list)
 
     if (buff == NULL)
     {
-        DHCPMGR_LOG_INFO("%s %d: Invalid args..\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_ERROR("%s %d: Invalid args..\n", __FUNCTION__, __LINE__);
         return FAILURE;
     }
 
     if (send_opt_list == NULL)
     {
-        DHCPMGR_LOG_INFO("%s %d: No send option sent to udhcpc.\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_ERROR("%s %d: No send option sent to udhcpc.\n", __FUNCTION__, __LINE__);
         return SUCCESS;
     }
 
@@ -190,7 +190,7 @@ static int udhcpc_get_other_args (char * buff, char *interfaceName)
 {
      if ((buff == NULL) || (interfaceName == NULL))
     {
-        DHCPMGR_LOG_INFO("%s %d: Invalid args..\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_ERROR("%s %d: Invalid args..\n", __FUNCTION__, __LINE__);
         return FAILURE;
     }
 
@@ -251,21 +251,21 @@ int udhcpc_args_generator(char *args_buffer, char *interfaceName, dhcp_opt_list 
     DHCPMGR_LOG_INFO("%s %d: Constructing REQUEST option args to udhcpc.\n", __FUNCTION__, __LINE__);
     if ((req_opt_list != NULL) && (udhcpc_get_req_options(args_buffer, req_opt_list)) != SUCCESS)
     {
-        DHCPMGR_LOG_INFO("%s %d: Unable to get DHCPv4 REQ OPT.\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_ERROR("%s %d: Unable to get DHCPv4 REQ OPT.\n", __FUNCTION__, __LINE__);
         return FAILURE;
     }
 
     DHCPMGR_LOG_INFO("%s %d: Constructing SEND option args to udhcpc.\n", __FUNCTION__, __LINE__);
     if ((send_opt_list != NULL) && (udhcpc_get_send_options(args_buffer, send_opt_list) != SUCCESS))
     {
-        DHCPMGR_LOG_INFO("%s %d: Unable to get DHCPv4 SEND OPT.\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_ERROR("%s %d: Unable to get DHCPv4 SEND OPT.\n", __FUNCTION__, __LINE__);
         return FAILURE;
     }
 
     DHCPMGR_LOG_INFO("%s %d: Constructing other option args to udhcpc.\n", __FUNCTION__, __LINE__);
     if (udhcpc_get_other_args(args_buffer, interfaceName) != SUCCESS)
     {
-        DHCPMGR_LOG_INFO("%s %d: Unable to get DHCPv4 SEND OPT.\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_ERROR("%s %d: Unable to get DHCPv4 SEND OPT.\n", __FUNCTION__, __LINE__);
         return FAILURE;
     }
 
@@ -279,7 +279,7 @@ pid_t start_dhcpv4_client(char *interfaceName, dhcp_opt_list *req_opt_list, dhcp
     pid_t udhcpc_pid = 0;
     if ((interfaceName == NULL))
     {
-        DHCPMGR_LOG_INFO("%s %d: Invalid args..\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_ERROR("%s %d: Invalid args..\n", __FUNCTION__, __LINE__);
         return -1;
     }
 
@@ -292,7 +292,7 @@ pid_t start_dhcpv4_client(char *interfaceName, dhcp_opt_list *req_opt_list, dhcp
 
     if (udhcpc_pid > 0)
     {
-        DHCPMGR_LOG_INFO("%s %d: another instance of %s runing on %s\n", __FUNCTION__, __LINE__, UDHCPC_CLIENT, interfaceName);
+        DHCPMGR_LOG_ERROR("%s %d: another instance of %s runing on %s\n", __FUNCTION__, __LINE__, UDHCPC_CLIENT, interfaceName);
         //TODO: Existing client will not be handled by the sigchild handler. Selfheal will not work for this PID, should we kill and restart?
         return udhcpc_pid;
     }
@@ -303,7 +303,7 @@ pid_t start_dhcpv4_client(char *interfaceName, dhcp_opt_list *req_opt_list, dhcp
     // udhcpc-client will demonize a child thread during start, so we need to collect the exited main thread
     if (collect_waiting_process(udhcpc_pid, UDHCPC_TERMINATE_TIMEOUT) != SUCCESS)
     {
-        //DHCPMGR_LOG_INFO("%s %d: unable to collect pid for %d.\n", __FUNCTION__, __LINE__, udhcpc_pid);
+        //DHCPMGR_LOG_ERROR("%s %d: unable to collect pid for %d.\n", __FUNCTION__, __LINE__, udhcpc_pid);
     }
 
     DHCPMGR_LOG_INFO("%s %d: Started udhcpc. returning pid..\n", __FUNCTION__, __LINE__);
@@ -313,7 +313,7 @@ pid_t start_dhcpv4_client(char *interfaceName, dhcp_opt_list *req_opt_list, dhcp
     nanosleep(&ts, NULL);
     if (udhcpc_pid <= 0)
     {
-        DHCPMGR_LOG_INFO("%s %d: unable to start udhcpc-client %d.\n", __FUNCTION__, __LINE__, udhcpc_pid);
+        DHCPMGR_LOG_ERROR("%s %d: unable to start udhcpc-client %d.\n", __FUNCTION__, __LINE__, udhcpc_pid);
         t2_event_d("DHCPMGR_ERROR_Dhcpv4ClientStartFail", 1);
     }
     return udhcpc_pid;
@@ -337,7 +337,7 @@ int send_dhcpv4_release(pid_t processID)
     //Trigger a release 
     if (signal_process(processID, SIGUSR2) != RETURN_OK)
     {
-        DHCPMGR_LOG_INFO("%s %d: unable to send signal to pid %d\n", __FUNCTION__, __LINE__, processID);
+        DHCPMGR_LOG_ERROR("%s %d: unable to send signal to pid %d\n", __FUNCTION__, __LINE__, processID);
         return FAILURE;    
     }
     // Allow time for the release packet to be sent before stopping the client  
@@ -356,13 +356,13 @@ int stop_dhcpv4_client(pid_t processID)
 
     if (processID <= 0)
     {
-        DHCPMGR_LOG_INFO("%s %d: unable to get pid of %s\n", __FUNCTION__, __LINE__, UDHCPC_CLIENT);
+        DHCPMGR_LOG_ERROR("%s %d: unable to get pid of %s\n", __FUNCTION__, __LINE__, UDHCPC_CLIENT);
         return FAILURE;
     }
 
     if (signal_process(processID, SIGTERM) != RETURN_OK)
     {
-        DHCPMGR_LOG_INFO("%s %d: unable to send signal to pid %d\n", __FUNCTION__, __LINE__, processID);
+        DHCPMGR_LOG_ERROR("%s %d: unable to send signal to pid %d\n", __FUNCTION__, __LINE__, processID);
          return FAILURE;
     }
 

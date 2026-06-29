@@ -68,7 +68,7 @@
  */
 static void DhcpMgr_UpdateEnableSysevent(ULONG instance, const char *if_name, BOOL enabled, int dhcpVersion)
 {
-    DHCPMGR_LOG_INFO("%s %d: Updating sysevent for instance %lu, interface %s, enabled %d, DHCP version %d\n", 
+    DHCPMGR_LOG_DEBUG("%s %d: Updating sysevent for instance %lu, interface %s, enabled %d, DHCP version %d\n", 
         __FUNCTION__, __LINE__, instance, if_name ? if_name : "NULL", enabled, dhcpVersion);
     char sysevent_key[64] = {0};
 
@@ -79,13 +79,13 @@ static void DhcpMgr_UpdateEnableSysevent(ULONG instance, const char *if_name, BO
 
     if (if_name == NULL || if_name[0] == '\0')
     {
-        DHCPMGR_LOG_INFO("%s %d: Cannot set sysevent %s with empty interface name\n", __FUNCTION__, __LINE__, sysevent_key);
+        DHCPMGR_LOG_ERROR("%s %d: Cannot set sysevent %s with empty interface name\n", __FUNCTION__, __LINE__, sysevent_key);
         return;
     }
 
     if (Dhcp_set_Sysevent_InterfaceEnable(sysevent_key, if_name, enabled) != 0)
     {
-        DHCPMGR_LOG_INFO("%s %d: Failed to set sysevent %s\n", __FUNCTION__, __LINE__, sysevent_key);
+        DHCPMGR_LOG_ERROR("%s %d: Failed to set sysevent %s\n", __FUNCTION__, __LINE__, sysevent_key);
     }
 }
 
@@ -110,7 +110,7 @@ int DhcpMgr_StartMainController()
         retStatus = DhcpMgr_Dhcp_Recovery_Start();
         if (retStatus != 0)
         {
-            DHCPMGR_LOG_INFO("%s %d - Failed to start dhcp recovery thread\n", __FUNCTION__, __LINE__);
+            DHCPMGR_LOG_ERROR("%s %d - Failed to start dhcp recovery thread\n", __FUNCTION__, __LINE__);
         }
         else
         {
@@ -119,13 +119,13 @@ int DhcpMgr_StartMainController()
     }
     else if (errno != ENOENT)
     {
-        DHCPMGR_LOG_INFO("%s %d Error deleting %s file (errno=%d)\n", __FUNCTION__, __LINE__, filename, errno);
+        DHCPMGR_LOG_ERROR("%s %d Error deleting %s file (errno=%d)\n", __FUNCTION__, __LINE__, filename, errno);
     }
 
     retStatus = DhcpMgr_LeaseMonitor_Start();
     if(retStatus < 0)
     {
-        DHCPMGR_LOG_INFO("%s %d - Lease Monitor Thread failed to start!\n", __FUNCTION__, __LINE__ );
+        DHCPMGR_LOG_ERROR("%s %d - Lease Monitor Thread failed to start!\n", __FUNCTION__, __LINE__ );
         t2_event_d("DHCPMGR_ERROR_LeaseMonitorStartFail", 1);
     }
 
@@ -160,7 +160,7 @@ static int DhcpMgr_build_dhcpv4_opt_list (PCOSA_CONTEXT_DHCPC_LINK_OBJECT hInsCo
         pDhcpReqOpt = CosaDmlDhcpcGetReqOption_Entry(hInsContext, reqIdx);
         if (!pDhcpReqOpt)
         {
-            DHCPMGR_LOG_INFO("%s : pDhcpReqOpt is NULL",__FUNCTION__);
+            DHCPMGR_LOG_ERROR("%s : pDhcpReqOpt is NULL",__FUNCTION__);
         }
         else if (pDhcpReqOpt->bEnabled)
         {
@@ -175,7 +175,7 @@ static int DhcpMgr_build_dhcpv4_opt_list (PCOSA_CONTEXT_DHCPC_LINK_OBJECT hInsCo
 
         if (!pDhcpSentOpt)
         {
-            DHCPMGR_LOG_INFO("%s : pDhcpSentOpt is NULL",__FUNCTION__);
+            DHCPMGR_LOG_ERROR("%s : pDhcpSentOpt is NULL",__FUNCTION__);
         }
         else if (pDhcpSentOpt->bEnabled)
         {
@@ -296,7 +296,7 @@ static int DhcpMgr_build_dhcpv6_opt_list (PCOSA_CONTEXT_DHCPCV6_LINK_OBJECT hIns
                     DHCPMGR_LOG_INFO("%s %d: Adding DHCPv6 option - Number: %d\n", __FUNCTION__, __LINE__, DHCPV6_OPT_25);
                     if (Get_DhcpV6_CustomOption_25(send_opt_list) != RETURN_OK)
                     {
-                        DHCPMGR_LOG_INFO("%s %d: Failed to add DHCPv6 option %d.\n", __FUNCTION__, __LINE__, DHCPV6_OPT_25);
+                        DHCPMGR_LOG_ERROR("%s %d: Failed to add DHCPv6 option %d.\n", __FUNCTION__, __LINE__, DHCPV6_OPT_25);
                         return RETURN_ERR;
                     }
                 }
@@ -358,7 +358,7 @@ static int DhcpMgr_build_dhcpv6_opt_list (PCOSA_CONTEXT_DHCPCV6_LINK_OBJECT hIns
             }
             else
             {
-                DHCPMGR_LOG_INFO("%s %d: MAPT RFC Disabled and  DHCPv6 MAPT option is requested. Skipping MAPT option - (Number: %d, Value: %s)\n", __FUNCTION__, __LINE__, opt, MaptEnable);
+                DHCPMGR_LOG_WARNING("%s %d: MAPT RFC Disabled and  DHCPv6 MAPT option is requested. Skipping MAPT option - (Number: %d, Value: %s)\n", __FUNCTION__, __LINE__, opt, MaptEnable);
                 token = strtok(NULL, " , ");
                 continue;
             }
@@ -387,7 +387,7 @@ static bool DhcpMgr_checkInterfaceStatus(const char * ifName)
 {
     if(ifName == NULL || (strlen(ifName) <=0))
     {
-        DHCPMGR_LOG_INFO("%s : DHCP interface name is Empty",__FUNCTION__);
+        DHCPMGR_LOG_ERROR("%s : DHCP interface name is Empty",__FUNCTION__);
         return FALSE;
     }
 
@@ -417,7 +417,7 @@ static bool DhcpMgr_checkInterfaceStatus(const char * ifName)
     } 
     else 
     {
-        DHCPMGR_LOG_INFO("Interface %s is down or not running.\n", ifName);
+        DHCPMGR_LOG_ERROR("Interface %s is down or not running.\n", ifName);
         return FALSE;
     }
     return TRUE;
@@ -435,22 +435,19 @@ static bool DhcpMgr_checkInterfaceStatus(const char * ifName)
  * @return true if the link-local address is found and DAD status is verified, false otherwise.
  */
 static bool DhcpMgr_checkLinkLocalAddress(const char * interfaceName)
-{
+{ 
     // check if interface is ipv6 ready with a link-local address
-    DHCPMGR_LOG_INFO("%s %d: Enter DhcpMgr_checkLinkLocalAddress, interfaceName=%s\n", __FUNCTION__, __LINE__, interfaceName ? interfaceName : "NULL");
     unsigned int waitTime = INTF_V6LL_TIMEOUT_IN_MSEC;
-    DHCPMGR_LOG_INFO("%s %d: waitTime initialized to %u ms\n", __FUNCTION__, __LINE__, waitTime);
 
     while (waitTime > 0)
     {
-        DHCPMGR_LOG_INFO("%s %d: waitTime remaining=%u ms\n", __FUNCTION__, __LINE__, waitTime);
-
-        /* Read /proc/net/if_inet6 directly - no child process, no SIGCHLD interference.
-         * Format: addr32hex if_idx prefix_len scope flags ifname (all hex except ifname)
-         * IFA_F_TENTATIVE (0x40) indicates address is undergoing DAD. */
+        /* Read /proc/net/if_inet6 directly instead of popen("ip address show tentative").
+         * popen() spawns a child process which races with the global SIGCHLD handler
+         * (waitpid(-1,...)) causing pclose() to hang when the handler reaps the child first.
+         * /proc/net/if_inet6 format: addr32hex if_idx prefix_len scope flags ifname
+         * IFA_F_TENTATIVE (0x40) set while the address is undergoing DAD. */
         bool tentative = false;
         FILE *fp_inet6 = fopen("/proc/net/if_inet6", "r");
-        DHCPMGR_LOG_INFO("%s %d: fopen(/proc/net/if_inet6) returned fp=%p\n", __FUNCTION__, __LINE__, (void*)fp_inet6);
         if (fp_inet6 != NULL)
         {
             char addr[33];
@@ -458,7 +455,6 @@ static bool DhcpMgr_checkLinkLocalAddress(const char * interfaceName)
             char ifname[IF_NAMESIZE + 1];
             while (fscanf(fp_inet6, "%32s %x %x %x %x %16s", addr, &if_idx, &pfx_len, &scope, &flags, ifname) == 6)
             {
-                DHCPMGR_LOG_INFO("%s %d: if_inet6: addr=%s flags=0x%x ifname=%s\n", __FUNCTION__, __LINE__, addr, flags, ifname);
                 if ((strcmp(ifname, interfaceName) == 0) && (flags & IFA_F_TENTATIVE))
                 {
                     tentative = true;
@@ -467,51 +463,38 @@ static bool DhcpMgr_checkLinkLocalAddress(const char * interfaceName)
             }
             fclose(fp_inet6);
         }
-        DHCPMGR_LOG_INFO("%s %d: tentative=%d for interface %s\n", __FUNCTION__, __LINE__, tentative, interfaceName);
 
         if (!tentative)
-        {
-            DHCPMGR_LOG_INFO("%s %d: no tentative address found, breaking out of loop\n", __FUNCTION__, __LINE__);
             break;
-        }
 
-        DHCPMGR_LOG_INFO("%s %d: interface still tentative, sleeping %f ms\n", __FUNCTION__, __LINE__, (double)INTF_V6LL_INTERVAL_IN_MSEC);
+        DHCPMGR_LOG_WARNING("%s %d: interface still tentative: %s\n", __FUNCTION__, __LINE__, interfaceName);
         usleep(INTF_V6LL_INTERVAL_IN_MSEC * USECS_IN_MSEC);
-        DHCPMGR_LOG_INFO("%s %d: slept %f ms, decrementing waitTime by %f\n", __FUNCTION__, __LINE__, (double)INTF_V6LL_INTERVAL_IN_MSEC, (double)INTF_V6LL_INTERVAL_IN_MSEC);
         waitTime -= INTF_V6LL_INTERVAL_IN_MSEC;
-        DHCPMGR_LOG_INFO("%s %d: waitTime after decrement=%u ms\n", __FUNCTION__, __LINE__, waitTime);
     }
 
-    DHCPMGR_LOG_INFO("%s %d: exited while loop, waitTime=%u\n", __FUNCTION__, __LINE__, waitTime);
     if (waitTime <= 0)
     {
-        DHCPMGR_LOG_INFO("%s %d: interface %s doesnt have link local address\n", __FUNCTION__, __LINE__, interfaceName);
+        DHCPMGR_LOG_ERROR("%s %d: interface %s doesnt have link local address\n", __FUNCTION__, __LINE__, interfaceName);
         /* No link-local address. Restart IPv6 stack and retry. Rare edge case. */
-        DHCPMGR_LOG_INFO("%s %d force toggle initiated for interfaceName=%s\n", __FUNCTION__, __LINE__, interfaceName);
-        int ret1 = sysctl_iface_set("/proc/sys/net/ipv6/conf/%s/disable_ipv6", interfaceName, "1");
-        DHCPMGR_LOG_INFO("%s %d: sysctl_iface_set disable_ipv6=1 for %s returned %d\n", __FUNCTION__, __LINE__, interfaceName, ret1);
-        if (ret1 != 0)
+        DHCPMGR_LOG_INFO("%s %d force toggle initiated\n", __FUNCTION__, __LINE__);
+        if (sysctl_iface_set("/proc/sys/net/ipv6/conf/%s/disable_ipv6", interfaceName, "1") != 0)
         {
-            DHCPMGR_LOG_INFO("%s-%d : Failure writing to /proc file (disable_ipv6=1) for %s\n", __FUNCTION__, __LINE__, interfaceName);
+            DHCPMGR_LOG_WARNING("%s-%d : Failure writing to /proc file\n", __FUNCTION__, __LINE__);
         }
 
-        int ret2 = sysctl_iface_set("/proc/sys/net/ipv6/conf/%s/disable_ipv6", interfaceName, "0");
-        DHCPMGR_LOG_INFO("%s %d: sysctl_iface_set disable_ipv6=0 for %s returned %d\n", __FUNCTION__, __LINE__, interfaceName, ret2);
-        if (ret2 != 0)
+        if (sysctl_iface_set("/proc/sys/net/ipv6/conf/%s/disable_ipv6", interfaceName, "0") != 0)
         {
-            DHCPMGR_LOG_INFO("%s-%d : Failure writing to /proc file (disable_ipv6=0) for %s\n", __FUNCTION__, __LINE__, interfaceName);
+            DHCPMGR_LOG_WARNING("%s-%d : Failure writing to /proc file\n", __FUNCTION__, __LINE__);
         }
-        DHCPMGR_LOG_INFO("%s %d: returning FALSE for interfaceName=%s\n", __FUNCTION__, __LINE__, interfaceName);
         return FALSE;
     }
 
-    DHCPMGR_LOG_INFO("%s %d: returning TRUE, interfaceName=%s has link-local address\n", __FUNCTION__, __LINE__, interfaceName);
     return TRUE;
 }
 
 static void Process_DHCPv4_Handler(char* if_name, dhcp_info_t dml_set_msg)
 {
-    DHCPMGR_LOG_INFO("%s %d: Processing DHCPv4 Handler with :ParamName: %s and DHCPType=DHCPv4 if_name=%s\n", __FUNCTION__, __LINE__, dml_set_msg.ParamName ? dml_set_msg.ParamName : "NULL", if_name);
+    DHCPMGR_LOG_DEBUG("%s %d: Processing DHCPv4 Handler with :ParamName: %s and DHCPType=DHCPv4 if_name=%s\n", __FUNCTION__, __LINE__, dml_set_msg.ParamName ? dml_set_msg.ParamName : "NULL", if_name);
     PCOSA_CONTEXT_DHCPC_LINK_OBJECT pDhcpCxtLink  = NULL;
     PSINGLE_LINK_ENTRY              pSListEntry   = NULL;
     ULONG ulIndex;
@@ -532,7 +515,7 @@ static void Process_DHCPv4_Handler(char* if_name, dhcp_info_t dml_set_msg)
         }
         if (!pDhcpc)
         {
-            DHCPMGR_LOG_INFO("%s : pDhcpc is NULL\n",__FUNCTION__);
+            DHCPMGR_LOG_ERROR("%s : pDhcpc is NULL\n",__FUNCTION__);
             continue;
         }
 
@@ -577,11 +560,11 @@ static void Process_DHCPv4_Handler(char* if_name, dhcp_info_t dml_set_msg)
             }
             else if (strcmp(dml_set_msg.ParamName, "Selfheal_ClientRestart") == 0 )
             {
-                DHCPMGR_LOG_INFO("%s %d: Selfheal_ClientRestart received for interface %s\n", __FUNCTION__, __LINE__, pDhcpc->Cfg.Interface);
+                DHCPMGR_LOG_DEBUG("%s %d: Selfheal_ClientRestart received for interface %s\n", __FUNCTION__, __LINE__, pDhcpc->Cfg.Interface);
             }
             else
             {
-                DHCPMGR_LOG_INFO("%s %d: Unknown ParamName %s received \n", __FUNCTION__, __LINE__, dml_set_msg.ParamName); 
+                DHCPMGR_LOG_ERROR("%s %d: Unknown ParamName %s received \n", __FUNCTION__, __LINE__, dml_set_msg.ParamName); 
             }
         }
         else
@@ -680,7 +663,7 @@ static void Process_DHCPv4_Handler(char* if_name, dhcp_info_t dml_set_msg)
 
 static void Process_DHCPv6_Handler(char* if_name, dhcp_info_t dml_set_msg)
 {
-    DHCPMGR_LOG_INFO("%s %d: Processing DHCP Handler with :ParamName: %s and DHCPType=DHCPv6 if_name=%s\n", __FUNCTION__, __LINE__, dml_set_msg.ParamName ? dml_set_msg.ParamName : "NULL", if_name);
+    DHCPMGR_LOG_DEBUG("%s %d: Processing DHCP Handler with :ParamName: %s and DHCPType=DHCPv6 if_name=%s\n", __FUNCTION__, __LINE__, dml_set_msg.ParamName ? dml_set_msg.ParamName : "NULL", if_name);
 
     PCOSA_CONTEXT_DHCPCV6_LINK_OBJECT pDhcp6cxtLink  = NULL;
     PSINGLE_LINK_ENTRY              pSListEntry   = NULL;
@@ -704,7 +687,7 @@ static void Process_DHCPv6_Handler(char* if_name, dhcp_info_t dml_set_msg)
         }
         if (!pDhcp6c)
         {
-            DHCPMGR_LOG_INFO("%s : pDhcp6c is NULL\n",__FUNCTION__);
+            DHCPMGR_LOG_ERROR("%s : pDhcp6c is NULL\n",__FUNCTION__);
             continue;
         }
         
@@ -749,11 +732,11 @@ static void Process_DHCPv6_Handler(char* if_name, dhcp_info_t dml_set_msg)
             }
             else if (strcmp(dml_set_msg.ParamName, "Selfheal_ClientRestart") == 0 )
             {
-                DHCPMGR_LOG_INFO("%s %d: ClientRestart received for interface %s\n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
+                DHCPMGR_LOG_DEBUG("%s %d: ClientRestart received for interface %s\n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
             }
             else
             { 
-                DHCPMGR_LOG_INFO("%s %d: Unknown ParamName %s received in MQ\n", __FUNCTION__, __LINE__, dml_set_msg.ParamName); 
+                DHCPMGR_LOG_ERROR("%s %d: Unknown ParamName %s received in MQ\n", __FUNCTION__, __LINE__, dml_set_msg.ParamName); 
             }
         }
         else
@@ -859,7 +842,7 @@ void* DhcpMgr_MainController( void *args )
 
     //detach thread from caller stack
     pthread_detach(pthread_self());
-    DHCPMGR_LOG_INFO("%s %d: Entered with arg %s\n",__FUNCTION__, __LINE__, (char*)args);
+    DHCPMGR_LOG_DEBUG("%s %d: Entered with arg %s\n",__FUNCTION__, __LINE__, (char*)args);
     mqd_t mq_desc;
     ssize_t bytes_read;
     mq_send_msg_t mq_msg_info;
@@ -877,22 +860,22 @@ void* DhcpMgr_MainController( void *args )
     }
     else
     {
-        DHCPMGR_LOG_INFO("%s %d: Thread argument is NULL\n", __FUNCTION__, __LINE__);
-        DHCPMGR_LOG_INFO("%s %d: Interface name is empty, cannot mark thread stopped\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_ERROR("%s %d: Thread argument is NULL\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_ERROR("%s %d: Interface name is empty, cannot mark thread stopped\n", __FUNCTION__, __LINE__);
         return NULL;
     }
 
-    DHCPMGR_LOG_INFO("%s %d DhcpMgr_MainController started with mq name %s\n", __FUNCTION__, __LINE__, mq_name);
+    DHCPMGR_LOG_DEBUG("%s %d DhcpMgr_MainController started with mq name %s\n", __FUNCTION__, __LINE__, mq_name);
 
     mq_desc = mq_open(mq_name, O_RDONLY | O_NONBLOCK);
     if (mq_desc == (mqd_t)-1) 
     {
-        DHCPMGR_LOG_INFO("%s %d: mq_open failed in thread\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_ERROR("%s %d: mq_open failed in thread\n", __FUNCTION__, __LINE__);
         mark_thread_stopped(inf_name);
         return NULL;
     }
 
-    DHCPMGR_LOG_INFO("%s %d: Message queue %s opened successfully\n", __FUNCTION__, __LINE__, mq_name);
+    DHCPMGR_LOG_DEBUG("%s %d: Message queue %s opened successfully\n", __FUNCTION__, __LINE__, mq_name);
 
     const int sleep_us = 250000;      // 250ms
     const int max_retries = 20;       // 20 * 250ms = 5s
@@ -910,16 +893,16 @@ void* DhcpMgr_MainController( void *args )
             /* Message received, reset retry counter */
             retry_count = 0;
 
-            DHCPMGR_LOG_INFO("%s %d: mq_receive returned bytes_read=%zd\n",__FUNCTION__, __LINE__, bytes_read);
+            DHCPMGR_LOG_DEBUG("%s %d: mq_receive returned bytes_read=%zd\n",__FUNCTION__, __LINE__, bytes_read);
 
             if (mq_msg_info.msg_info.dhcpType == DML_DHCPV4)
             {
-                DHCPMGR_LOG_INFO("%s %d: Processing DHCPv4 for %s\n",__FUNCTION__, __LINE__, mq_msg_info.msg_info.if_name);
+                DHCPMGR_LOG_DEBUG("%s %d: Processing DHCPv4 for %s\n",__FUNCTION__, __LINE__, mq_msg_info.msg_info.if_name);
                 Process_DHCPv4_Handler(mq_msg_info.msg_info.if_name, mq_msg_info.msg_info);
             }
             else if (mq_msg_info.msg_info.dhcpType == DML_DHCPV6)
             {
-                DHCPMGR_LOG_INFO("%s %d: Processing DHCPv6 for %s\n",__FUNCTION__, __LINE__, mq_msg_info.msg_info.if_name);
+                DHCPMGR_LOG_DEBUG("%s %d: Processing DHCPv6 for %s\n",__FUNCTION__, __LINE__, mq_msg_info.msg_info.if_name);
                 Process_DHCPv6_Handler(mq_msg_info.msg_info.if_name, mq_msg_info.msg_info);
             }
         }
@@ -929,12 +912,12 @@ void* DhcpMgr_MainController( void *args )
             {
                 /* No message yet, wait 250ms */
                 usleep(sleep_us);
-                DHCPMGR_LOG_INFO("%s %d: mq_receive timeout, no message received yet on %s with retry count %d\n",__FUNCTION__, __LINE__, mq_name, retry_count);
+                DHCPMGR_LOG_DEBUG("%s %d: mq_receive timeout, no message received yet on %s with retry count %d\n",__FUNCTION__, __LINE__, mq_name, retry_count);
                 retry_count++;
 
                 if (retry_count >= max_retries)
                 {
-                    DHCPMGR_LOG_INFO("%s %d: mq_receive timeout after 5s on %s\n",__FUNCTION__, __LINE__, mq_name);
+                    DHCPMGR_LOG_DEBUG("%s %d: mq_receive timeout after 5s on %s\n",__FUNCTION__, __LINE__, mq_name);
                     break; // exit thread after timeout
                 }
 
@@ -943,14 +926,14 @@ void* DhcpMgr_MainController( void *args )
             else
             {
                 /* Real error, exit thread */
-                DHCPMGR_LOG_INFO("%s %d: mq_receive failed errno=%d (%s)\n",__FUNCTION__, __LINE__, errno, strerror(errno));
+                DHCPMGR_LOG_ERROR("%s %d: mq_receive failed errno=%d (%s)\n",__FUNCTION__, __LINE__, errno, strerror(errno));
                 break;
             }
         }
     }
 
 
-    DHCPMGR_LOG_INFO("%s %d: Cleaning up DhcpMgr_MainController thread for interface %s\n", __FUNCTION__, __LINE__, inf_name);
+    DHCPMGR_LOG_DEBUG("%s %d: Cleaning up DhcpMgr_MainController thread for interface %s\n", __FUNCTION__, __LINE__, inf_name);
     /*
      * Hold q_mutex around mark_thread_stopped + mq_close so that
      * DhcpMgr_OpenQueueEnsureThread (which also holds q_mutex while sending)
@@ -961,7 +944,7 @@ void* DhcpMgr_MainController( void *args )
     mark_thread_stopped(inf_name);
     mq_close(mq_desc);
     DhcpMgr_UnlockInterfaceQueueMutexByName(inf_name);
-    DHCPMGR_LOG_INFO("%s %d: Exiting DhcpMgr_MainController thread for mq %s\n", __FUNCTION__, __LINE__, mq_name);
+    DHCPMGR_LOG_DEBUG("%s %d: Exiting DhcpMgr_MainController thread for mq %s\n", __FUNCTION__, __LINE__, mq_name);
     return NULL;
 
 }
@@ -996,7 +979,7 @@ void DHCPMgr_AddDhcpv4Lease(char * ifName, DHCPv4_PLUGIN_MSG *newLease)
 
         if (!pDhcpc)
         {
-            DHCPMGR_LOG_INFO("%s : pDhcpc is NULL\n",__FUNCTION__);
+            DHCPMGR_LOG_ERROR("%s : pDhcpc is NULL\n",__FUNCTION__);
             continue;
         }
 
@@ -1038,7 +1021,7 @@ void DHCPMgr_AddDhcpv4Lease(char * ifName, DHCPv4_PLUGIN_MSG *newLease)
     {
         //if we are here, we didn't find the correct interface the received lease. free the memory
         free(newLease);
-        DHCPMGR_LOG_INFO("%s %d: dhcpv4 lease msg not added for ineterface %s. DHCP client may not be running. \n", __FUNCTION__, __LINE__, ifName);
+        DHCPMGR_LOG_ERROR("%s %d: dhcpv4 lease msg not added for ineterface %s. DHCP client may not be running. \n", __FUNCTION__, __LINE__, ifName);
     }
 
     return;
@@ -1074,7 +1057,7 @@ void DHCPMgr_AddDhcpv6Lease(char * ifName, DHCPv6_PLUGIN_MSG *newLease)
 
         if (!pDhcp6c)
         {
-            DHCPMGR_LOG_INFO("%s : pDhcp6c is NULL\n",__FUNCTION__);
+            DHCPMGR_LOG_ERROR("%s : pDhcp6c is NULL\n",__FUNCTION__);
             continue;
         }
 
@@ -1114,7 +1097,7 @@ void DHCPMgr_AddDhcpv6Lease(char * ifName, DHCPv6_PLUGIN_MSG *newLease)
     {
         //if we are here, we didn't find the correct interface the received lease. free the memory
         free(newLease);
-        DHCPMGR_LOG_INFO("%s %d: dhcpv6 lease msg not added for ineterface %s. DHCP client may not be running. \n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
+        DHCPMGR_LOG_ERROR("%s %d: dhcpv6 lease msg not added for ineterface %s. DHCP client may not be running. \n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
     }
 
     return;
@@ -1151,7 +1134,7 @@ void processKilled(pid_t pid)
 
         if (!pDhcpc)
         {
-            DHCPMGR_LOG_INFO("%s : pDhcpc is NULL\n",__FUNCTION__);
+            DHCPMGR_LOG_ERROR("%s : pDhcpc is NULL\n",__FUNCTION__);
             continue;
         }
 
@@ -1176,7 +1159,7 @@ void processKilled(pid_t pid)
             int ret = DhcpMgr_OpenQueueEnsureThread(info);
             if (ret != 0) 
             {
-                DHCPMGR_LOG_INFO("%s %d: Failed to enqueue Selfheal_ClientRestart for %s\n", __FUNCTION__, __LINE__, pDhcpc->Cfg.Interface);
+                DHCPMGR_LOG_ERROR("%s %d: Failed to enqueue Selfheal_ClientRestart for %s\n", __FUNCTION__, __LINE__, pDhcpc->Cfg.Interface);
             }
 
             return;
@@ -1202,7 +1185,7 @@ void processKilled(pid_t pid)
 
         if (!pDhcp6c)
         {
-            DHCPMGR_LOG_INFO("%s : pDhcp6c is NULL\n",__FUNCTION__);
+            DHCPMGR_LOG_ERROR("%s : pDhcp6c is NULL\n",__FUNCTION__);
             continue;
         }
 
@@ -1227,7 +1210,7 @@ void processKilled(pid_t pid)
             int ret = DhcpMgr_OpenQueueEnsureThread(info);
             if (ret != 0) 
             {
-                DHCPMGR_LOG_INFO("%s %d: Failed to enqueue Selfheal_ClientRestart for %s\n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
+                DHCPMGR_LOG_ERROR("%s %d: Failed to enqueue Selfheal_ClientRestart for %s\n", __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
             }
             
             return;

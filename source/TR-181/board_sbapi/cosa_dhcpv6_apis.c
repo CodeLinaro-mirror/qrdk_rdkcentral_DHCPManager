@@ -1509,7 +1509,7 @@ CosaDmlDhcpv6SMsgHandler
     {
 	#ifdef DHCPV6_SERVER_SUPPORT
         if (pthread_create(&g_be_ctx.dbgthrds, NULL, dhcpv6s_dbg_thrd, NULL)  || pthread_detach(g_be_ctx.dbgthrds))
-            DHCPMGR_LOG_INFO("%s error in creating dhcpv6s_dbg_thrd\n", __FUNCTION__);
+            DHCPMGR_LOG_WARNING("%s error in creating dhcpv6s_dbg_thrd\n", __FUNCTION__);
         #endif
     }
 
@@ -1519,7 +1519,7 @@ CosaDmlDhcpv6SMsgHandler
     fp = popen("/usr/bin/ipv6rtmon &", "r");
     if(!fp)
     {
-        DHCPMGR_LOG_INFO("[%s-%d]Failed to satrt ipv6rtmon.\n", __FUNCTION__, __LINE__)
+        DHCPMGR_LOG_WARNING("[%s-%d]Failed to satrt ipv6rtmon.\n", __FUNCTION__, __LINE__)
     }
     else
     {
@@ -1530,7 +1530,7 @@ CosaDmlDhcpv6SMsgHandler
     if ( !mkfifo(RA_COMMON_FIFO, 0666) || errno == EEXIST )
     {
         if (pthread_create(&g_be_ctx.dbgthrd_rtadv, NULL, rtadv_dbg_thread, NULL)  || pthread_detach(g_be_ctx.dbgthrd_rtadv))
-            DHCPMGR_LOG_INFO("%s error in creating rtadv_dbg_thread\n", __FUNCTION__);
+            DHCPMGR_LOG_WARNING("%s error in creating rtadv_dbg_thread\n", __FUNCTION__);
     }
 #endif // RA_MONITOR_SUPPORT
 
@@ -1540,7 +1540,7 @@ CosaDmlDhcpv6SMsgHandler
 int CosaDmlDhcpv6sRestartOnLanStarted(void * arg)
 {
     UNREFERENCED_PARAMETER(arg);
-    DHCPMGR_LOG_INFO("%s -- lan status is started. \n", __FUNCTION__);
+    DHCPMGR_LOG_WARNING("%s -- lan status is started. \n", __FUNCTION__);
     g_lan_ready = TRUE;
 
 #if defined(_CBR_PRODUCT_REQ_)
@@ -1560,7 +1560,7 @@ int CosaDmlDhcpv6sRestartOnLanStarted(void * arg)
             deviceMode = atoi(buf);
         }
 
-        DHCPMGR_LOG_INFO("%s -- %d Device Mode %d \n", __FUNCTION__, __LINE__,deviceMode);
+        DHCPMGR_LOG_WARNING("%s -- %d Device Mode %d \n", __FUNCTION__, __LINE__,deviceMode);
         //dont start dibbler server in extender mode.
         if (deviceMode == DEVICE_MODE_EXTENDER)
         {
@@ -1581,7 +1581,7 @@ int CosaDmlDhcpv6sRestartOnLanStarted(void * arg)
 #else
 
 #ifdef DHCPV6_SERVER_SUPPORT
-    DHCPMGR_LOG_INFO("%s,%d: Calling CosaDmlDHCPv6sTriggerRestart(TRUE)...\n", __FUNCTION__, __LINE__);
+    DHCPMGR_LOG_DEBUG("%s,%d: Calling CosaDmlDHCPv6sTriggerRestart(TRUE)...\n", __FUNCTION__, __LINE__);
     CosaDmlDHCPv6sTriggerRestart(TRUE);
     //sysevent_set(sysevent_fd_server, sysevent_token_server, "dhcpv6s_trigger_restart", "1", 0);
 #endif
@@ -1739,7 +1739,7 @@ CosaDmlDhcpv6Init
     g_RegisterCallBackAfterInitDml(g_pDslhDmlAgent, pEntry);
    */
     /*register callback function to restart dibbler-server at right time*/
-    DHCPMGR_LOG_INFO("%s -- %d register lan-status to event dispatcher \n", __FUNCTION__, __LINE__);
+    DHCPMGR_LOG_WARNING("%s -- %d register lan-status to event dispatcher \n", __FUNCTION__, __LINE__);
     EvtDispterRgstCallbackForEvent("lan-status", CosaDmlDhcpv6sRestartOnLanStarted, NULL);
 #endif
 
@@ -1766,7 +1766,7 @@ CosaDmlDhcpv6cGetNumberOfEntries
 
     retPsmGet = PSM_Get_Record_Value2(bus_handle,g_Subsystem, PSM_DHCPMANAGER_DHCPV6C_CLIENTCOUNT, NULL, &param_value);
     if (retPsmGet != CCSP_SUCCESS) {
-        DHCPMGR_LOG_INFO("%s Error %d writing %s %s\n", __FUNCTION__, retPsmGet, param_name, param_value);
+        DHCPMGR_LOG_ERROR("%s Error %d writing %s %s\n", __FUNCTION__, retPsmGet, param_name, param_value);
         return 0;
     }
     else
@@ -3132,7 +3132,7 @@ CosaDmlDhcpv6sEnable
  
         #ifdef DHCPV6_SERVER_SUPPORT
         /* We need enable server */
-        DHCPMGR_LOG_INFO("%s,%d: Calling CosaDmlDHCPv6sTriggerRestart(FALSE)...\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_DEBUG("%s,%d: Calling CosaDmlDHCPv6sTriggerRestart(FALSE)...\n", __FUNCTION__, __LINE__);
         CosaDmlDHCPv6sTriggerRestart(FALSE);
 	//sysevent_set(sysevent_fd_server, sysevent_token_server, "dhcpv6s_trigger_restart", "0", 0);
         #endif
@@ -3225,7 +3225,7 @@ CosaDmlDhcpv6sSetType
        
 #ifdef DHCPV6_SERVER_SUPPORT
         /* We need enable server */
-        DHCPMGR_LOG_INFO("%s,%d: Calling CosaDmlDHCPv6sTriggerRestart(FALSE)...\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_DEBUG("%s,%d: Calling CosaDmlDHCPv6sTriggerRestart(FALSE)...\n", __FUNCTION__, __LINE__);
 	CosaDmlDHCPv6sTriggerRestart(FALSE);
 	//sysevent_set(sysevent_fd_server, sysevent_token_server, "dhcpv6s_trigger_restart", "0", 0);
 #endif
@@ -3361,7 +3361,7 @@ CosaDmlDhcpv6sAddPool
     Utopia_Free(&utctx,1);
 
 #ifdef DHCPV6_SERVER_SUPPORT
-    DHCPMGR_LOG_INFO("%s,%d: Calling CosaDmlDHCPv6sTriggerRestart(FALSE)...\n", __FUNCTION__, __LINE__);
+    DHCPMGR_LOG_DEBUG("%s,%d: Calling CosaDmlDHCPv6sTriggerRestart(FALSE)...\n", __FUNCTION__, __LINE__);
     CosaDmlDHCPv6sTriggerRestart(FALSE);
     //sysevent_set(sysevent_fd_server, sysevent_token_server, "dhcpv6s_trigger_restart", "0", 0);
 #endif
@@ -3431,7 +3431,7 @@ CosaDmlDhcpv6sDelPool
     Utopia_Free(&utctx,1);
 
 #ifdef DHCPV6_SERVER_SUPPORT
-    DHCPMGR_LOG_INFO("%s,%d: Calling CosaDmlDHCPv6sTriggerRestart(FALSE)...\n", __FUNCTION__, __LINE__);
+    DHCPMGR_LOG_DEBUG("%s,%d: Calling CosaDmlDHCPv6sTriggerRestart(FALSE)...\n", __FUNCTION__, __LINE__);
     CosaDmlDHCPv6sTriggerRestart(FALSE);
     //sysevent_set(sysevent_fd_server, sysevent_token_server, "dhcpv6s_trigger_restart", "0", 0);
 #endif
@@ -3725,7 +3725,7 @@ CosaDmlDhcpv6sSetPoolCfg
     setpool_into_utopia((PUCHAR)DHCPV6S_NAME, (PUCHAR)"pool", Index, &sDhcpv6ServerPool[Index]);
 
 #ifdef DHCPV6_SERVER_SUPPORT
-    DHCPMGR_LOG_INFO("%s,%d: Calling CosaDmlDHCPv6sTriggerRestart(FALSE)...\n", __FUNCTION__, __LINE__);
+    DHCPMGR_LOG_DEBUG("%s,%d: Calling CosaDmlDHCPv6sTriggerRestart(FALSE)...\n", __FUNCTION__, __LINE__);
     CosaDmlDHCPv6sTriggerRestart(FALSE);
     //sysevent_set(sysevent_fd_server, sysevent_token_server, "dhcpv6s_trigger_restart", "0", 0);
 #endif
@@ -3733,7 +3733,7 @@ CosaDmlDhcpv6sSetPoolCfg
         // Check whether static DNS got enabled or not. If enabled then we need to restart the zebra process
         if( bNeedZebraRestart )
         {
-        DHCPMGR_LOG_INFO("%s Restarting Zebra Process\n", __FUNCTION__);
+        DHCPMGR_LOG_WARNING("%s Restarting Zebra Process\n", __FUNCTION__);
         v_secure_system("killall zebra && sysevent set zebra-restart");
         }
 
@@ -4584,7 +4584,7 @@ CosaDmlDhcpv6sAddOption
             setpooloption_into_utopia((PUCHAR)DHCPV6S_NAME,(PUCHAR)"pool",Index,(PUCHAR)"option",Index2,&sDhcpv6ServerPoolOption[Index][Index2]);
 
 #ifdef DHCPV6_SERVER_SUPPORT
-            DHCPMGR_LOG_INFO("%s,%d: Calling CosaDmlDHCPv6sTriggerRestart(FALSE)...\n", __FUNCTION__, __LINE__);
+            DHCPMGR_LOG_DEBUG("%s,%d: Calling CosaDmlDHCPv6sTriggerRestart(FALSE)...\n", __FUNCTION__, __LINE__);
 	    CosaDmlDHCPv6sTriggerRestart(FALSE);
 	    //sysevent_set(sysevent_fd_server, sysevent_token_server, "dhcpv6s_trigger_restart", "0", 0);
 #endif
@@ -4640,7 +4640,7 @@ CosaDmlDhcpv6sDelOption
             Utopia_Free(&utctx,1);
 
 #ifdef DHCPV6_SERVER_SUPPORT
-            DHCPMGR_LOG_INFO("%s,%d: Calling CosaDmlDHCPv6sTriggerRestart(FALSE)...\n", __FUNCTION__, __LINE__);
+            DHCPMGR_LOG_DEBUG("%s,%d: Calling CosaDmlDHCPv6sTriggerRestart(FALSE)...\n", __FUNCTION__, __LINE__);
 	    CosaDmlDHCPv6sTriggerRestart(FALSE);
             //sysevent_set(sysevent_fd_server, sysevent_token_server, "dhcpv6s_trigger_restart", "0", 0);
 #endif
@@ -4685,7 +4685,7 @@ CosaDmlDhcpv6sSetOption
                     setpooloption_into_utopia((PUCHAR)DHCPV6S_NAME, (PUCHAR)"pool", Index, (PUCHAR)"option", Index2, &sDhcpv6ServerPoolOption[Index][Index2]);
 
 #ifdef DHCPV6_SERVER_SUPPORT
-                    DHCPMGR_LOG_INFO("%s,%d: Calling CosaDmlDHCPv6sTriggerRestart(FALSE)...\n", __FUNCTION__, __LINE__);
+                    DHCPMGR_LOG_DEBUG("%s,%d: Calling CosaDmlDHCPv6sTriggerRestart(FALSE)...\n", __FUNCTION__, __LINE__);
 		    CosaDmlDHCPv6sTriggerRestart(FALSE);
                     //sysevent_set(sysevent_fd_server, sysevent_token_server, "dhcpv6s_trigger_restart", "0", 0);
 #endif
@@ -4746,7 +4746,7 @@ rtadv_dbg_thread(void * in)
     fd = open(RA_COMMON_FIFO, O_RDWR);
     if (fd < 0)
     {
-        DHCPMGR_LOG_INFO("%s : Open failed for fifo file %s due to error %s.\n", __FUNCTION__, RA_COMMON_FIFO, strerror(errno));
+        DHCPMGR_LOG_ERROR("%s : Open failed for fifo file %s due to error %s.\n", __FUNCTION__, RA_COMMON_FIFO, strerror(errno));
         goto EXIT;
     }
     v_secure_system(IPv6_RT_MON_NOTIFY_CMD); /* SIGUSR1 for ipv6rtmon daemon upon creation of FIFO file from the thread. */
@@ -4765,7 +4765,7 @@ rtadv_dbg_thread(void * in)
             if (errno == EINTR)
                 continue;
 
-            DHCPMGR_LOG_INFO("%s -- select() returns error %s.\n", __FUNCTION__, strerror(errno));
+            DHCPMGR_LOG_ERROR("%s -- select() returns error %s.\n", __FUNCTION__, strerror(errno));
             goto EXIT;
         }
         else if (retCode == 0)
@@ -4778,7 +4778,7 @@ rtadv_dbg_thread(void * in)
             while (ofst < ra_flags_len) {
                 ssize_t ret = read(fd, &msg[ofst], ra_flags_len - ofst);
                 if (ret < 0) {
-                    DHCPMGR_LOG_INFO("%s : read() returned error %s after already reading %zu. Ignoring the message...\n", __FUNCTION__, strerror(errno), ret);
+                    DHCPMGR_LOG_ERROR("%s : read() returned error %s after already reading %zu. Ignoring the message...\n", __FUNCTION__, strerror(errno), ret);
                     continue;
                 }
                 ofst += ret;
@@ -4891,7 +4891,7 @@ rtadv_dbg_thread(void * in)
                    char* token = strtok(tmpstr, " , ");
                    while (token != NULL)
                    {
-                       DHCPMGR_LOG_INFO("token : %d\n", atoi(token));
+                       DHCPMGR_LOG_ERROR("token : %d\n", atoi(token));
                        add_dhcpv4_opt_to_list(&req_opt_list, atoi(token), "");
                        token = strtok(NULL, " , ");
                    }

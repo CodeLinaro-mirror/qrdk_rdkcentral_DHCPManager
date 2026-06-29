@@ -138,7 +138,7 @@ static char* parse_dhcp_17_suboption(const char *dhcp_option_val, const char *ip
 {
     if (dhcp_option_val == NULL || ip_mode == NULL) 
     {
-        DHCPMGR_LOG_INFO("%s %d: Invalid arguments..\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_ERROR("%s %d: Invalid arguments..\n", __FUNCTION__, __LINE__);
         return NULL;
     }
 
@@ -146,7 +146,7 @@ static char* parse_dhcp_17_suboption(const char *dhcp_option_val, const char *ip
     char *dhcp_option_copy = strdup(dhcp_option_val);
     if (dhcp_option_copy == NULL) 
     {
-        DHCPMGR_LOG_INFO("%s %d: Memory allocation failed..\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_ERROR("%s %d: Memory allocation failed..\n", __FUNCTION__, __LINE__);
         return NULL;
     }
 
@@ -203,7 +203,7 @@ static char* parse_dhcp_17_suboption(const char *dhcp_option_val, const char *ip
 
         if (new_format == NULL) 
         {
-            DHCPMGR_LOG_INFO("%s %d: Memory allocation failed..\n", __FUNCTION__, __LINE__);
+            DHCPMGR_LOG_ERROR("%s %d: Memory allocation failed..\n", __FUNCTION__, __LINE__);
             free(dhcp_option_copy);
             return NULL;
         }
@@ -247,7 +247,7 @@ static int DhcpMgr_Option17Set_Common(const char *ifName, const char *OptionValu
 {
     if (ifName == NULL || OptionValue == NULL)
     {
-        DHCPMGR_LOG_INFO("%s %d: Invalid args..\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_ERROR("%s %d: Invalid args..\n", __FUNCTION__, __LINE__);
         return -1;
     }
     char *token, *suboption, *suboption_data;
@@ -255,7 +255,7 @@ static int DhcpMgr_Option17Set_Common(const char *ifName, const char *OptionValu
     int mta_dhcp_option_received = 0;
 
     if (srv_option17 == NULL) {
-        DHCPMGR_LOG_INFO("%s %d: Memory allocation failed..\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_ERROR("%s %d: Memory allocation failed..\n", __FUNCTION__, __LINE__);
         return -1;
     }
 
@@ -399,7 +399,7 @@ static int set_mta_config(const char *OptionValue, char *version)
 
     if(OptionValue == NULL)
     {
-        DHCPMGR_LOG_INFO("%s %d: Invalid args..\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_ERROR("%s %d: Invalid args..\n", __FUNCTION__, __LINE__);
         return -1;
     }
     if (strcmp(version, "v4") == 0)
