@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/socket.h>
@@ -426,13 +427,18 @@ static bool DhcpMgr_checkInterfaceStatus(const char * ifName)
 /**
  * @brief Checks for the presence of a link-local address and its DAD status on a network interface.
  *
- * This function checks if the specified network interface has a link-local address (LLA) by
- * executing the command `ip address show dev %s tentative`. It also verifies the link-local
- * Duplicate Address Detection (DAD) status. If no LLA is found, it restarts the IPv6 stack
- * on the interface.
+ * This function reads /proc/net/if_inet6 to check whether the specified interface
+ * has a link-local address (scope 0x20) that has completed Duplicate Address
+ * Detection (DAD). It waits up to INTF_V6LL_TIMEOUT_IN_MSEC for DAD to finish.
+ * If no link-local address is found within the timeout, it restarts the IPv6
+ * stack on the interface.
  *
  * @param interfaceName The name of the network interface to check.
- * @return true if the link-local address is found and DAD status is verified, false otherwise.
+ * @return true if at least one link-local address is found and ready (DAD
+ *         complete for that address — scan stops at the first non-tentative LLA),
+ *         or if /proc/net/if_inet6 cannot be opened (DAD check skipped —
+ *         callers should not assume DAD was verified in that case).
+ *         Returns false if no link-local address appears within the timeout.
  */
 static bool DhcpMgr_checkLinkLocalAddress(const char * interfaceName)
 { 
@@ -447,27 +453,65 @@ static bool DhcpMgr_checkLinkLocalAddress(const char * interfaceName)
          * /proc/net/if_inet6 format: addr32hex if_idx prefix_len scope flags ifname
          * IFA_F_TENTATIVE (0x40) set while the address is undergoing DAD. */
         bool tentative = false;
+        bool iface_found = false;
         FILE *fp_inet6 = fopen("/proc/net/if_inet6", "r");
         if (fp_inet6 != NULL)
         {
             char addr[33];
-            int if_idx, pfx_len, scope, flags;
+            unsigned int if_idx, pfx_len, scope, flags;
             char ifname[IF_NAMESIZE + 1];
             while (fscanf(fp_inet6, "%32s %x %x %x %x %16s", addr, &if_idx, &pfx_len, &scope, &flags, ifname) == 6)
             {
-                if ((strcmp(ifname, interfaceName) == 0) && (flags & IFA_F_TENTATIVE))
+                if (strcmp(ifname, interfaceName) != 0)
+                    continue;   /* skip entries for other interfaces */
+
+                /* Only consider link-local addresses (scope 0x20 = IPV6_ADDR_LINKLOCAL).
+                 * Global/site-local addresses present without a link-local do not
+                 * satisfy the readiness check this function is designed to verify. */
+                if (scope != 0x20U)
+                    continue;
+
+                iface_found = true;
+                if (flags & IFA_F_TENTATIVE)
                 {
                     tentative = true;
+                    /* Do NOT break here: there may be multiple link-local
+                     * entries; a later one may already be non-tentative. */
+                }
+                else
+                {
+                    /* At least one link-local address is ready — DAD complete.
+                     * No need to scan further. */
+                    tentative = false;
                     break;
                 }
             }
             fclose(fp_inet6);
         }
-
-        if (!tentative)
+        else
+        {
+            /* Cannot open /proc/net/if_inet6 — kernel file unavailable.
+             * DAD state is indeterminate; break out and let DHCPv6 proceed
+             * rather than stalling until timeout. */
+            DHCPMGR_LOG_ERROR("%s %d: failed to open /proc/net/if_inet6 (%s), skipping DAD check\n",
+                                __FUNCTION__, __LINE__, strerror(errno));
             break;
+        }
 
-        DHCPMGR_LOG_WARNING("%s %d: interface still tentative: %s\n", __FUNCTION__, __LINE__, interfaceName);
+        /* If no link-local address found yet, keep waiting */
+        if (!iface_found)
+        {
+            DHCPMGR_LOG_WARNING("%s %d: no link-local address for %s in /proc/net/if_inet6 yet, waiting...\n",
+                                __FUNCTION__, __LINE__, interfaceName);
+        }
+        else if (!tentative)
+        {
+            break;  /* at least one link-local address is ready (DAD complete) */
+        }
+        else
+        {
+            DHCPMGR_LOG_WARNING("%s %d: interface still tentative: %s\n", __FUNCTION__, __LINE__, interfaceName);
+        }
         usleep(INTF_V6LL_INTERVAL_IN_MSEC * USECS_IN_MSEC);
         waitTime -= INTF_V6LL_INTERVAL_IN_MSEC;
     }
