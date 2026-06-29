@@ -90,6 +90,7 @@
 #include <syscfg/syscfg.h>
 #include <sys/sysinfo.h>
 #include "dhcp_client_common_utils.h"
+#include "dhcpv4_interface.h"
 
 extern void* g_pDslhDmlAgent;
 extern ANSC_HANDLE g_Dhcpv4Object;
