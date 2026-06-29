@@ -457,10 +457,13 @@ static bool DhcpMgr_checkLinkLocalAddress(const char * interfaceName)
         FILE *fp_inet6 = fopen("/proc/net/if_inet6", "r");
         if (fp_inet6 != NULL)
         {
-            unsigned int scope, flags;
+            char addr[33];
+            unsigned int if_idx, pfx_len, scope, flags;
             char ifname[IF_NAMESIZE + 1];
-            /* Suppress addr/if_idx/pfx_len with %* to avoid -Wunused-but-set-variable */
-            while (fscanf(fp_inet6, "%*s %*x %*x %x %x %16s", &scope, &flags, ifname) == 3)
+            while (fscanf(fp_inet6, "%32s %x %x %x %x %16s",
+                          addr, &if_idx, &pfx_len, &scope, &flags, ifname) == 6)
+            {
+                (void)addr; (void)if_idx; (void)pfx_len; /* only scope/flags/ifname used */
             {
                 if (strcmp(ifname, interfaceName) != 0)
                     continue;   /* skip entries for other interfaces */
