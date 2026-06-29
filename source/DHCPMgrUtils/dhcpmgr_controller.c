@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/socket.h>
@@ -50,6 +51,7 @@
 #include "dhcpmgr_custom_options.h"
 #include "cosa_apis_util.h"
 #include <telemetry_busmessage_sender.h>
+#include <linux/if_addr.h>     /* IFA_F_TENTATIVE */
 
 
 /* ---- Global Constants -------------------------- */
@@ -425,35 +427,90 @@ static bool DhcpMgr_checkInterfaceStatus(const char * ifName)
 /**
  * @brief Checks for the presence of a link-local address and its DAD status on a network interface.
  *
- * This function checks if the specified network interface has a link-local address (LLA) by
- * executing the command `ip address show dev %s tentative`. It also verifies the link-local
- * Duplicate Address Detection (DAD) status. If no LLA is found, it restarts the IPv6 stack
- * on the interface.
+ * This function reads /proc/net/if_inet6 to check whether the specified interface
+ * has a link-local address (scope 0x20) that has completed Duplicate Address
+ * Detection (DAD). It waits up to INTF_V6LL_TIMEOUT_IN_MSEC for DAD to finish.
+ * If no link-local address is found within the timeout, it restarts the IPv6
+ * stack on the interface.
  *
  * @param interfaceName The name of the network interface to check.
- * @return true if the link-local address is found and DAD status is verified, false otherwise.
+ * @return true if at least one link-local address is found and ready (DAD
+ *         complete for that address — scan stops at the first non-tentative LLA),
+ *         or if /proc/net/if_inet6 cannot be opened (DAD check skipped —
+ *         callers should not assume DAD was verified in that case).
+ *         Returns false if no link-local address appears within the timeout.
  */
 static bool DhcpMgr_checkLinkLocalAddress(const char * interfaceName)
 { 
     // check if interface is ipv6 ready with a link-local address
     unsigned int waitTime = INTF_V6LL_TIMEOUT_IN_MSEC;
-    char cmd[BUFLEN_128] = {0};
-    snprintf(cmd, sizeof(cmd), "ip address show dev %s tentative", interfaceName);
+
     while (waitTime > 0)
     {
-        FILE *fp_dad   = NULL;
-        char buffer[BUFLEN_256] = {0};
-
-        fp_dad = popen(cmd, "r");
-        if(fp_dad != NULL)
+        /* Read /proc/net/if_inet6 directly instead of popen("ip address show tentative").
+         * popen() spawns a child process which races with the global SIGCHLD handler
+         * (waitpid(-1,...)) causing pclose() to hang when the handler reaps the child first.
+         * /proc/net/if_inet6 format: addr32hex if_idx prefix_len scope flags ifname
+         * IFA_F_TENTATIVE (0x40) set while the address is undergoing DAD. */
+        bool tentative = false;
+        bool iface_found = false;
+        FILE *fp_inet6 = fopen("/proc/net/if_inet6", "r");
+        if (fp_inet6 != NULL)
         {
-            if ((fgets(buffer, BUFLEN_256, fp_dad) == NULL) || (strlen(buffer) == 0))
+            char addr[33];
+            unsigned int if_idx, pfx_len, scope, flags;
+            char ifname[IF_NAMESIZE + 1];
+            while (fscanf(fp_inet6, "%32s %x %x %x %x %16s", addr, &if_idx, &pfx_len, &scope, &flags, ifname) == 6)
             {
-                pclose(fp_dad);
-                break;
+                if (strcmp(ifname, interfaceName) != 0)
+                    continue;   /* skip entries for other interfaces */
+
+                /* Only consider link-local addresses (scope 0x20 = IPV6_ADDR_LINKLOCAL).
+                 * Global/site-local addresses present without a link-local do not
+                 * satisfy the readiness check this function is designed to verify. */
+                if (scope != 0x20U)
+                    continue;
+
+                iface_found = true;
+                if (flags & IFA_F_TENTATIVE)
+                {
+                    tentative = true;
+                    /* Do NOT break here: there may be multiple link-local
+                     * entries; a later one may already be non-tentative. */
+                }
+                else
+                {
+                    /* At least one link-local address is ready — DAD complete.
+                     * No need to scan further. */
+                    tentative = false;
+                    break;
+                }
             }
-            DHCPMGR_LOG_WARNING("%s %d: interface still tentative: %s\n", __FUNCTION__, __LINE__, buffer);
-            pclose(fp_dad);
+            fclose(fp_inet6);
+        }
+        else
+        {
+            /* Cannot open /proc/net/if_inet6 — kernel file unavailable.
+             * DAD state is indeterminate; break out and let DHCPv6 proceed
+             * rather than stalling until timeout. */
+            DHCPMGR_LOG_ERROR("%s %d: failed to open /proc/net/if_inet6 (%s), skipping DAD check\n",
+                                __FUNCTION__, __LINE__, strerror(errno));
+            break;
+        }
+
+        /* If no link-local address found yet, keep waiting */
+        if (!iface_found)
+        {
+            DHCPMGR_LOG_WARNING("%s %d: no link-local address for %s in /proc/net/if_inet6 yet, waiting...\n",
+                                __FUNCTION__, __LINE__, interfaceName);
+        }
+        else if (!tentative)
+        {
+            break;  /* at least one link-local address is ready (DAD complete) */
+        }
+        else
+        {
+            DHCPMGR_LOG_WARNING("%s %d: interface still tentative: %s\n", __FUNCTION__, __LINE__, interfaceName);
         }
         usleep(INTF_V6LL_INTERVAL_IN_MSEC * USECS_IN_MSEC);
         waitTime -= INTF_V6LL_INTERVAL_IN_MSEC;
@@ -905,10 +962,6 @@ void* DhcpMgr_MainController( void *args )
                 if (retry_count >= max_retries)
                 {
                     DHCPMGR_LOG_DEBUG("%s %d: mq_receive timeout after 5s on %s\n",__FUNCTION__, __LINE__, mq_name);
-                    if(DhcpMgr_LockInterfaceQueueMutexByName(inf_name) != 0) // lock the mutex
-                    {
-                        DHCPMGR_LOG_ERROR("%s %d Failed to lock interface queue mutex for %s\n", __FUNCTION__, __LINE__, inf_name);
-                    }
                     break; // exit thread after timeout
                 }
 
@@ -918,10 +971,6 @@ void* DhcpMgr_MainController( void *args )
             {
                 /* Real error, exit thread */
                 DHCPMGR_LOG_ERROR("%s %d: mq_receive failed errno=%d (%s)\n",__FUNCTION__, __LINE__, errno, strerror(errno));
-                if(DhcpMgr_LockInterfaceQueueMutexByName(inf_name) != 0) // lock the mutex on error
-                {
-                    DHCPMGR_LOG_ERROR("%s %d Failed to lock interface queue mutex for %s\n", __FUNCTION__, __LINE__, inf_name);
-                }
                 break;
             }
         }
@@ -929,15 +978,16 @@ void* DhcpMgr_MainController( void *args )
 
 
     DHCPMGR_LOG_DEBUG("%s %d: Cleaning up DhcpMgr_MainController thread for interface %s\n", __FUNCTION__, __LINE__, inf_name);
+    /*
+     * Hold q_mutex around mark_thread_stopped + mq_close so that
+     * DhcpMgr_OpenQueueEnsureThread (which also holds q_mutex while sending)
+     * cannot deliver a message to a queue that is already closed.
+     * Lock order: q_mutex -> global_mutex (same as in OpenQueueEnsureThread).
+     */
+    DhcpMgr_LockInterfaceQueueMutexByName(inf_name);
     mark_thread_stopped(inf_name);
     mq_close(mq_desc);
-
-    if(DhcpMgr_UnlockInterfaceQueueMutexByName(inf_name) != 0) //MUTEX unlock
-    {
-        DHCPMGR_LOG_ERROR("%s %d Failed to unlock interface queue mutex for %s\n", __FUNCTION__, __LINE__, inf_name);
-    }
-    
-    /* Mark thread as stopped so new one can be created if needed */
+    DhcpMgr_UnlockInterfaceQueueMutexByName(inf_name);
     DHCPMGR_LOG_DEBUG("%s %d: Exiting DhcpMgr_MainController thread for mq %s\n", __FUNCTION__, __LINE__, mq_name);
     return NULL;
 
