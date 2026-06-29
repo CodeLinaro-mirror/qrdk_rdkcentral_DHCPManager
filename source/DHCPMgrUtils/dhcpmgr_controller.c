@@ -457,10 +457,10 @@ static bool DhcpMgr_checkLinkLocalAddress(const char * interfaceName)
         FILE *fp_inet6 = fopen("/proc/net/if_inet6", "r");
         if (fp_inet6 != NULL)
         {
-            char addr[33];
-            unsigned int if_idx, pfx_len, scope, flags;
+            unsigned int scope, flags;
             char ifname[IF_NAMESIZE + 1];
-            while (fscanf(fp_inet6, "%32s %x %x %x %x %16s", addr, &if_idx, &pfx_len, &scope, &flags, ifname) == 6)
+            /* Suppress addr/if_idx/pfx_len with %* to avoid -Wunused-but-set-variable */
+            while (fscanf(fp_inet6, "%*s %*x %*x %x %x %16s", &scope, &flags, ifname) == 3)
             {
                 if (strcmp(ifname, interfaceName) != 0)
                     continue;   /* skip entries for other interfaces */
@@ -979,15 +979,24 @@ void* DhcpMgr_MainController( void *args )
 
     DHCPMGR_LOG_DEBUG("%s %d: Cleaning up DhcpMgr_MainController thread for interface %s\n", __FUNCTION__, __LINE__, inf_name);
     /*
-     * Hold q_mutex around mark_thread_stopped + mq_close so that
-     * DhcpMgr_OpenQueueEnsureThread (which also holds q_mutex while sending)
-     * cannot deliver a message to a queue that is already closed.
-     * Lock order: q_mutex -> global_mutex (same as in OpenQueueEnsureThread).
+     * Hold q_mutex around mark_thread_stopped + mq_close so that a concurrent
+     * DhcpMgr_OpenQueueEnsureThread cannot deliver a message to a queue that is
+     * already being closed. q_mutex is acquired here alone; global_mutex is not
+     * held across this section.
      */
-    DhcpMgr_LockInterfaceQueueMutexByName(inf_name);
-    mark_thread_stopped(inf_name);
-    mq_close(mq_desc);
-    DhcpMgr_UnlockInterfaceQueueMutexByName(inf_name);
+    if (DhcpMgr_LockInterfaceQueueMutexByName(inf_name) == 0)
+    {
+        mark_thread_stopped(inf_name);
+        mq_close(mq_desc);
+        DhcpMgr_UnlockInterfaceQueueMutexByName(inf_name);
+    }
+    else
+    {
+        DHCPMGR_LOG_ERROR("%s %d: Failed to acquire queue mutex for %s, attempting cleanup anyway\n",
+                          __FUNCTION__, __LINE__, inf_name);
+        mark_thread_stopped(inf_name);
+        mq_close(mq_desc);
+    }
     DHCPMGR_LOG_DEBUG("%s %d: Exiting DhcpMgr_MainController thread for mq %s\n", __FUNCTION__, __LINE__, mq_name);
     return NULL;
 
