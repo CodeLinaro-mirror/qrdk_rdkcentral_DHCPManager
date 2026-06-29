@@ -88,6 +88,7 @@
 #endif
 
 #include <syscfg/syscfg.h>
+#include <sys/sysinfo.h>
 #include "dhcp_client_common_utils.h"
 
 extern void* g_pDslhDmlAgent;
@@ -807,10 +808,22 @@ Client_GetParamIntValue
     /* check the parameter name and return the corresponding value */
     if (strcmp(ParamName, "LeaseTimeRemaining") == 0)
     {
-        /* collect value */
-        CosaDmlDhcpcGetInfo(NULL, pCxtLink->InstanceNumber, &pDhcpc->Info);
-
-        *pInt   = pDhcpc->Info.LeaseTimeRemaining;
+        /* Compute live countdown: remaining = leaseTime - elapsed_since_bind */
+        if (pDhcpc->currentLease != NULL &&
+            pDhcpc->currentLease->addressAssigned == TRUE &&
+            pDhcpc->currentLease->isExpired == FALSE &&
+            pDhcpc->Info.LeaseStartUptime > 0)
+        {
+            struct sysinfo si;
+            sysinfo(&si);
+            uint32_t elapsed = (uint32_t)si.uptime - pDhcpc->Info.LeaseStartUptime;
+            int remaining = (int)pDhcpc->currentLease->leaseTime - (int)elapsed;
+            *pInt = (remaining > 0) ? remaining : 0;
+        }
+        else
+        {
+            *pInt = pDhcpc->Info.LeaseTimeRemaining;
+        }
 
         return TRUE;
     }

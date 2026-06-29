@@ -135,7 +135,7 @@ ANSC_STATUS DhcpMgr_updateDHCPv4DML(PCOSA_DML_DHCPC_FULL pDhcpc)
         /* Update the Subnet Mask */
         pDhcpc->Info.SubnetMask.Value = inet_addr(current->netmask);
         /* Update the leaseTime */
-        pDhcpc->Info.LeaseTimeRemaining = current->leaseTime;
+        pDhcpc->Info.LeaseTimeRemaining = (int)current->leaseTime;
         pDhcpc->Info.NumDnsServers = 0;
         pDhcpc->Info.NumIPRouters = 0;
         /* Update the DNS Servers */
@@ -349,6 +349,26 @@ void DhcpMgr_ProcessV4Lease(PCOSA_DML_DHCPC_FULL pDhcpc)
         {
              DHCPMGR_LOG_ERROR("[%s-%d] Failed to store DHCPv4 lease\n", __FUNCTION__, __LINE__);
         }
+
+        /*
+         * Always sync lease timing info from currentLease into Info.
+         * The leaseChanged comparison only checks address/netmask/gateway/dns fields —
+         * it does NOT include leaseTime. On a plain DHCP renew (same IP, new leaseTime),
+         * leaseChanged stays FALSE and DhcpMgr_updateDHCPv4DML() is never called, so
+         * Info.LeaseTimeRemaining would stay at the old bind value.
+         * Update it unconditionally here so dmcli always reflects the current lease.
+         */
+        if (pDhcpc->currentLease != NULL &&
+            pDhcpc->currentLease->addressAssigned == TRUE &&
+            pDhcpc->currentLease->isExpired == FALSE)
+        {
+            /* Record when this lease started so the getter can compute a live countdown */
+            pDhcpc->Info.LeaseStartUptime = sysinfo_getUpTime();
+            pDhcpc->Info.LeaseTimeRemaining = (int)pDhcpc->currentLease->leaseTime;
+            DHCPMGR_LOG_INFO("%s %d: Synced LeaseTimeRemaining=%u for %s\n",
+                __FUNCTION__, __LINE__, pDhcpc->currentLease->leaseTime, pDhcpc->Cfg.Interface);
+        }
+
         if(leaseChanged)
         {
             if(newLease->isExpired == TRUE)

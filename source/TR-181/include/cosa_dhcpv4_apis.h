@@ -176,6 +176,7 @@ _COSA_DML_DHCPC_INFO
     ULONG                           NumDnsServers;
     ANSC_IPV4_ADDRESS               DNSServers[COSA_DML_DHCP_MAX_ENTRIES];
     int                             LeaseTimeRemaining;
+    uint32_t                        LeaseStartUptime;          /* System uptime (secs) at lease bind/renew */
     ANSC_IPV4_ADDRESS               DHCPServer;
 }
 COSA_DML_DHCPC_INFO,  *PCOSA_DML_DHCPC_INFO;
