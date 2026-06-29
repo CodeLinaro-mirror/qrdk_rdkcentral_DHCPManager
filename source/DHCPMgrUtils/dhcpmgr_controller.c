@@ -976,7 +976,11 @@ void* DhcpMgr_MainController( void *args )
     {
         mark_thread_stopped(inf_name);
         mq_close(mq_desc);
-        DhcpMgr_UnlockInterfaceQueueMutexByName(inf_name);
+        if (DhcpMgr_UnlockInterfaceQueueMutexByName(inf_name) != 0)
+        {
+            DHCPMGR_LOG_ERROR("%s %d: Failed to unlock queue mutex for %s\n",
+                              __FUNCTION__, __LINE__, inf_name);
+        }
     }
     else
     {
