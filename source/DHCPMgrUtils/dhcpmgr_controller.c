@@ -880,6 +880,7 @@ void* DhcpMgr_MainController( void *args )
     mq_send_msg_t mq_msg_info;
     char inf_name[MAX_STR_LEN] = {0};
     char mq_name[MQ_NAME_LEN] = {0};
+    bool mutex_locked = false;
     
     memset(&mq_msg_info, 0, sizeof(mq_send_msg_t));
     if(args != NULL)
@@ -953,6 +954,11 @@ void* DhcpMgr_MainController( void *args )
                     if(DhcpMgr_LockInterfaceQueueMutexByName(inf_name) != 0) // lock the mutex
                     {
                         DHCPMGR_LOG_ERROR("%s %d Failed to lock interface queue mutex for %s\n", __FUNCTION__, __LINE__, inf_name);
+                        mutex_locked = false;
+                    }
+                    else
+                    {
+                        mutex_locked = true;
                     }
                     break; // exit thread after timeout
                 }
@@ -966,6 +972,11 @@ void* DhcpMgr_MainController( void *args )
                 if(DhcpMgr_LockInterfaceQueueMutexByName(inf_name) != 0) // lock the mutex on error
                 {
                     DHCPMGR_LOG_ERROR("%s %d Failed to lock interface queue mutex for %s\n", __FUNCTION__, __LINE__, inf_name);
+                    mutex_locked = false;
+                }
+                else
+                {
+                    mutex_locked = true;
                 }
                 break;
             }
@@ -977,9 +988,12 @@ void* DhcpMgr_MainController( void *args )
     mark_thread_stopped(inf_name);
     mq_close(mq_desc);
 
-    if(DhcpMgr_UnlockInterfaceQueueMutexByName(inf_name) != 0) //MUTEX unlock
+    if(mutex_locked)
     {
-        DHCPMGR_LOG_ERROR("%s %d Failed to unlock interface queue mutex for %s\n", __FUNCTION__, __LINE__, inf_name);
+        if(DhcpMgr_UnlockInterfaceQueueMutexByName(inf_name) != 0) //MUTEX unlock
+        {
+            DHCPMGR_LOG_ERROR("%s %d Failed to unlock interface queue mutex for %s\n", __FUNCTION__, __LINE__, inf_name);
+        }
     }
     
     /* Mark thread as stopped so new one can be created if needed */
