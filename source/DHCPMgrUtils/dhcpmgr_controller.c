@@ -23,7 +23,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
-#include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/socket.h>
@@ -52,6 +51,7 @@
 #include "cosa_apis_util.h"
 #include <telemetry_busmessage_sender.h>
 #include <linux/if_addr.h>     /* IFA_F_TENTATIVE */
+#include <string.h>            /* strerror */
 
 
 /* ---- Global Constants -------------------------- */
@@ -424,6 +424,8 @@ static bool DhcpMgr_checkInterfaceStatus(const char * ifName)
     return TRUE;
 }
 
+/**
+ * @brief Checks for the presence of a link-local address and its DAD status on a network interface.
 /**
  * @brief Checks if the link-local address on a network interface has completed DAD.
  *
@@ -950,6 +952,10 @@ void* DhcpMgr_MainController( void *args )
                 if (retry_count >= max_retries)
                 {
                     DHCPMGR_LOG_DEBUG("%s %d: mq_receive timeout after 5s on %s\n",__FUNCTION__, __LINE__, mq_name);
+                    if(DhcpMgr_LockInterfaceQueueMutexByName(inf_name) != 0) // lock the mutex
+                    {
+                        DHCPMGR_LOG_ERROR("%s %d Failed to lock interface queue mutex for %s\n", __FUNCTION__, __LINE__, inf_name);
+                    }
                     break; // exit thread after timeout
                 }
 
@@ -959,6 +965,10 @@ void* DhcpMgr_MainController( void *args )
             {
                 /* Real error, exit thread */
                 DHCPMGR_LOG_ERROR("%s %d: mq_receive failed errno=%d (%s)\n",__FUNCTION__, __LINE__, errno, strerror(errno));
+                if(DhcpMgr_LockInterfaceQueueMutexByName(inf_name) != 0) // lock the mutex on error
+                {
+                    DHCPMGR_LOG_ERROR("%s %d Failed to lock interface queue mutex for %s\n", __FUNCTION__, __LINE__, inf_name);
+                }
                 break;
             }
         }
@@ -966,29 +976,15 @@ void* DhcpMgr_MainController( void *args )
 
 
     DHCPMGR_LOG_DEBUG("%s %d: Cleaning up DhcpMgr_MainController thread for interface %s\n", __FUNCTION__, __LINE__, inf_name);
-    /*
-     * Hold q_mutex around mark_thread_stopped + mq_close so that a concurrent
-     * DhcpMgr_OpenQueueEnsureThread cannot deliver a message to a queue that is
-     * already being closed. Note: mark_thread_stopped() acquires global_mutex
-     * internally, so the effective lock order here is q_mutex -> global_mutex.
-     */
-    if (DhcpMgr_LockInterfaceQueueMutexByName(inf_name) == 0)
+    mark_thread_stopped(inf_name);
+    mq_close(mq_desc);
+
+    if(DhcpMgr_UnlockInterfaceQueueMutexByName(inf_name) != 0) //MUTEX unlock
     {
-        mark_thread_stopped(inf_name);
-        mq_close(mq_desc);
-        if (DhcpMgr_UnlockInterfaceQueueMutexByName(inf_name) != 0)
-        {
-            DHCPMGR_LOG_ERROR("%s %d: Failed to unlock queue mutex for %s\n",
-                              __FUNCTION__, __LINE__, inf_name);
-        }
+        DHCPMGR_LOG_ERROR("%s %d Failed to unlock interface queue mutex for %s\n", __FUNCTION__, __LINE__, inf_name);
     }
-    else
-    {
-        DHCPMGR_LOG_ERROR("%s %d: Failed to acquire queue mutex for %s, attempting cleanup anyway\n",
-                          __FUNCTION__, __LINE__, inf_name);
-        mark_thread_stopped(inf_name);
-        mq_close(mq_desc);
-    }
+    
+    /* Mark thread as stopped so new one can be created if needed */
     DHCPMGR_LOG_DEBUG("%s %d: Exiting DhcpMgr_MainController thread for mq %s\n", __FUNCTION__, __LINE__, mq_name);
     return NULL;
 
