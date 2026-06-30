@@ -50,6 +50,8 @@
 #include "dhcpmgr_custom_options.h"
 #include "cosa_apis_util.h"
 #include <telemetry_busmessage_sender.h>
+#include <linux/if_addr.h>     /* IFA_F_TENTATIVE */
+#include <string.h>            /* strerror */
 
 
 /* ---- Global Constants -------------------------- */
@@ -423,38 +425,81 @@ static bool DhcpMgr_checkInterfaceStatus(const char * ifName)
 }
 
 /**
- * @brief Checks for the presence of a link-local address and its DAD status on a network interface.
+ * @brief Checks if the link-local address on a network interface has completed DAD.
  *
- * This function checks if the specified network interface has a link-local address (LLA) by
- * executing the command `ip address show dev %s tentative`. It also verifies the link-local
- * Duplicate Address Detection (DAD) status. If no LLA is found, it restarts the IPv6 stack
- * on the interface.
+ * Reads /proc/net/if_inet6 to find a link-local address (scope 0x20) on the
+ * given interface. Waits up to INTF_V6LL_TIMEOUT_IN_MSEC for DAD to finish.
+ * If no link-local address appears within the timeout, restarts the IPv6 stack.
  *
- * @param interfaceName The name of the network interface to check.
- * @return true if the link-local address is found and DAD status is verified, false otherwise.
+ * @param interfaceName The network interface to check.
+ * @return true when at least one non-tentative link-local address is found,
+ *         or when /proc/net/if_inet6 cannot be opened (DAD check skipped).
+ *         Returns false if no link-local address appears within the timeout.
  */
 static bool DhcpMgr_checkLinkLocalAddress(const char * interfaceName)
-{ 
-    // check if interface is ipv6 ready with a link-local address
+{
     unsigned int waitTime = INTF_V6LL_TIMEOUT_IN_MSEC;
-    char cmd[BUFLEN_128] = {0};
-    snprintf(cmd, sizeof(cmd), "ip address show dev %s tentative", interfaceName);
+
     while (waitTime > 0)
     {
-        FILE *fp_dad   = NULL;
-        char buffer[BUFLEN_256] = {0};
+        bool tentative = false;
+        bool iface_found = false;
 
-        fp_dad = popen(cmd, "r");
-        if(fp_dad != NULL)
+        FILE *fp_inet6 = fopen("/proc/net/if_inet6", "r");
+        if (fp_inet6 != NULL)
         {
-            if ((fgets(buffer, BUFLEN_256, fp_dad) == NULL) || (strlen(buffer) == 0))
+            char addr[33];
+            unsigned int if_idx, pfx_len, scope, flags;
+            char ifname[IF_NAMESIZE + 1];
+
+            while (fscanf(fp_inet6, "%32s %x %x %x %x %16s",
+                          addr, &if_idx, &pfx_len, &scope, &flags, ifname) == 6)
             {
-                pclose(fp_dad);
-                break;
+                (void)addr; (void)if_idx; (void)pfx_len;
+
+                if (strcmp(ifname, interfaceName) != 0)
+                    continue;
+
+                /* Only check link-local addresses (scope 0x20 = IPV6_ADDR_LINKLOCAL) */
+                if (scope != 0x20U)
+                    continue;
+
+                iface_found = true;
+                if (flags & IFA_F_TENTATIVE)
+                {
+                    tentative = true;
+                    /* keep scanning — a later entry may already be non-tentative */
+                }
+                else
+                {
+                    tentative = false;
+                    break; /* at least one link-local address is ready */
+                }
             }
-            DHCPMGR_LOG_WARNING("%s %d: interface still tentative: %s\n", __FUNCTION__, __LINE__, buffer);
-            pclose(fp_dad);
+            fclose(fp_inet6);
         }
+        else
+        {
+            DHCPMGR_LOG_ERROR("%s %d: failed to open /proc/net/if_inet6 (%s), skipping DAD check\n",
+                              __FUNCTION__, __LINE__, strerror(errno));
+            break;
+        }
+
+        if (!iface_found)
+        {
+            DHCPMGR_LOG_WARNING("%s %d: no link-local address for %s in /proc/net/if_inet6 yet\n",
+                                __FUNCTION__, __LINE__, interfaceName);
+        }
+        else if (!tentative)
+        {
+            break;
+        }
+        else
+        {
+            DHCPMGR_LOG_WARNING("%s %d: interface %s link-local still tentative (DAD in progress)\n",
+                                __FUNCTION__, __LINE__, interfaceName);
+        }
+
         usleep(INTF_V6LL_INTERVAL_IN_MSEC * USECS_IN_MSEC);
         waitTime -= INTF_V6LL_INTERVAL_IN_MSEC;
     }
