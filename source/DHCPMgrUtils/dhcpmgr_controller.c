@@ -425,8 +425,6 @@ static bool DhcpMgr_checkInterfaceStatus(const char * ifName)
 }
 
 /**
- * @brief Checks for the presence of a link-local address and its DAD status on a network interface.
-/**
  * @brief Checks if the link-local address on a network interface has completed DAD.
  *
  * Reads /proc/net/if_inet6 to find a link-local address (scope 0x20) on the
