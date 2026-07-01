@@ -276,10 +276,22 @@ static int DhcpMgr_Option17Set_Common(const char *ifName, const char *OptionValu
             } else if (strcmp(suboption, "38") == 0) 
             {
                 DHCPMGR_LOG_INFO("Suboption TimeOffset is %s in option %s\n", suboption_data, OptionValue);
-                *ipv6_TimeOffset = atoi(suboption_data);
-                DHCPMGR_LOG_INFO("ipv6_TimeOffset value is %u\n", *ipv6_TimeOffset);
-                //ifl_set_event("ipv6-timeoffset", suboption_data);
-                // Additional processing for TimeOffset can be added here
+                /* DHCPv6 TimeOffset (suboption 38) is a 32-bit signed big-endian value
+                 * transmitted as colon-separated hex bytes (e.g. "ff:ff:b9:b0" = -18000). */
+                unsigned int b0 = 0, b1 = 0, b2 = 0, b3 = 0;
+                if (sscanf(suboption_data, "%02x:%02x:%02x:%02x", &b0, &b1, &b2, &b3) == 4)
+                {
+                    /* Reconstruct 32-bit big-endian value; store bit pattern as uint32_t
+                     * (e.g. -18000 = 0xFFFFB9B0). Cast to int32_t when interpreting as signed. */
+                    *ipv6_TimeOffset = ((uint32_t)b0 << 24) | ((uint32_t)b1 << 16) |
+                                       ((uint32_t)b2 << 8)  |  (uint32_t)b3;
+                }
+                else
+                {
+                    DHCPMGR_LOG_ERROR("Failed to parse TimeOffset hex bytes: %s\n", suboption_data);
+                    *ipv6_TimeOffset = 0;
+                }
+                DHCPMGR_LOG_INFO("ipv6_TimeOffset value is %d seconds\n", (int32_t)*ipv6_TimeOffset);
             } else if (strcmp(suboption, "39") == 0) 
             {
                 DHCPMGR_LOG_INFO("Suboption IP Mode Preference is %s in option %s\n", suboption_data, OptionValue);
