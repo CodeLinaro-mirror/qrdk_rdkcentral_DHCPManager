@@ -281,7 +281,7 @@ static int DhcpMgr_Option17Set_Common(const char *ifName, const char *OptionValu
                 unsigned int b0 = 0, b1 = 0, b2 = 0, b3 = 0;
                 if (sscanf(suboption_data, "%02x:%02x:%02x:%02x", &b0, &b1, &b2, &b3) == 4)
                 {
-                    /* Reconstruct 32-bit big-endian value; store bit pattern as uint32_t
+                    /* Reconstruct 32-bit value; store bit pattern as uint32_t
                      * (e.g. -18000 = 0xFFFFB9B0). Cast to int32_t when interpreting as signed. */
                     *ipv6_TimeOffset = ((uint32_t)b0 << 24) | ((uint32_t)b1 << 16) |
                                        ((uint32_t)b2 << 8)  |  (uint32_t)b3;
