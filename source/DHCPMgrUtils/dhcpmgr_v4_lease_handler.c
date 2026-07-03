@@ -321,7 +321,7 @@ void DhcpMgr_ProcessV4Lease(PCOSA_DML_DHCPC_FULL pDhcpc)
         else if (newLease->isExpired == FALSE && newLease->addressAssigned == TRUE )
         {
             DhcpMgr_PublishDhcpV4Event(pDhcpc, DHCP_LEASE_RENEW);
-            DHCPMGR_LOG_INFO("%s %d: lease renewed for %s \n",__FUNCTION__, __LINE__, pDhcpc->Cfg.Interface);
+            DHCPMGR_LOG_INFO("%s %d: jothi lease renewed for %s \n",__FUNCTION__, __LINE__, pDhcpc->Cfg.Interface);
         }
 
         //setting the sysevents for interface specific
@@ -349,6 +349,7 @@ void DhcpMgr_ProcessV4Lease(PCOSA_DML_DHCPC_FULL pDhcpc)
         {
              DHCPMGR_LOG_ERROR("[%s-%d] Failed to store DHCPv4 lease\n", __FUNCTION__, __LINE__);
         }
+	DhcpMgr_updateDHCPv4DML(pDhcpc);
         if(leaseChanged)
         {
             if(newLease->isExpired == TRUE)
@@ -379,7 +380,6 @@ void DhcpMgr_ProcessV4Lease(PCOSA_DML_DHCPC_FULL pDhcpc)
             
             DHCPMGR_LOG_INFO("%s %d: Handling EROUTER_DHCP_OPTION_MTA\n", __FUNCTION__, __LINE__);
 #endif
-            DhcpMgr_updateDHCPv4DML(pDhcpc);
             DhcpMgr_PublishDhcpV4Event(pDhcpc, DHCP_LEASE_UPDATE);
         }
     }
