@@ -92,6 +92,14 @@ static void processv6LesSysevents(IPv6Events* eventMaps, size_t size, const char
             ifl_set_event(sysEventName,eventMaps[i].value);
         }
     }
+
+    /* Debug: read ipv4_erouter0_lease_time to see if it changed during v6 lease processing */
+    char v4LeaseKey[64] = {0};
+    char v4LeaseVal[64] = {0};
+    snprintf(v4LeaseKey, sizeof(v4LeaseKey), "ipv4_%s_lease_time", IfaceName);
+    ifl_get_event(v4LeaseKey, v4LeaseVal, sizeof(v4LeaseVal));
+    CcspTraceInfo(("%s - %d: [LEASE_TIME_DBG] '%s' = '%s' (read during v6 lease processing)\n",
+                   __FUNCTION__, __LINE__, v4LeaseKey, v4LeaseVal));
 }
 
 /**
