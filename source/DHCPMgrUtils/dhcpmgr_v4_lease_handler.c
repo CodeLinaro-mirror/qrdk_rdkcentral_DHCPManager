@@ -88,7 +88,32 @@ void set_inf_sysevents(const DHCPv4_PLUGIN_MSG *const current, const DHCPv4_PLUG
     {
         snprintf(syseventParam, sizeof(syseventParam), "ipv4_%s_lease_time", interface);
         snprintf(buf, sizeof(buf), "%d", newLease->leaseTime);
+
+        /* Debug: log which process is changing lease_time and the new value */
+        char procName[64] = "unknown";
+        FILE *fp = fopen("/proc/self/comm", "r");
+        if (fp)
+        {
+            if (fgets(procName, sizeof(procName), fp) != NULL)
+            {
+                /* strip trailing newline */
+                procName[strcspn(procName, "\n")] = '\0';
+            }
+            fclose(fp);
+        }
+        DHCPMGR_LOG_INFO("[LEASE_TIME_DBG] process='%s' pid=%d changing '%s': old=%d new=%d\n",
+                         procName, getpid(),
+                         syseventParam,
+                         (current != NULL) ? (int)current->leaseTime : -1,
+                         (int)newLease->leaseTime);
+
         ifl_set_event(syseventParam, buf);
+
+        /* Debug: read back sysevent value immediately after set to verify */
+        char readback[BUFLEN_64] = {0};
+        ifl_get_event(syseventParam, readback, sizeof(readback));
+        DHCPMGR_LOG_INFO("[LEASE_TIME_DBG] sysevent get '%s' after set = '%s'\n",
+                         syseventParam, readback);
     }
 
     if(current == NULL || strcmp(current->dhcpState, newLease->dhcpState) != 0)
@@ -349,6 +374,7 @@ void DhcpMgr_ProcessV4Lease(PCOSA_DML_DHCPC_FULL pDhcpc)
         {
              DHCPMGR_LOG_ERROR("[%s-%d] Failed to store DHCPv4 lease\n", __FUNCTION__, __LINE__);
         }
+	DhcpMgr_updateDHCPv4DML(pDhcpc);
         if(leaseChanged)
         {
             if(newLease->isExpired == TRUE)
@@ -381,7 +407,6 @@ void DhcpMgr_ProcessV4Lease(PCOSA_DML_DHCPC_FULL pDhcpc)
 #endif
             DhcpMgr_PublishDhcpV4Event(pDhcpc, DHCP_LEASE_UPDATE);
         }
-	DhcpMgr_updateDHCPv4DML(pDhcpc);
     }
 }
 
