@@ -20,6 +20,7 @@
 #include "cosa_dhcpv6_apis.h"
 #include "dhcpv6_interface.h"
 #include <errno.h>
+#include <string.h>
 #include <stdlib.h>
 #include <sys/wait.h>
 #include "dhcpmgr_rbus_apis.h"
@@ -50,7 +51,7 @@ typedef struct
 
 static void configureNetworkInterface(PCOSA_DML_DHCPCV6_FULL pDhcp6c);
 static void ConfigureIpv6Sysevents(PCOSA_DML_DHCPCV6_FULL pDhcp6c);
-static int exec_shell_cmd(char * command);
+static int exec_shell_cmd(const char * command);
 /**
  * @brief processv6LesSysevents This function will set the sysevent values for IA_PD and IA_NA
  *
@@ -59,7 +60,7 @@ static int exec_shell_cmd(char * command);
  * @return void
  */
 
-static int exec_shell_cmd(char * command)
+static int exec_shell_cmd(const char * command)
 {
     int status = system(command);
     if (status == -1) {
@@ -72,7 +73,8 @@ static int exec_shell_cmd(char * command)
                                 __FUNCTION__, __LINE__, command);
             return 0;
         }
-        DHCPMGR_LOG_ERROR("%s: %d system() failed to run shell\n",__FUNCTION__,__LINE__);
+        DHCPMGR_LOG_ERROR("%s %d: system() failed to run shell for cmd [%s], errno=%d (%s)\n",
+                          __FUNCTION__, __LINE__, command, errno, strerror(errno));
         return -1;
     }
 
