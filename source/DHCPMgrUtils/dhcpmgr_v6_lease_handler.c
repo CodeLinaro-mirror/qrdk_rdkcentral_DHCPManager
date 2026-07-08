@@ -83,11 +83,11 @@ static int exec_shell_cmd(const char * command)
     }
 
     /* Parent: wait specifically for our child pid.
-     * Using waitpid(pid) instead of system() avoids the race where
-     * sigchld_handler (which uses waitpid(-1)) steals the child exit
-     * status before we can collect it. Even if the handler reaps it
-     * first (ECHILD), the exit status is unknown and we return failure
-     * to let the caller handle it — we do NOT silently swallow errors. */
+     * Using waitpid(pid) instead of system() significantly reduces (but does
+     * not fully eliminate) the race where sigchld_handler (which uses
+     * waitpid(-1)) may still reap the child before this waitpid() runs.
+     * On ECHILD we treat the command as succeeded with a warning, consistent
+     * with the original PR intent of suppressing the false error log. */
     int status = 0;
     pid_t ret;
     do {
@@ -99,17 +99,16 @@ static int exec_shell_cmd(const char * command)
         int saved_errno = errno;
         if (saved_errno == ECHILD)
         {
-            /* Child was reaped by sigchld_handler before we could collect it.
-             * Exit status is genuinely unknown — return failure so the caller
-             * can log and take appropriate action rather than silently proceeding. */
-            DHCPMGR_LOG_ERROR("%s %d: waitpid() got ECHILD for cmd [%s] - exit status unknown (reaped by sigchld_handler)\n",
-                              __FUNCTION__, __LINE__, command);
+            /* Child was reaped by sigchld_handler before waitpid() could collect it.
+             * The shell child is never a registered DHCP client pid so processKilled()
+             * is a no-op for it. Treat as success to suppress the false error log —
+             * this is the core intent of RDKB-65467. */
+            DHCPMGR_LOG_WARNING("%s %d: waitpid() got ECHILD for cmd [%s] - child reaped by sigchld_handler, treating as success\n",
+                                __FUNCTION__, __LINE__, command);
+            return 0;
         }
-        else
-        {
-            DHCPMGR_LOG_ERROR("%s %d: waitpid() failed for cmd [%s], errno=%d (%s)\n",
-                              __FUNCTION__, __LINE__, command, saved_errno, strerror(saved_errno));
-        }
+        DHCPMGR_LOG_ERROR("%s %d: waitpid() failed for cmd [%s], errno=%d (%s)\n",
+                          __FUNCTION__, __LINE__, command, saved_errno, strerror(saved_errno));
         return -1;
     }
 
