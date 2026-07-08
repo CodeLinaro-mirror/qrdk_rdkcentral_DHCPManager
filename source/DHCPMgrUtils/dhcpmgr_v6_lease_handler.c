@@ -64,7 +64,9 @@ static int exec_shell_cmd(const char * command)
 {
     int status = system(command);
     if (status == -1) {
-        if (errno == ECHILD) {
+        /* Capture errno immediately before any other call can modify it */
+        int saved_errno = errno;
+        if (saved_errno == ECHILD) {
             /* sigchld_handler reaped the child before system() could collect it.
              * Exit status is unavailable but we treat this as success to suppress
              * a false failure — the shell child is never a registered DHCP client pid
@@ -74,7 +76,7 @@ static int exec_shell_cmd(const char * command)
             return 0;
         }
         DHCPMGR_LOG_ERROR("%s %d: system() failed to run shell for cmd [%s], errno=%d (%s)\n",
-                          __FUNCTION__, __LINE__, command, errno, strerror(errno));
+                          __FUNCTION__, __LINE__, command, saved_errno, strerror(saved_errno));
         return -1;
     }
 
