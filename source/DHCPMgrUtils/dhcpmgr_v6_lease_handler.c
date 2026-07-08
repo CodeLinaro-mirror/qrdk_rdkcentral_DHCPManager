@@ -71,18 +71,17 @@ static int exec_shell_cmd(const char * command)
         {
             /* sigchld_handler uses waitpid(-1, WNOHANG) which can reap the
              * /bin/sh child spawned by system() before system()'s own
-             * waitpid() collects it. This makes system() return -1/ECHILD
-             * even when the command ran successfully.
-             *
-             * The shell child is never registered as a DHCP client pid so
-             * processKilled() is a no-op for it. Treat as success to suppress
+             * waitpid() collects it, causing system() to return -1/ECHILD.
+             * The exit status is unknown in this case, but since the shell
+             * child is never registered as a DHCP client pid, processKilled()
+             * is a no-op for it. Treat as success (with a warning) to suppress
              * the false error log — this is the core fix for RDKB-65467. */
             DHCPMGR_LOG_WARNING("%s %d: system() got ECHILD for cmd [%s] - "
-                                "child reaped by sigchld_handler, treating as success\n",
+                                "child reaped by sigchld_handler, exit status unavailable, treating as success\n",
                                 __FUNCTION__, __LINE__, command);
             return 0;
         }
-        DHCPMGR_LOG_ERROR("%s %d: system() failed to fork shell for cmd [%s], "
+        DHCPMGR_LOG_ERROR("%s %d: system() fork/wait failed for cmd [%s], "
                           "errno=%d (%s)\n",
                           __FUNCTION__, __LINE__, command, saved_errno, strerror(saved_errno));
         return -1;
