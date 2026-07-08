@@ -64,10 +64,20 @@ static int exec_shell_cmd(const char * command);
 
 static int exec_shell_cmd(const char * command)
 {
+    sigset_t blockSigchld, oldMask;
+    sigemptyset(&blockSigchld);
+    sigaddset(&blockSigchld, SIGCHLD);
+
+    /* Block SIGCHLD before fork() so sigchld_handler cannot reap our child
+     * before waitpid() does. This mirrors the pattern used in start_exe2()
+     * and guarantees we reliably capture the exit status. */
+    sigprocmask(SIG_BLOCK, &blockSigchld, &oldMask);
+
     pid_t pid = fork();
     if (pid < 0)
     {
         int saved_errno = errno;
+        sigprocmask(SIG_SETMASK, &oldMask, NULL);
         DHCPMGR_LOG_ERROR("%s %d: fork() failed for cmd [%s], errno=%d (%s)\n",
                           __FUNCTION__, __LINE__, command, saved_errno, strerror(saved_errno));
         return -1;
@@ -75,38 +85,28 @@ static int exec_shell_cmd(const char * command)
 
     if (pid == 0)
     {
-        /* Child: reset SIGCHLD to default before exec */
-        signal(SIGCHLD, SIG_DFL);
+        /* Child: restore signal mask and exec — execl() resets signal
+         * dispositions to SIG_DFL automatically, no need to call signal(). */
+        sigprocmask(SIG_SETMASK, &oldMask, NULL);
         execl("/bin/sh", "sh", "-c", command, (char *)NULL);
         /* execl only returns on error */
         _exit(127);
     }
 
-    /* Parent: wait specifically for our child pid.
-     * Using waitpid(pid) instead of system() significantly reduces (but does
-     * not fully eliminate) the race where sigchld_handler (which uses
-     * waitpid(-1)) may still reap the child before this waitpid() runs.
-     * On ECHILD we treat the command as succeeded with a warning, consistent
-     * with the original PR intent of suppressing the false error log. */
+    /* Parent: SIGCHLD is blocked so sigchld_handler cannot steal our child.
+     * waitpid(pid) will reliably collect the exit status. */
     int status = 0;
     pid_t ret;
     do {
         ret = waitpid(pid, &status, 0);
     } while (ret == -1 && errno == EINTR);
 
+    /* Restore signal mask — deferred SIGCHLD (if any) fires here */
+    sigprocmask(SIG_SETMASK, &oldMask, NULL);
+
     if (ret == -1)
     {
         int saved_errno = errno;
-        if (saved_errno == ECHILD)
-        {
-            /* Child was reaped by sigchld_handler before waitpid() could collect it.
-             * The shell child is never a registered DHCP client pid so processKilled()
-             * is a no-op for it. Treat as success to suppress the false error log —
-             * this is the core intent of RDKB-65467. */
-            DHCPMGR_LOG_WARNING("%s %d: waitpid() got ECHILD for cmd [%s] - child reaped by sigchld_handler, treating as success\n",
-                                __FUNCTION__, __LINE__, command);
-            return 0;
-        }
         DHCPMGR_LOG_ERROR("%s %d: waitpid() failed for cmd [%s], errno=%d (%s)\n",
                           __FUNCTION__, __LINE__, command, saved_errno, strerror(saved_errno));
         return -1;
