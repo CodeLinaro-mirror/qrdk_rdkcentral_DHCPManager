@@ -78,6 +78,8 @@
 #include "dhcpmgr_controller.h"
 #include "dhcpmgr_rbus_apis.h"
 #include <telemetry_busmessage_sender.h>
+#include <ev.h>
+#include "mtrace_watcher.h"
 
 #ifdef DHCPV6_SERVER_SUPPORT
 extern void dhcpv6_server_init();
@@ -315,6 +317,7 @@ int main(int argc, char* argv[])
     DmErr_t    err;
     errno_t        rc = -1;
     int ind = -1;
+    struct ev_loop *mtrace_loop = NULL;
 
     DHCPMGR_LOG_INFO("\nWithin the main function\n");
 
@@ -364,6 +367,15 @@ int main(int argc, char* argv[])
 
     if ( bRunAsDaemon ) 
         daemonize();
+
+    /* Creating the event loop that will host the mtrace watchers.
+     * Done after daemonize() so getppid() == 1 by the time
+     * mtrace_watcher_init() is called below. */
+    mtrace_loop = ev_loop_new(EVFLAG_AUTO);
+    if (!mtrace_loop)
+    {
+        DHCPMGR_LOG_ERROR("Failed to create ev_loop for mtrace watcher\n");
+    }
 
 DHCPMGR_LOG_INFO("\nAfter daemonize before signal\n");
         /*This is used for DHCPMgr kill recovery */
@@ -476,15 +488,39 @@ DHCPMGR_LOG_WARNING("\nAfter Cdm_Init\n");
     DhcpMgr_StartMainController();
     DHCPMGR_LOG_INFO("DhcpMgr_StartMainController Init Complete\n");
 
+    /* Here watcher monitors /tmp/mtrace_<pid> to start/stop
+     * malloc tracing and checks log-file size every 10 seconds. */
+    if (mtrace_loop)
+    {
+        if (mtrace_watcher_init(mtrace_loop) == 0)
+        {
+            DHCPMGR_LOG_INFO("mtrace watcher registered on ev_loop\n");
+        }
+        else
+        {
+            DHCPMGR_LOG_ERROR("mtrace_watcher_init failed\n");
+        }
+    }
+
     system("touch /tmp/dhcpmgr_initialized");
 
     ifl_deinit_ctx("DHCP-Mgr-main");
 
     if ( bRunAsDaemon )
     {
-        while(1)
+        /* ev_run blocks indefinitely and also drives the mtrace watchers. */
+        if (mtrace_loop)
         {
-            sleep(30);
+            ev_run(mtrace_loop, 0);
+            mtrace_watcher_cleanup(mtrace_loop);
+            ev_loop_destroy(mtrace_loop);
+        }
+        else
+        {
+            while(1)
+            {
+                sleep(30);
+            }
         }
     }
     else
