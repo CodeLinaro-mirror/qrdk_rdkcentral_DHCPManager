@@ -22,6 +22,8 @@
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
+#include <signal.h>
+#include <unistd.h>
 #include <sys/wait.h>
 #include "dhcpmgr_rbus_apis.h"
 #include "dhcpmgr_recovery_handler.h"
@@ -62,34 +64,73 @@ static int exec_shell_cmd(const char * command);
 
 static int exec_shell_cmd(const char * command)
 {
-    int status = system(command);
-    if (status == -1) {
-        /* Capture errno immediately before any other call can modify it */
+    pid_t pid = fork();
+    if (pid < 0)
+    {
         int saved_errno = errno;
-        if (saved_errno == ECHILD) {
-            /* sigchld_handler reaped the child before system() could collect it.
-             * Exit status is unavailable but we treat this as success to suppress
-             * a false failure — the shell child is never a registered DHCP client pid
-             * so processKilled() is a no-op for it. */
-            DHCPMGR_LOG_WARNING("%s %d: system() got ECHILD for cmd [%s] - exit status unavailable (reaped by sigchld_handler), treating as success\n",
-                                __FUNCTION__, __LINE__, command);
-            return 0;
-        }
-        DHCPMGR_LOG_ERROR("%s %d: system() failed to run shell for cmd [%s], errno=%d (%s)\n",
+        DHCPMGR_LOG_ERROR("%s %d: fork() failed for cmd [%s], errno=%d (%s)\n",
                           __FUNCTION__, __LINE__, command, saved_errno, strerror(saved_errno));
         return -1;
     }
 
-    if (WIFEXITED(status)) {
-        int exit_code = WEXITSTATUS(status);
+    if (pid == 0)
+    {
+        /* Child: reset SIGCHLD to default before exec */
+        signal(SIGCHLD, SIG_DFL);
+        execl("/bin/sh", "sh", "-c", command, (char *)NULL);
+        /* execl only returns on error */
+        _exit(127);
+    }
 
-        if (exit_code != 0) 
+    /* Parent: wait specifically for our child pid.
+     * Using waitpid(pid) instead of system() avoids the race where
+     * sigchld_handler (which uses waitpid(-1)) steals the child exit
+     * status before we can collect it. Even if the handler reaps it
+     * first (ECHILD), the exit status is unknown and we return failure
+     * to let the caller handle it — we do NOT silently swallow errors. */
+    int status = 0;
+    pid_t ret;
+    do {
+        ret = waitpid(pid, &status, 0);
+    } while (ret == -1 && errno == EINTR);
+
+    if (ret == -1)
+    {
+        int saved_errno = errno;
+        if (saved_errno == ECHILD)
         {
+            /* Child was reaped by sigchld_handler before we could collect it.
+             * Exit status is genuinely unknown — return failure so the caller
+             * can log and take appropriate action rather than silently proceeding. */
+            DHCPMGR_LOG_ERROR("%s %d: waitpid() got ECHILD for cmd [%s] - exit status unknown (reaped by sigchld_handler)\n",
+                              __FUNCTION__, __LINE__, command);
+        }
+        else
+        {
+            DHCPMGR_LOG_ERROR("%s %d: waitpid() failed for cmd [%s], errno=%d (%s)\n",
+                              __FUNCTION__, __LINE__, command, saved_errno, strerror(saved_errno));
+        }
+        return -1;
+    }
+
+    if (WIFEXITED(status))
+    {
+        int exit_code = WEXITSTATUS(status);
+        if (exit_code != 0)
+        {
+            DHCPMGR_LOG_ERROR("%s %d: cmd [%s] exited with code %d\n",
+                              __FUNCTION__, __LINE__, command, exit_code);
             return -1;
         }
-    } else if (WIFSIGNALED(status)) {
-        DHCPMGR_LOG_ERROR("%s %d :Command was terminated by signal %d\n",__FUNCTION__,__LINE__,WTERMSIG(status));
+        return 0;
     }
+    else if (WIFSIGNALED(status))
+    {
+        DHCPMGR_LOG_ERROR("%s %d: cmd [%s] terminated by signal %d\n",
+                          __FUNCTION__, __LINE__, command, WTERMSIG(status));
+        return -1;
+    }
+
     return 0;
 }
 
