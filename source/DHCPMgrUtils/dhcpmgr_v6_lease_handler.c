@@ -62,6 +62,13 @@ static int exec_shell_cmd(char * command)
 {
     int status = system(command);
     if (status == -1) {
+        if (errno == ECHILD) {
+            /* Child was reaped by sigchld_handler before system() could collect it.
+             * The command itself ran successfully - this is a false error. */
+            DHCPMGR_LOG_WARNING("%s %d: system() got ECHILD - child reaped by sigchld_handler, command succeeded\n",
+                                __FUNCTION__, __LINE__);
+            return 0;
+        }
         DHCPMGR_LOG_ERROR("%s: %d system() failed to run shell\n",__FUNCTION__,__LINE__);
         return -1;
     }
