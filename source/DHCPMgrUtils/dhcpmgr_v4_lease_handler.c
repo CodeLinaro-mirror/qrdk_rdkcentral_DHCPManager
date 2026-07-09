@@ -294,6 +294,7 @@ int configureNetworkInterface(PCOSA_DML_DHCPC_FULL pDhcpc)
 void DhcpMgr_ProcessV4Lease(PCOSA_DML_DHCPC_FULL pDhcpc) 
 {
     BOOL leaseChanged = false;
+    BOOL leaseRenewed = false;
     while (pDhcpc->NewLeases != NULL) 
     {
         // Compare  parameters of currentLease and NewLeases
@@ -322,6 +323,7 @@ void DhcpMgr_ProcessV4Lease(PCOSA_DML_DHCPC_FULL pDhcpc)
         {
             DhcpMgr_PublishDhcpV4Event(pDhcpc, DHCP_LEASE_RENEW);
             DHCPMGR_LOG_INFO("%s %d: lease renewed for %s \n",__FUNCTION__, __LINE__, pDhcpc->Cfg.Interface);
+	     leaseRenewed = TRUE;
         }
 
         //setting the sysevents for interface specific
@@ -349,6 +351,10 @@ void DhcpMgr_ProcessV4Lease(PCOSA_DML_DHCPC_FULL pDhcpc)
         {
              DHCPMGR_LOG_ERROR("[%s-%d] Failed to store DHCPv4 lease\n", __FUNCTION__, __LINE__);
         }
+	if(leaseChanged || leaseRenewed)
+	{
+            DhcpMgr_updateDHCPv4DML(pDhcpc);
+	}
         if(leaseChanged)
         {
             if(newLease->isExpired == TRUE)
@@ -379,7 +385,6 @@ void DhcpMgr_ProcessV4Lease(PCOSA_DML_DHCPC_FULL pDhcpc)
             
             DHCPMGR_LOG_INFO("%s %d: Handling EROUTER_DHCP_OPTION_MTA\n", __FUNCTION__, __LINE__);
 #endif
-            DhcpMgr_updateDHCPv4DML(pDhcpc);
             DhcpMgr_PublishDhcpV4Event(pDhcpc, DHCP_LEASE_UPDATE);
         }
     }
