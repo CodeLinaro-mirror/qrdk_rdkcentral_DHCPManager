@@ -319,6 +319,7 @@ int configureNetworkInterface(PCOSA_DML_DHCPC_FULL pDhcpc)
 void DhcpMgr_ProcessV4Lease(PCOSA_DML_DHCPC_FULL pDhcpc) 
 {
     BOOL leaseChanged = false;
+    BOOL leaserenewed = false;
     while (pDhcpc->NewLeases != NULL) 
     {
         // Compare  parameters of currentLease and NewLeases
@@ -347,6 +348,7 @@ void DhcpMgr_ProcessV4Lease(PCOSA_DML_DHCPC_FULL pDhcpc)
         {
             DhcpMgr_PublishDhcpV4Event(pDhcpc, DHCP_LEASE_RENEW);
             DHCPMGR_LOG_INFO("%s %d: jothi lease renewed for %s \n",__FUNCTION__, __LINE__, pDhcpc->Cfg.Interface);
+	     leaserenewed = TRUE;
         }
 
         //setting the sysevents for interface specific
@@ -374,7 +376,10 @@ void DhcpMgr_ProcessV4Lease(PCOSA_DML_DHCPC_FULL pDhcpc)
         {
              DHCPMGR_LOG_ERROR("[%s-%d] Failed to store DHCPv4 lease\n", __FUNCTION__, __LINE__);
         }
-	DhcpMgr_updateDHCPv4DML(pDhcpc);
+	if(leaseChanged || leaserenewed)
+	{
+            DhcpMgr_updateDHCPv4DML(pDhcpc);
+	}
         if(leaseChanged)
         {
             if(newLease->isExpired == TRUE)
