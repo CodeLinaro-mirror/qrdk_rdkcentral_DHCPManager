@@ -89,7 +89,7 @@
 
 #include <syscfg/syscfg.h>
 #include "dhcp_client_common_utils.h"
-#include <ccsp/dhcpv4c_api.h>
+#include <dhcpv4c_api.h>
 
 extern void* g_pDslhDmlAgent;
 extern ANSC_HANDLE g_Dhcpv4Object;
@@ -809,7 +809,9 @@ Client_GetParamIntValue
     if (strcmp(ParamName, "LeaseTimeRemaining") == 0)
     {
         /* collect value */
-        dhcpv4c_get_ert_remain_lease_time((UINT*)&pDhcpc->Info.LeaseTimeRemaining);
+        UINT leaseTimeRemaining = 0;
+        dhcpv4c_get_ert_remain_lease_time(&leaseTimeRemaining);
+        pDhcpc->Info.LeaseTimeRemaining = (int)leaseTimeRemaining;
         *pInt   = pDhcpc->Info.LeaseTimeRemaining;
 
         return TRUE;
