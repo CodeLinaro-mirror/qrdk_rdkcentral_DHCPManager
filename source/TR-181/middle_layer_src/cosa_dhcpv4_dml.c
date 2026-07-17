@@ -88,6 +88,7 @@
 #endif
 
 #include <syscfg/syscfg.h>
+#include "sys/sysinfo.h"
 #include "dhcp_client_common_utils.h"
 
 extern void* g_pDslhDmlAgent;
@@ -807,10 +808,44 @@ Client_GetParamIntValue
     /* check the parameter name and return the corresponding value */
     if (strcmp(ParamName, "LeaseTimeRemaining") == 0)
     {
-        /* collect value */
-        CosaDmlDhcpcGetInfo(NULL, pCxtLink->InstanceNumber, &pDhcpc->Info);
+        /* Compute remaining lease time by reading lease_time and start_time
+         * from sysevent (set per-interface by the lease handler), then
+         * subtracting elapsed uptime. This works for all interfaces.
+         */
+        char queryBuf[32]    = {0};
+        char syseventKey[64] = {0};
+        UINT leaseTime = 0, startTime = 0, upTime = 0;
 
-        *pInt   = pDhcpc->Info.LeaseTimeRemaining;
+        snprintf(syseventKey, sizeof(syseventKey), "ipv4_%s_lease_time", pDhcpc->Cfg.Interface);
+        if ((commonSyseventGet(syseventKey, queryBuf, sizeof(queryBuf)) != 0) ||
+            (queryBuf[0] == '\0'))
+        {
+            *pInt = 0;
+            return TRUE;
+        }
+        leaseTime = (UINT)atoi(queryBuf);
+
+        memset(queryBuf, 0, sizeof(queryBuf));
+        snprintf(syseventKey, sizeof(syseventKey), "ipv4_%s_start_time", pDhcpc->Cfg.Interface);
+        if ((commonSyseventGet(syseventKey, queryBuf, sizeof(queryBuf)) != 0) ||
+            (queryBuf[0] == '\0'))
+        {
+            *pInt = 0;
+            return TRUE;
+        }
+        startTime = (UINT)atoi(queryBuf);
+
+        struct sysinfo si;
+        if (sysinfo(&si) != 0)
+        {
+            DHCPMGR_LOG_ERROR("%s %d: sysinfo() failed\n", __FUNCTION__, __LINE__);
+            *pInt = 0;
+            return TRUE;
+        }
+        upTime = (UINT)si.uptime;
+
+        UINT elapsed = (upTime >= startTime) ? (upTime - startTime) : 0;
+        *pInt = (leaseTime > elapsed) ? (int)(leaseTime - elapsed) : 0;
 
         return TRUE;
     }
