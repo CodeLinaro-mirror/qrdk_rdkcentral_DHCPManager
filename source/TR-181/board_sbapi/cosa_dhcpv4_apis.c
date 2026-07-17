@@ -83,6 +83,7 @@
 #include "cosa_apis_util.h"
 #include "util.h"
 #include "dhcp_client_common_utils.h"
+#include "sys/sysinfo.h"
 #include "cosa_dhcpv4_internal.h"
 #include "cosa_dhcpv4_dml.h"
 
@@ -1213,6 +1214,51 @@ CosaDmlDhcpcGetInfo
     }
     
     return ANSC_STATUS_SUCCESS;
+}
+
+/*
+ * CosaDmlDhcpcGetLeaseTimeRemaining
+ *
+ * Computes the remaining DHCPv4 lease time using the total lease duration
+ * already stored in pDhcpc->Info.LeaseTimeRemaining and the lease start
+ * time from sysevent, then subtracting elapsed uptime.
+ * Works for all interfaces.
+ */
+int
+CosaDmlDhcpcGetLeaseTimeRemaining
+    (
+        PCOSA_DML_DHCPC_FULL        pDhcpc
+    )
+{
+    char queryBuf[32]    = {0};
+    char syseventKey[64] = {0};
+    UINT startTime = 0, upTime = 0;
+
+    if (!pDhcpc || pDhcpc->Cfg.Interface[0] == '\0')
+    {
+        DHCPMGR_LOG_ERROR("%s %d: pDhcpc is NULL or interface name is empty\n", __FUNCTION__, __LINE__);
+        return 0;
+    }
+
+    snprintf(syseventKey, sizeof(syseventKey), "ipv4_%s_start_time", pDhcpc->Cfg.Interface);
+    if ((commonSyseventGet(syseventKey, queryBuf, sizeof(queryBuf)) != 0) ||
+        (queryBuf[0] == '\0'))
+    {
+        return 0;
+    }
+    startTime = (UINT)atoi(queryBuf);
+
+    struct sysinfo si;
+    if (sysinfo(&si) != 0)
+    {
+        DHCPMGR_LOG_ERROR("%s %d: sysinfo() failed\n", __FUNCTION__, __LINE__);
+        return 0;
+    }
+    upTime = (UINT)si.uptime;
+
+    UINT leaseTime  = (UINT)pDhcpc->Info.LeaseTimeRemaining;
+    UINT elapsed    = (upTime >= startTime) ? (upTime - startTime) : 0;
+    return (leaseTime > elapsed) ? (int)(leaseTime - elapsed) : 0;
 }
 
 /*

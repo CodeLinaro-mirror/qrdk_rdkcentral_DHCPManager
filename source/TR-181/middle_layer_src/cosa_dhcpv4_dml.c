@@ -807,11 +807,7 @@ Client_GetParamIntValue
     /* check the parameter name and return the corresponding value */
     if (strcmp(ParamName, "LeaseTimeRemaining") == 0)
     {
-        /* collect value */
-        CosaDmlDhcpcGetInfo(NULL, pCxtLink->InstanceNumber, &pDhcpc->Info);
-
-        *pInt   = pDhcpc->Info.LeaseTimeRemaining;
-
+        *pInt = CosaDmlDhcpcGetLeaseTimeRemaining(pDhcpc);
         return TRUE;
     }
 
