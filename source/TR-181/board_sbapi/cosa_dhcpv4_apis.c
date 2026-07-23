@@ -83,7 +83,7 @@
 #include "cosa_apis_util.h"
 #include "util.h"
 #include "dhcp_client_common_utils.h"
-#include "sys/sysinfo.h"
+#include <sys/sysinfo.h>
 #include "cosa_dhcpv4_internal.h"
 #include "cosa_dhcpv4_dml.h"
 
@@ -1219,9 +1219,9 @@ CosaDmlDhcpcGetInfo
 /*
  * CosaDmlDhcpcGetLeaseTimeRemaining
  *
- * Computes the remaining DHCPv4 lease time using the total lease duration
- * already stored in pDhcpc->Info.LeaseTimeRemaining and the lease start
- * time from sysevent, then subtracting elapsed uptime.
+ * Computes the remaining DHCPv4 lease time by treating
+ * pDhcpc->Info.LeaseTimeRemaining as the lease duration (seconds), reading the
+ * lease start uptime from sysevent, and subtracting elapsed uptime.
  * Works for all interfaces.
  */
 int
