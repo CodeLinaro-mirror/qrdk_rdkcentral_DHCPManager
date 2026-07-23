@@ -938,9 +938,6 @@ void* DhcpMgr_MainController( void *args )
         {
             if (errno == EAGAIN)
             {
-                /* No message yet, wait 250ms */
-                usleep(sleep_us);
-                DHCPMGR_LOG_DEBUG("%s %d: mq_receive timeout, no message received yet on %s with retry count %d\n",__FUNCTION__, __LINE__, mq_name, retry_count);
                 retry_count++;
 
                 if (retry_count >= max_retries)
@@ -953,6 +950,11 @@ void* DhcpMgr_MainController( void *args )
                     break; // exit thread after timeout
                 }
 
+                /* Sleep only if we are going to retry - avoids race condition
+                 * where a message posted during the final usleep is permanently
+                 * lost because the thread exits without reading the queue. */
+                usleep(sleep_us);
+                DHCPMGR_LOG_DEBUG("%s %d: mq_receive timeout, no message received yet on %s with retry count %d\n",__FUNCTION__, __LINE__, mq_name, retry_count);
                 continue; // retry loop
             }
             else
