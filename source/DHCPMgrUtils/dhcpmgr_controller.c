@@ -950,39 +950,7 @@ void* DhcpMgr_MainController( void *args )
                     {
                         DHCPMGR_LOG_ERROR("%s %d Failed to lock interface queue mutex for %s\n", __FUNCTION__, __LINE__, inf_name);
                     }
-                    /* RDKB-XXXXX: Final drain under mutex to prevent race condition.
-                     * A message may have been posted during the last usleep window
-                     * while thread was idle but not yet marked as stopped. Without
-                     * this drain, such messages are permanently lost. */
-                    bytes_read = mq_receive(mq_desc,
-                                            (char *)&mq_msg_info,
-                                            sizeof(mq_msg_info),
-                                            NULL);
-                    if (bytes_read >= 0)
-                    {
-                        DHCPMGR_LOG_INFO("%s %d: Final drain caught message on %s, staying alive\n",
-                                         __FUNCTION__, __LINE__, mq_name);
-                        if(DhcpMgr_UnlockInterfaceQueueMutexByName(inf_name) != 0)
-                        {
-                            DHCPMGR_LOG_ERROR("%s %d Failed to unlock interface queue mutex for %s\n",
-                                              __FUNCTION__, __LINE__, inf_name);
-                        }
-                        retry_count = 0;
-                        if (mq_msg_info.msg_info.dhcpType == DML_DHCPV4)
-                        {
-                            DHCPMGR_LOG_DEBUG("%s %d: Final drain processing DHCPv4 for %s\n",
-                                              __FUNCTION__, __LINE__, mq_msg_info.msg_info.if_name);
-                            Process_DHCPv4_Handler(mq_msg_info.msg_info.if_name, mq_msg_info.msg_info);
-                        }
-                        else if (mq_msg_info.msg_info.dhcpType == DML_DHCPV6)
-                        {
-                            DHCPMGR_LOG_DEBUG("%s %d: Final drain processing DHCPv6 for %s\n",
-                                              __FUNCTION__, __LINE__, mq_msg_info.msg_info.if_name);
-                            Process_DHCPv6_Handler(mq_msg_info.msg_info.if_name, mq_msg_info.msg_info);
-                        }
-                        continue; /* Message processed, stay alive and reset idle timer */
-                    }
-                    break; // queue truly empty under lock, safe to exit thread
+                    break; // exit thread after timeout
                 }
 
                 continue; // retry loop
