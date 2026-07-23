@@ -1230,8 +1230,8 @@ CosaDmlDhcpcGetLeaseTimeRemaining
         PCOSA_DML_DHCPC_FULL        pDhcpc
     )
 {
-    char queryBuf[32]    = {0};
-    char syseventKey[64] = {0};
+    char queryBuf[32]     = {0};
+    char syseventKey[128] = {0};
     UINT startTime = 0, upTime = 0;
 
     if (!pDhcpc || pDhcpc->Cfg.Interface[0] == '\0')
