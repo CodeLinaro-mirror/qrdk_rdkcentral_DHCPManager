@@ -938,9 +938,7 @@ void* DhcpMgr_MainController( void *args )
         {
             if (errno == EAGAIN)
             {
-                retry_count++;
-
-                if (retry_count >= max_retries)
+                if (retry_count > max_retries)
                 {
                     DHCPMGR_LOG_DEBUG("%s %d: mq_receive timeout after 5s on %s\n",__FUNCTION__, __LINE__, mq_name);
                     if(DhcpMgr_LockInterfaceQueueMutexByName(inf_name) != 0) // lock the mutex
@@ -955,6 +953,7 @@ void* DhcpMgr_MainController( void *args )
                  * lost because the thread exits without reading the queue. */
                 usleep(sleep_us);
                 DHCPMGR_LOG_DEBUG("%s %d: mq_receive timeout, no message received yet on %s with retry count %d\n",__FUNCTION__, __LINE__, mq_name, retry_count);
+                retry_count++;
                 continue; // retry loop
             }
             else
