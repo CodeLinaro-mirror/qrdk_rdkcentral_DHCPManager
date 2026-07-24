@@ -480,7 +480,8 @@ CosaDmlDhcpcGetInfo
 ANSC_STATUS
 CosaDmlDhcpcGetLeaseTimeRemaining
     (
-        PCOSA_DML_DHCPC_FULL        pDhcpc
+        PCOSA_DML_DHCPC_INFO        pInfo,
+        char                       *ifname
     );
 
 ANSC_STATUS

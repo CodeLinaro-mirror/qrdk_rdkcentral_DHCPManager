@@ -810,7 +810,7 @@ Client_GetParamIntValue
         /* collect value */
         CosaDmlDhcpcGetInfo(NULL, pCxtLink->InstanceNumber, &pDhcpc->Info);
         /* Update LeaseTimeRemaining in-place; on failure, existing value is kept */
-        CosaDmlDhcpcGetLeaseTimeRemaining(pDhcpc);
+        CosaDmlDhcpcGetLeaseTimeRemaining(&pDhcpc->Info, pDhcpc->Cfg.Interface);
         *pInt = pDhcpc->Info.LeaseTimeRemaining;
         return TRUE;
     }

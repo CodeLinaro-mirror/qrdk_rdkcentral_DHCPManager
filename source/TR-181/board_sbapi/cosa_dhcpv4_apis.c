@@ -1224,21 +1224,22 @@ CosaDmlDhcpcGetInfo
 ANSC_STATUS
 CosaDmlDhcpcGetLeaseTimeRemaining
     (
-        PCOSA_DML_DHCPC_FULL        pDhcpc
+        PCOSA_DML_DHCPC_INFO        pInfo,
+        char                       *ifname
     )
 {
     char queryBuf[32]     = {0};
     char syseventKey[128] = {0};
     UINT startTime = 0, leaseTime = 0, upTime = 0;
 
-    if (!pDhcpc || pDhcpc->Cfg.Interface[0] == '\0')
+    if (!pInfo || !ifname || ifname[0] == '\0')
     {
-        DHCPMGR_LOG_ERROR("%s %d: pDhcpc is NULL or interface name is empty\n", __FUNCTION__, __LINE__);
+        DHCPMGR_LOG_ERROR("%s %d: pInfo is NULL or interface name is empty\n", __FUNCTION__, __LINE__);
         return ANSC_STATUS_FAILURE;
     }
 
     /* Get total lease duration from sysevent */
-    snprintf(syseventKey, sizeof(syseventKey), "ipv4_%s_lease_time", pDhcpc->Cfg.Interface);
+    snprintf(syseventKey, sizeof(syseventKey), "ipv4_%s_lease_time", ifname);
     if ((commonSyseventGet(syseventKey, queryBuf, sizeof(queryBuf)) != 0) ||
         (queryBuf[0] == '\0'))
     {
@@ -1249,7 +1250,7 @@ CosaDmlDhcpcGetLeaseTimeRemaining
 
     /* Get lease start uptime from sysevent */
     memset(queryBuf, 0, sizeof(queryBuf));
-    snprintf(syseventKey, sizeof(syseventKey), "ipv4_%s_start_time", pDhcpc->Cfg.Interface);
+    snprintf(syseventKey, sizeof(syseventKey), "ipv4_%s_start_time", ifname);
     if ((commonSyseventGet(syseventKey, queryBuf, sizeof(queryBuf)) != 0) ||
         (queryBuf[0] == '\0'))
     {
@@ -1267,7 +1268,7 @@ CosaDmlDhcpcGetLeaseTimeRemaining
     upTime = (UINT)si.uptime;
 
     UINT elapsed = (upTime >= startTime) ? (upTime - startTime) : 0;
-    pDhcpc->Info.LeaseTimeRemaining = (leaseTime > elapsed) ? (int)(leaseTime - elapsed) : 0;
+    pInfo->LeaseTimeRemaining = (leaseTime > elapsed) ? (int)(leaseTime - elapsed) : 0;
     return ANSC_STATUS_SUCCESS;
 }
 
