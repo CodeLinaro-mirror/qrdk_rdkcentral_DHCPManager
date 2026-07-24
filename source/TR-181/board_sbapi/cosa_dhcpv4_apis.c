@@ -1252,7 +1252,8 @@ CosaDmlDhcpcGetLeaseTimeRemaining
     if (sysinfo(&si) != 0)
     {
         DHCPMGR_LOG_ERROR("%s %d: sysinfo() failed\n", __FUNCTION__, __LINE__);
-        return 0;
+        /* fall back to stored lease duration to avoid falsely showing lease as expired */
+        return pDhcpc->Info.LeaseTimeRemaining;
     }
     upTime = (UINT)si.uptime;
 
