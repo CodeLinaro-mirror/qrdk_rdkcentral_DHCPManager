@@ -1243,7 +1243,8 @@ CosaDmlDhcpcGetLeaseTimeRemaining
     if ((commonSyseventGet(syseventKey, queryBuf, sizeof(queryBuf)) != 0) ||
         (queryBuf[0] == '\0'))
     {
-        return 0;
+        /* start_time not yet available, return full lease duration as fallback */
+        return pDhcpc->Info.LeaseTimeRemaining;
     }
     startTime = (UINT)atoi(queryBuf);
 
