@@ -477,7 +477,7 @@ CosaDmlDhcpcGetInfo
         PCOSA_DML_DHCPC_INFO        pInfo
     );
 
-int
+ANSC_STATUS
 CosaDmlDhcpcGetLeaseTimeRemaining
     (
         PCOSA_DML_DHCPC_FULL        pDhcpc

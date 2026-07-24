@@ -1218,12 +1218,10 @@ CosaDmlDhcpcGetInfo
 /*
  * CosaDmlDhcpcGetLeaseTimeRemaining
  *
- * Computes the remaining DHCPv4 lease time by treating
- * pDhcpc->Info.LeaseTimeRemaining as the lease duration (seconds), reading the
- * lease start uptime from sysevent, and subtracting elapsed uptime.
- * Works for all interfaces.
+ * Reads lease duration and lease start uptime from sysevent,
+ * subtracts elapsed uptime, and updates pDhcpc->Info.LeaseTimeRemaining.
  */
-int
+ANSC_STATUS
 CosaDmlDhcpcGetLeaseTimeRemaining
     (
         PCOSA_DML_DHCPC_FULL        pDhcpc
@@ -1231,20 +1229,32 @@ CosaDmlDhcpcGetLeaseTimeRemaining
 {
     char queryBuf[32]     = {0};
     char syseventKey[128] = {0};
-    UINT startTime = 0, upTime = 0;
+    UINT startTime = 0, leaseTime = 0, upTime = 0;
 
     if (!pDhcpc || pDhcpc->Cfg.Interface[0] == '\0')
     {
         DHCPMGR_LOG_ERROR("%s %d: pDhcpc is NULL or interface name is empty\n", __FUNCTION__, __LINE__);
-        return 0;
+        return ANSC_STATUS_FAILURE;
     }
 
+    /* Get total lease duration from sysevent */
+    snprintf(syseventKey, sizeof(syseventKey), "ipv4_%s_lease_time", pDhcpc->Cfg.Interface);
+    if ((commonSyseventGet(syseventKey, queryBuf, sizeof(queryBuf)) != 0) ||
+        (queryBuf[0] == '\0'))
+    {
+        /* lease_time not yet available, leave LeaseTimeRemaining unchanged */
+        return ANSC_STATUS_FAILURE;
+    }
+    leaseTime = (UINT)atoi(queryBuf);
+
+    /* Get lease start uptime from sysevent */
+    memset(queryBuf, 0, sizeof(queryBuf));
     snprintf(syseventKey, sizeof(syseventKey), "ipv4_%s_start_time", pDhcpc->Cfg.Interface);
     if ((commonSyseventGet(syseventKey, queryBuf, sizeof(queryBuf)) != 0) ||
         (queryBuf[0] == '\0'))
     {
-        /* start_time not yet available, return full lease duration as fallback */
-        return pDhcpc->Info.LeaseTimeRemaining;
+        /* start_time not yet available, leave LeaseTimeRemaining unchanged */
+        return ANSC_STATUS_FAILURE;
     }
     startTime = (UINT)atoi(queryBuf);
 
@@ -1252,14 +1262,13 @@ CosaDmlDhcpcGetLeaseTimeRemaining
     if (sysinfo(&si) != 0)
     {
         DHCPMGR_LOG_ERROR("%s %d: sysinfo() failed\n", __FUNCTION__, __LINE__);
-        /* fall back to stored lease duration to avoid falsely showing lease as expired */
-        return pDhcpc->Info.LeaseTimeRemaining;
+        return ANSC_STATUS_FAILURE;
     }
     upTime = (UINT)si.uptime;
 
-    UINT leaseTime  = (UINT)pDhcpc->Info.LeaseTimeRemaining;
-    UINT elapsed    = (upTime >= startTime) ? (upTime - startTime) : 0;
-    return (leaseTime > elapsed) ? (int)(leaseTime - elapsed) : 0;
+    UINT elapsed = (upTime >= startTime) ? (upTime - startTime) : 0;
+    pDhcpc->Info.LeaseTimeRemaining = (leaseTime > elapsed) ? (int)(leaseTime - elapsed) : 0;
+    return ANSC_STATUS_SUCCESS;
 }
 
 /*
