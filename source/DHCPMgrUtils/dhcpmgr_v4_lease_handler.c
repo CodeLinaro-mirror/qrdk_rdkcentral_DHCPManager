@@ -351,10 +351,6 @@ void DhcpMgr_ProcessV4Lease(PCOSA_DML_DHCPC_FULL pDhcpc)
         {
              DHCPMGR_LOG_ERROR("[%s-%d] Failed to store DHCPv4 lease\n", __FUNCTION__, __LINE__);
         }
-	    if(leaseChanged || leaseRenewed)
-	    {
-            DhcpMgr_updateDHCPv4DML(pDhcpc);
-	    }
         if(leaseChanged)
         {
             if(newLease->isExpired == TRUE)
@@ -385,7 +381,12 @@ void DhcpMgr_ProcessV4Lease(PCOSA_DML_DHCPC_FULL pDhcpc)
             
             DHCPMGR_LOG_INFO("%s %d: Handling EROUTER_DHCP_OPTION_MTA\n", __FUNCTION__, __LINE__);
 #endif
+            DhcpMgr_updateDHCPv4DML(pDhcpc);
             DhcpMgr_PublishDhcpV4Event(pDhcpc, DHCP_LEASE_UPDATE);
+        }
+        else if(leaseRenewed)
+        {
+            DhcpMgr_updateDHCPv4DML(pDhcpc);
         }
     }
 }
