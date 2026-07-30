@@ -1564,6 +1564,8 @@ static int gen_dibbler_conf()
             8 : Debug
         */
         fprintf(fp, "log-level %d\n", log_level);
+        fprintf(fp, "log-mode full\n");
+        fprintf(fp, "log-file /rdklogs/logs/dibbler-server.log\n");
     }
     /*
        Enable inactive mode: When server begins operation and it detects that
