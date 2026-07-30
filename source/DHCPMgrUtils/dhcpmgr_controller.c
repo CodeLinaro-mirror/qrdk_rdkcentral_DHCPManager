@@ -792,14 +792,20 @@ static void Process_DHCPv6_Handler(char* if_name, dhcp_info_t dml_set_msg)
                 else if(DhcpMgr_checkLinkLocalAddress(pDhcp6c->Cfg.Interface)== FALSE)
                 {
                     /*
-                     * Link-local DAD did not complete within the wait window.
+                     * DhcpMgr_checkLinkLocalAddress() timed out — either the link-local
+                     * address is still TENTATIVE (DAD in progress) or no link-local
+                     * address has appeared on the interface yet.
                      * checkLinkLocalAddress() has already force-toggled disable_ipv6
                      * to regenerate the link-local address, but that completes
                      * asynchronously. Re-enqueue a restart so the client is started
-                     * once DAD finishes, instead of leaving it permanently stopped
-                     * (Info.Status stays Disabled and dibbler is never launched).
+                     * once the link-local address is ready, instead of leaving it
+                     * permanently stopped (Info.Status stays Disabled and dibbler is
+                     * never launched).
                      * checkLinkLocalAddress() blocks up to INTF_V6LL_TIMEOUT_IN_MSEC
                      * per call, so this retry is naturally rate-limited.
+                     * The Linux kernel guarantees link-local address resolution within
+                     * retrans_time_ms x dad_transmits (~1 s on RDKB devices), so the
+                     * retry loop always terminates (RDKB-66284).
                      */
                     DHCPMGR_LOG_WARNING("%s %d: link-local not ready for %s, re-enqueuing dhcpv6 client start\n",
                                         __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
