@@ -791,7 +791,31 @@ static void Process_DHCPv6_Handler(char* if_name, dhcp_info_t dml_set_msg)
                 }
                 else if(DhcpMgr_checkLinkLocalAddress(pDhcp6c->Cfg.Interface)== FALSE)
                 {
-                    //Link local failed. Retry
+                    /*
+                     * Link-local DAD did not complete within the wait window.
+                     * checkLinkLocalAddress() has already force-toggled disable_ipv6
+                     * to regenerate the link-local address, but that completes
+                     * asynchronously. Re-enqueue a restart so the client is started
+                     * once DAD finishes, instead of leaving it permanently stopped
+                     * (Info.Status stays Disabled and dibbler is never launched).
+                     * checkLinkLocalAddress() blocks up to INTF_V6LL_TIMEOUT_IN_MSEC
+                     * per call, so this retry is naturally rate-limited.
+                     */
+                    DHCPMGR_LOG_WARNING("%s %d: link-local not ready for %s, re-enqueuing dhcpv6 client start\n",
+                                        __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
+                    dhcp_info_t retry_info;
+                    memset(&retry_info, 0, sizeof(retry_info));
+                    strncpy(retry_info.if_name, pDhcp6c->Cfg.Interface, MAX_STR_LEN - 1);
+                    retry_info.if_name[MAX_STR_LEN - 1] = '\0';
+                    retry_info.dhcpType = DML_DHCPV6;
+                    strncpy(retry_info.ParamName, "Selfheal_ClientRestart", sizeof(retry_info.ParamName) - 1);
+                    retry_info.ParamName[sizeof(retry_info.ParamName) - 1] = '\0';
+                    retry_info.value.bValue = FALSE;
+                    if (DhcpMgr_OpenQueueEnsureThread(retry_info) != 0)
+                    {
+                        DHCPMGR_LOG_ERROR("%s %d: Failed to re-enqueue dhcpv6 client start for %s\n",
+                                          __FUNCTION__, __LINE__, pDhcp6c->Cfg.Interface);
+                    }
                 }
                 else
                 {
