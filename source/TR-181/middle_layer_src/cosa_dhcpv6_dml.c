@@ -76,6 +76,7 @@
 #include "cosa_apis_util.h"
 #include "util.h"
 
+#include <errno.h>
 #include <stdlib.h>
 #include <strings.h>
 #include <unistd.h>
@@ -3360,7 +3361,7 @@ dhcp6c_mapt_mape_GetParamUlongValue
         {
             errno = 0;
             *puLong = strtoul(temp, &endPtr, 10);
-            if (errno != 0 || endPtr == temp)
+            if (errno != 0 || endPtr == temp || *endPtr != '\0' || temp[0] == '-')
             {
                 DHCPMGR_LOG_ERROR("%s: invalid numeric value '%s' for %s", __FUNCTION__, temp, SYSEVENT_MAP_EA_LEN);
                 *puLong = 0;
@@ -3375,7 +3376,7 @@ dhcp6c_mapt_mape_GetParamUlongValue
         {
             errno = 0;
             *puLong = strtoul(temp, &endPtr, 10);
-            if (errno != 0 || endPtr == temp)
+            if (errno != 0 || endPtr == temp || *endPtr != '\0' || temp[0] == '-')
             {
                 DHCPMGR_LOG_ERROR("%s: invalid numeric value '%s' for %s", __FUNCTION__, temp, SYSEVENT_MAPT_PSID_OFFSET);
                 *puLong = 0;
@@ -3390,7 +3391,7 @@ dhcp6c_mapt_mape_GetParamUlongValue
         {
             errno = 0;
             *puLong = strtoul(temp, &endPtr, 10);
-            if (errno != 0 || endPtr == temp)
+            if (errno != 0 || endPtr == temp || *endPtr != '\0' || temp[0] == '-')
             {
                 DHCPMGR_LOG_ERROR("%s: invalid numeric value '%s' for %s", __FUNCTION__, temp, SYSEVENT_MAPT_PSID_LENGTH);
                 *puLong = 0;
@@ -3405,7 +3406,7 @@ dhcp6c_mapt_mape_GetParamUlongValue
         {
             errno = 0;
             *puLong = strtoul(temp, &endPtr, 10);
-            if (errno != 0 || endPtr == temp)
+            if (errno != 0 || endPtr == temp || *endPtr != '\0' || temp[0] == '-')
             {
                 DHCPMGR_LOG_ERROR("%s: invalid numeric value '%s' for %s", __FUNCTION__, temp, SYSEVENT_MAPT_PSID_VALUE);
                 *puLong = 0;
@@ -3420,7 +3421,7 @@ dhcp6c_mapt_mape_GetParamUlongValue
         {
             errno = 0;
             *puLong = strtoul(temp, &endPtr, 10);
-            if (errno != 0 || endPtr == temp)
+            if (errno != 0 || endPtr == temp || *endPtr != '\0' || temp[0] == '-')
             {
                 DHCPMGR_LOG_ERROR("%s: invalid numeric value '%s' for %s", __FUNCTION__, temp, SYSEVENT_MAPT_RATIO);
                 *puLong = 0;
