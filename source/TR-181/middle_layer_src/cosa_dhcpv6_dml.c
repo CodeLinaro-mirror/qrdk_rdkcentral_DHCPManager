@@ -3563,7 +3563,6 @@ dhcp6c_mapt_mape_GetParamStringValue
             *pUlSize = AnscSizeOfString(temp)+1;
             return 1;
         }
-        return 0;
     }
 
     return -1;
