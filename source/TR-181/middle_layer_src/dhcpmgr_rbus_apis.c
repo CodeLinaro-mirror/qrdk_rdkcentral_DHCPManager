@@ -188,8 +188,6 @@ static void DhcpMgr_createLeaseInfoMsg(DHCPv4_PLUGIN_MSG *src, DHCP_MGR_IPV4_MSG
     dest->isTimeOffsetAssigned = src->isTimeOffsetAssigned;
     dest->upstreamCurrRate = src->upstreamCurrRate;
     dest->downstreamCurrRate = src->downstreamCurrRate;
-    dest->leaseTime = src->leaseTime;
-    dest->renewalTime = src->renewalTime;
 }
 
 #if defined(FEATURE_MAPT) || defined(FEATURE_SUPPORT_MAPT_NAT46)
@@ -489,8 +487,6 @@ int DhcpMgr_PublishDhcpV4Event(PCOSA_DML_DHCPC_FULL pDhcpc, DHCP_MESSAGE_TYPE ms
         DHCPMGR_LOG_INFO("%s %d - cTftpServer: %s\n", __FUNCTION__, __LINE__, pDhcpc->currentLease->cTftpServer);
         DHCPMGR_LOG_INFO("%s %d - HostName: %s\n", __FUNCTION__, __LINE__, pDhcpc->currentLease->cHostName);
         DHCPMGR_LOG_INFO("%s %d - DomainName: %s\n", __FUNCTION__, __LINE__, pDhcpc->currentLease->cDomainName);
-        DHCPMGR_LOG_INFO("%s %d - LeaseTime: %u\n", __FUNCTION__, __LINE__, pDhcpc->currentLease->leaseTime);
-        DHCPMGR_LOG_INFO("%s %d - RenewalTime: %u\n", __FUNCTION__, __LINE__, pDhcpc->currentLease->renewalTime);
         rbusValue_Init(&leaseInfoVal);
         rbusValue_SetBytes(leaseInfoVal, &leaseInfo, sizeof(leaseInfo));
         rbusObject_SetValue(rdata, "LeaseInfo", leaseInfoVal);
