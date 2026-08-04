@@ -204,6 +204,7 @@ CosaDmlMapParseResponse
                 * here and let the suboption parser overwrite it with the
                 * received value, including 0 when that is explicitly encoded.
                 */
+               g_stMapData.Ratio = 0;
                g_stMapData.PsidOffset = 6;
                MAP_LOG_INFO("<<<TRACE>>> bytesLeftOut                   : %u", bytesLeftOut);
                if ( bytesLeftOut > 0 )
