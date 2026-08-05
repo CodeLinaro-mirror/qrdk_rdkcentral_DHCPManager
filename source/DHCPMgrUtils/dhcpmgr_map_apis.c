@@ -204,7 +204,6 @@ CosaDmlMapParseResponse
                 * here and let the suboption parser overwrite it with the
                 * received value, including 0 when that is explicitly encoded.
                 */
-               g_stMapData.Ratio = 0;
                g_stMapData.PsidOffset = 6;
                MAP_LOG_INFO("<<<TRACE>>> bytesLeftOut                   : %u", bytesLeftOut);
                if ( bytesLeftOut > 0 )
@@ -461,7 +460,6 @@ ANSC_STATUS DhcpMgr_MapParseOptResponse
      map->psidLen = g_stMapData.PsidLen;
      map->psid = g_stMapData.Psid;
      map->iapdPrefixLen = g_stMapData.PdIPv6PrefixLen;
-     map->ratio = g_stMapData.Ratio;
 
      snprintf (map->pdIPv6Prefix, BUFLEN_40, "%s", g_stMapData.PdIPv6Prefix);
      snprintf (map->ruleIPv4Prefix, BUFLEN_40, "%s", g_stMapData.RuleIPv4Prefix);
