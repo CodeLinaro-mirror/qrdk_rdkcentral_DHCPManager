@@ -198,9 +198,6 @@ CosaDmlMapParseResponse
                 */
                bytesLeftOut = uiOptionLen - 8 - v6ByteLen - (v6BitLen?1:0);
 
-               g_stMapData.Ratio = 1 << (g_stMapData.EaLen -
-                                                    (BUFLEN_32 - g_stMapData.RuleIPv4PrefixLen));
-
                /*
                 * RFC default for PSID offset applies when the optional
                 * S46 Port Params suboption is not present. Keep the default
@@ -208,7 +205,6 @@ CosaDmlMapParseResponse
                 * received value, including 0 when that is explicitly encoded.
                 */
                g_stMapData.PsidOffset = 6;
-               MAP_LOG_INFO("<<<TRACE>>> g_stMapData.Ratio             : %u", g_stMapData.Ratio);
                MAP_LOG_INFO("<<<TRACE>>> bytesLeftOut                   : %u", bytesLeftOut);
                if ( bytesLeftOut > 0 )
                {
@@ -254,10 +250,6 @@ CosaDmlMapParseResponse
                                   return STATUS_FAILURE;
                               }
 
-                              if ( !g_stMapData.EaLen )
-                              {
-                                   g_stMapData.Ratio = 1 << g_stMapData.PsidLen;
-                              }
                               /*
                                * RFC 7598: 4.5: 16 bits long. The first k bits on the left of
                                * this field contain the PSID binary value. The remaining (16 - k)
@@ -268,7 +260,6 @@ CosaDmlMapParseResponse
                               MAP_LOG_INFO("<<<TRACE>>> g_stMapData.Psid       : %u", g_stMapData.Psid);
                               MAP_LOG_INFO("<<<TRACE>>> g_stMapData.PsidLen    : %u", g_stMapData.PsidLen);
                               MAP_LOG_INFO("<<<TRACE>>> g_stMapData.PsidOffset : %u", g_stMapData.PsidOffset);
-                              MAP_LOG_INFO("<<<TRACE>>> g_stMapData.Ratio      : %u", g_stMapData.Ratio);
 
                               /* ------------------------------------------------------------------ */
                               /* Reserved Port Range Validation (0-1023) */
@@ -469,7 +460,6 @@ ANSC_STATUS DhcpMgr_MapParseOptResponse
      map->psidLen = g_stMapData.PsidLen;
      map->psid = g_stMapData.Psid;
      map->iapdPrefixLen = g_stMapData.PdIPv6PrefixLen;
-     map->ratio = g_stMapData.Ratio;
 
      snprintf (map->pdIPv6Prefix, BUFLEN_40, "%s", g_stMapData.PdIPv6Prefix);
      snprintf (map->ruleIPv4Prefix, BUFLEN_40, "%s", g_stMapData.RuleIPv4Prefix);
