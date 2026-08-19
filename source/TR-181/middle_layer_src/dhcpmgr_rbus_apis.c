@@ -474,7 +474,7 @@ int DhcpMgr_PublishDhcpV4Event(PCOSA_DML_DHCPC_FULL pDhcpc, DHCP_MESSAGE_TYPE ms
     rbusObject_SetValue(rdata, "MsgType", typeVal);
 
     /*Set the lease deatails */
-    if(msgType == DHCP_LEASE_UPDATE)
+    if(msgType == DHCP_LEASE_UPDATE || msgType == DHCP_LEASE_RENEW)
     { 
         DHCP_MGR_IPV4_MSG leaseInfo;
         memset(&leaseInfo, 0, sizeof(leaseInfo));
@@ -567,7 +567,7 @@ int DhcpMgr_PublishDhcpV6Event(PCOSA_DML_DHCPCV6_FULL pDhcpv6c, DHCP_MESSAGE_TYP
     rbusObject_SetValue(rdata, "MsgType", typeVal);
 
     /*Set the lease details */
-    if(msgType == DHCP_LEASE_UPDATE)
+    if(msgType == DHCP_LEASE_UPDATE || msgType == DHCP_LEASE_RENEW)
     { 
         DHCP_MGR_IPV6_MSG leaseInfo;
         memset(&leaseInfo, 0, sizeof(leaseInfo));
