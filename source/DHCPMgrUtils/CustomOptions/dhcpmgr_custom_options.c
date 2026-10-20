@@ -133,6 +133,12 @@ __attribute__((weak)) int Set_DhcpV4_CustomOption43(const char *ifName, const ch
  * 
  * @return A pointer to a dynamically allocated string containing the parsed suboption value.
  *         The caller is responsible for freeing the allocated memory.
+ *
+ * RDKB-67443: Harden option 17 parsing. Delete colons (instead of replacing
+ * them with spaces) so the fixed-width hex fields stay aligned, and bound the
+ * suboption length against the destination buffer and the remaining input
+ * before copying. Previously a crafted length (e.g. 0xff) caused a stack
+ * buffer overflow and crashed CcspDHCPMgr.
  */
 static char* parse_dhcp_17_suboption(const char *dhcp_option_val, const char *ip_mode) 
 {
