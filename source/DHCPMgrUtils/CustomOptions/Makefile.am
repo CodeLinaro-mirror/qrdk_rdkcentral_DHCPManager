@@ -26,11 +26,14 @@ ACLOCAL_AMFLAGS = -I m4
 lib_LTLIBRARIES = libcustomoptions.la
 
 # Source files for the library
-libcustomoptions_la_SOURCES = dhcpmgr_custom_options.c
+libcustomoptions_la_SOURCES = dhcpmgr_custom_options.c dhcpmgr_option17_parser.c dhcpmgr_option17_parser.h
 
 # Include directories
 libcustomoptions_la_CPPFLAGS = -I$(top_srcdir)/source/DHCPServerUtils/utils/include \
               -I$(top_srcdir)/source/DHCPMgrInterface/include \
               -I$(top_srcdir)/source/DHCPClientUtils/DHCPv4Client/include
 
-
+check_PROGRAMS = test_option17_parser
+TESTS = $(check_PROGRAMS)
+test_option17_parser_SOURCES = test_option17_parser.c dhcpmgr_option17_parser.c dhcpmgr_option17_parser.h
+test_option17_parser_CPPFLAGS = -I$(srcdir)

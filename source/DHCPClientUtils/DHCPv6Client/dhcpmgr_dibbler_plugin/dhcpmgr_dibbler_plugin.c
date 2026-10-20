@@ -280,9 +280,21 @@ static int get_and_fill_env_data_dhcp6(DHCPv6_PLUGIN_MSG *dhcpv6_data, char *inp
     /** Vendor Specific Information */
     if ((env = getenv(DHCPv6_VENDOR_SPEC)) != NULL)
     {
-        dhcpv6_data->vendor.Assigned = true;
-        dhcpv6_data->vendor.Length = strlen(env);
-        snprintf(dhcpv6_data->vendor.Data, sizeof(dhcpv6_data->vendor.Data), "%s", env);
+        size_t vendor_option_length = strlen(env);
+        if (vendor_option_length >= sizeof(dhcpv6_data->vendor.Data))
+        {
+            DHCPMGR_LOG_ERROR("[%s-%d] DHCPv6 vendor option exceeds buffer capacity; ignoring option\n",
+                              __FUNCTION__, __LINE__);
+            dhcpv6_data->vendor.Assigned = false;
+            dhcpv6_data->vendor.Length = 0;
+            dhcpv6_data->vendor.Data[0] = '\0';
+        }
+        else
+        {
+            dhcpv6_data->vendor.Assigned = true;
+            dhcpv6_data->vendor.Length = (uint32_t)vendor_option_length;
+            memcpy(dhcpv6_data->vendor.Data, env, vendor_option_length + 1);
+        }
     }
 
     return 0;
