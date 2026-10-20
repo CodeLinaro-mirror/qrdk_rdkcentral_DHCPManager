@@ -240,18 +240,8 @@ static int get_and_fill_env_data (DHCPv4_PLUGIN_MSG *dhcpv4_data, udhcpc_env_t* 
             DHCPMGR_LOG_ERROR("[%s-%d] Rebinding time is not available in dhcp ack \n",  __FUNCTION__,__LINE__);
         }
 
-        /** TimeZone. */
-        if ((env = getenv(DHCP_TIMEZONE)) != NULL)
-        {
-            strncpy(dhcpv4_data->timeZone, env, sizeof(dhcpv4_data->timeZone));
-        }
-        else
-        {
-            DHCPMGR_LOG_ERROR("[%s-%d] Timezone is not available in dhcp ack \n",  __FUNCTION__,__LINE__);
-        }
-
         /** Timeoffset. */
-        if ((env = getenv(DHCP_TIMEOFFSET)) != NULL)
+        if ((env = getenv(DHCP_TIMEZONE)) != NULL)
         {
             dhcpv4_data->timeOffset = (int32_t) atoi(env);
             dhcpv4_data->isTimeOffsetAssigned = 1;
