@@ -128,7 +128,7 @@ static int get_and_fill_env_data (DHCPv4_PLUGIN_MSG *dhcpv4_data, udhcpc_env_t* 
     }
     else
     {
-        DHCPMGR_LOG_ERROR("[%s-%d] Server id is not available in dhcp ack \n",  __FUNCTION__,__LINE__);
+        PLUGIN_DBG_PRINT("DEBUG", "[%s-%d] Server id is not available in dhcp ack \n",  __FUNCTION__,__LINE__);
     }
 
     /** DHCP State */
