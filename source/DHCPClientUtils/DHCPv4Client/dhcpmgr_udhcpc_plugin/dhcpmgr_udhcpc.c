@@ -440,7 +440,8 @@ static int handle_events (udhcpc_env_t *pinfo)
         return -1;
     }
  
-    DHCPMGR_LOG_INFO("[%s][%d] Received [%s] event from udhcpc \n", __FUNCTION__,__LINE__,pinfo->input_option);
+    const char *event_log_level = strcmp(pinfo->input_option, "leasefail") == 0 ? "DEBUG" : "INFO";
+    PLUGIN_DBG_PRINT(event_log_level, "[%s][%d] Received [%s] event from udhcpc \n", __FUNCTION__,__LINE__,pinfo->input_option);
     int ret = 0;
     DHCPv4_PLUGIN_MSG data;
     memset (&data, 0, sizeof(data));
@@ -472,7 +473,7 @@ static int handle_events (udhcpc_env_t *pinfo)
         DHCPMGR_LOG_INFO("[%s][%d] Time offset     = %d \n", __FUNCTION__, __LINE__, data.timeOffset);
         DHCPMGR_LOG_INFO("[%s][%d] TimeZone        = %s \n", __FUNCTION__, __LINE__, data.timeZone);
         DHCPMGR_LOG_INFO("[%s][%d] DHCP Server ID  = %s \n", __FUNCTION__, __LINE__, data.dhcpServerId);
-        DHCPMGR_LOG_INFO("[%s][%d] DHCP State      = %s \n", __FUNCTION__, __LINE__, data.dhcpState);
+        PLUGIN_DBG_PRINT(event_log_level, "[%s][%d] DHCP State      = %s \n", __FUNCTION__, __LINE__, data.dhcpState);
         DHCPMGR_LOG_INFO("[%s][%d] DHCP opt122     = %s \n", __FUNCTION__, __LINE__, data.mtaOption.option_122);
         DHCPMGR_LOG_INFO("[%s][%d] DHCP opt125     = %s \n", __FUNCTION__, __LINE__, data.mtaOption.option_125);
         DHCPMGR_LOG_INFO("[%s][%d] DHCP bootFile      = %s \n", __FUNCTION__, __LINE__, data.mtaOption.cOption67);
