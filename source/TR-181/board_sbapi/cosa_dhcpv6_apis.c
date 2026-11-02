@@ -3653,6 +3653,7 @@ CosaDmlDhcpv6sSetPoolCfg
     const char                      *prefixEnd;
     size_t                          prefixLength;
     size_t                          manualLength;
+    size_t                          prefixIndex;
 
     /* Out-of-bounds write
     ** Maximum size of Dhcp Server Pool is DHCPV6S_POOL_NUM.
@@ -3749,10 +3750,12 @@ CosaDmlDhcpv6sSetPoolCfg
         !_ansc_strstr((const char*)sDhcpv6ServerPool[Index].Info.IANAPrefixes,
                       (const char*)sDhcpv6ServerPool[Index].Cfg.IANAManualPrefixes))
     {
-        snprintf((char*)sDhcpv6ServerPool[Index].Info.IANAPrefixes + prefixLength,
-                 sizeof(sDhcpv6ServerPool[Index].Info.IANAPrefixes) - prefixLength,
-                 ",%s",
-                 (const char*)sDhcpv6ServerPool[Index].Cfg.IANAManualPrefixes);
+        sDhcpv6ServerPool[Index].Info.IANAPrefixes[prefixLength] = ',';
+        for (prefixIndex = 0; prefixIndex <= manualLength; prefixIndex++)
+        {
+            sDhcpv6ServerPool[Index].Info.IANAPrefixes[prefixLength + prefixIndex + 1] =
+                sDhcpv6ServerPool[Index].Cfg.IANAManualPrefixes[prefixIndex];
+        }
     }
 
     setpool_into_utopia((PUCHAR)DHCPV6S_NAME, (PUCHAR)"pool", Index, &sDhcpv6ServerPool[Index]);
