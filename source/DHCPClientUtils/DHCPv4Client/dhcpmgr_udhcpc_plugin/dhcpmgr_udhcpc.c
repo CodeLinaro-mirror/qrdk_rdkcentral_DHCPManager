@@ -35,7 +35,10 @@
 #define DHCPMGR_LOG_INFO(fmt, ...)     PLUGIN_DBG_PRINT("INFO", fmt, ##__VA_ARGS__)
 #define DHCPMGR_LOG_ERROR(fmt, ...)    PLUGIN_DBG_PRINT("ERROR", fmt, ##__VA_ARGS__)
 #define DHCPMGR_LOG_WARNING(fmt, ...)  PLUGIN_DBG_PRINT("WARN", fmt, ##__VA_ARGS__)
-#define DHCPMGR_LOG_DEBUG(fmt, ...)    PLUGIN_DBG_PRINT("DEBUG", fmt, ##__VA_ARGS__)
+#define DHCPMGR_LOG_DEBUG(fmt, ...)    do { \
+    if (access("/tmp/udhcpc_debug", F_OK) == 0) \
+        PLUGIN_DBG_PRINT("DEBUG", fmt, ##__VA_ARGS__); \
+} while (0)
 
 typedef struct udhcpc_env_t
 {
