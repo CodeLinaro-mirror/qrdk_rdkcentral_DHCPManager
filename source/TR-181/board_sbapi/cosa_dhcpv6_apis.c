@@ -77,6 +77,7 @@
 #include "cosa_common_util.h"
 #include <ccsp_psm_helper.h>
 #include <sys/stat.h>
+#include <string.h>
 #include "sysevent/sysevent.h"
 #include "cosa_apis_util.h"
 #include "util.h"
@@ -3646,7 +3647,12 @@ CosaDmlDhcpv6sSetPoolCfg
 {
     UNREFERENCED_PARAMETER(hContext);
     ULONG                           Index = 0;
+    ULONG                           poolIndex;
     BOOLEAN                         bNeedZebraRestart = FALSE;
+    const char                      *ianaPrefixes;
+    const char                      *prefixEnd;
+    size_t                          prefixLength;
+    size_t                          manualLength;
 
     /* Out-of-bounds write
     ** Maximum size of Dhcp Server Pool is DHCPV6S_POOL_NUM.
@@ -3655,6 +3661,29 @@ CosaDmlDhcpv6sSetPoolCfg
     {
         if ( sDhcpv6ServerPool[Index].Cfg.InstanceNumber == pCfg->InstanceNumber)
             break;
+    }
+
+    poolIndex = (Index < DHCPV6S_POOL_NUM) ? Index : DHCPV6S_POOL_NUM - 1;
+    ianaPrefixes = (const char*)sDhcpv6ServerPool[poolIndex].Info.IANAPrefixes;
+
+    prefixLength = 0;
+    manualLength = 0;
+    if (pCfg->IANAManualPrefixes[0] != '\0')
+    {
+        /* Reject manual prefixes that would overflow the fixed-size synchronized prefix list. */
+        prefixEnd = memchr(ianaPrefixes, '\0', sizeof(sDhcpv6ServerPool[poolIndex].Info.IANAPrefixes));
+        manualLength = strnlen((const char*)pCfg->IANAManualPrefixes, sizeof(pCfg->IANAManualPrefixes));
+        if ((prefixEnd == NULL) || (manualLength == sizeof(pCfg->IANAManualPrefixes)))
+        {
+            return ANSC_STATUS_FAILURE;
+        }
+
+        prefixLength = prefixEnd - ianaPrefixes;
+        if (!_ansc_strstr(ianaPrefixes, (const char*)pCfg->IANAManualPrefixes) &&
+            (manualLength + 2 > sizeof(sDhcpv6ServerPool[poolIndex].Info.IANAPrefixes) - prefixLength))
+        {
+            return ANSC_STATUS_FAILURE;
+        }
     }
 
     if(Index < DHCPV6S_POOL_NUM)
@@ -3716,10 +3745,14 @@ CosaDmlDhcpv6sSetPoolCfg
 #endif
 
     /* We do this synchronization here*/
-    if ( ( _ansc_strlen((const char*)sDhcpv6ServerPool[Index].Cfg.IANAManualPrefixes) > 0 ) &&
-         !_ansc_strstr((const char*)sDhcpv6ServerPool[Index].Info.IANAPrefixes, (const char*)sDhcpv6ServerPool[Index].Cfg.IANAManualPrefixes) ){
-        _ansc_strcat((char*)sDhcpv6ServerPool[Index].Info.IANAPrefixes, "," );
-        _ansc_strcat((char*)sDhcpv6ServerPool[Index].Info.IANAPrefixes, (const char*)sDhcpv6ServerPool[Index].Cfg.IANAManualPrefixes );
+    if (manualLength > 0 &&
+        !_ansc_strstr((const char*)sDhcpv6ServerPool[Index].Info.IANAPrefixes,
+                      (const char*)sDhcpv6ServerPool[Index].Cfg.IANAManualPrefixes))
+    {
+        snprintf((char*)sDhcpv6ServerPool[Index].Info.IANAPrefixes + prefixLength,
+                 sizeof(sDhcpv6ServerPool[Index].Info.IANAPrefixes) - prefixLength,
+                 ",%s",
+                 (const char*)sDhcpv6ServerPool[Index].Cfg.IANAManualPrefixes);
     }
 
     setpool_into_utopia((PUCHAR)DHCPV6S_NAME, (PUCHAR)"pool", Index, &sDhcpv6ServerPool[Index]);
