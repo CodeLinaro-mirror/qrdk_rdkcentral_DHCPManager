@@ -31,9 +31,11 @@
 #undef DHCPMGR_LOG_INFO
 #undef DHCPMGR_LOG_ERROR
 #undef DHCPMGR_LOG_WARNING
+#undef DHCPMGR_LOG_DEBUG
 #define DHCPMGR_LOG_INFO(fmt, ...)     PLUGIN_DBG_PRINT("INFO", fmt, ##__VA_ARGS__)
 #define DHCPMGR_LOG_ERROR(fmt, ...)    PLUGIN_DBG_PRINT("ERROR", fmt, ##__VA_ARGS__)
 #define DHCPMGR_LOG_WARNING(fmt, ...)  PLUGIN_DBG_PRINT("WARN", fmt, ##__VA_ARGS__)
+#define DHCPMGR_LOG_DEBUG(fmt, ...)    PLUGIN_DBG_PRINT("DEBUG", fmt, ##__VA_ARGS__)
 
 typedef struct udhcpc_env_t
 {
@@ -128,7 +130,7 @@ static int get_and_fill_env_data (DHCPv4_PLUGIN_MSG *dhcpv4_data, udhcpc_env_t* 
     }
     else
     {
-        PLUGIN_DBG_PRINT("DEBUG", "[%s-%d] Server id is not available in dhcp ack \n",  __FUNCTION__,__LINE__);
+        DHCPMGR_LOG_DEBUG("[%s-%d] Server id is not available in dhcp ack \n",  __FUNCTION__,__LINE__);
     }
 
     /** DHCP State */
@@ -440,8 +442,10 @@ static int handle_events (udhcpc_env_t *pinfo)
         return -1;
     }
  
-    const char *event_log_level = strcmp(pinfo->input_option, "leasefail") == 0 ? "DEBUG" : "INFO";
-    PLUGIN_DBG_PRINT(event_log_level, "[%s][%d] Received [%s] event from udhcpc \n", __FUNCTION__,__LINE__,pinfo->input_option);
+    if (strcmp(pinfo->input_option, "leasefail") == 0)
+        DHCPMGR_LOG_DEBUG("[%s][%d] Received [%s] event from udhcpc \n", __FUNCTION__,__LINE__,pinfo->input_option);
+    else
+        DHCPMGR_LOG_INFO("[%s][%d] Received [%s] event from udhcpc \n", __FUNCTION__,__LINE__,pinfo->input_option);
     int ret = 0;
     DHCPv4_PLUGIN_MSG data;
     memset (&data, 0, sizeof(data));
@@ -473,7 +477,10 @@ static int handle_events (udhcpc_env_t *pinfo)
         DHCPMGR_LOG_INFO("[%s][%d] Time offset     = %d \n", __FUNCTION__, __LINE__, data.timeOffset);
         DHCPMGR_LOG_INFO("[%s][%d] TimeZone        = %s \n", __FUNCTION__, __LINE__, data.timeZone);
         DHCPMGR_LOG_INFO("[%s][%d] DHCP Server ID  = %s \n", __FUNCTION__, __LINE__, data.dhcpServerId);
-        PLUGIN_DBG_PRINT(event_log_level, "[%s][%d] DHCP State      = %s \n", __FUNCTION__, __LINE__, data.dhcpState);
+        if (strcmp(pinfo->input_option, "leasefail") == 0)
+            DHCPMGR_LOG_DEBUG("[%s][%d] DHCP State      = %s \n", __FUNCTION__, __LINE__, data.dhcpState);
+        else
+            DHCPMGR_LOG_INFO("[%s][%d] DHCP State      = %s \n", __FUNCTION__, __LINE__, data.dhcpState);
         DHCPMGR_LOG_INFO("[%s][%d] DHCP opt122     = %s \n", __FUNCTION__, __LINE__, data.mtaOption.option_122);
         DHCPMGR_LOG_INFO("[%s][%d] DHCP opt125     = %s \n", __FUNCTION__, __LINE__, data.mtaOption.option_125);
         DHCPMGR_LOG_INFO("[%s][%d] DHCP bootFile      = %s \n", __FUNCTION__, __LINE__, data.mtaOption.cOption67);
