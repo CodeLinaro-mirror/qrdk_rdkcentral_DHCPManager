@@ -1482,6 +1482,7 @@ static int format_dibbler_option(char *option)
 
     return 0;
 }
+
 /*
  * Generate the dibbler config:
  *      v6 address range based on the interface-prefix
@@ -1767,18 +1768,22 @@ OPTIONS:
                                         if( 1 == dhcpv6s_pool_cfg.X_RDKCENTRAL_COM_DNSServersEnabled )
                                         {
 
-                                                memset( dns_str, 0, sizeof( dns_str ) );
+                                                /* issue_High14 */
+                                                char static_dns[256] = {0};
                                                 if (!strncmp(l_cSecWebUI_Enabled, "true", 4))
                                                 {
-                                                    char static_dns[256] = {0};
                                                     ifl_get_event( "lan_ipaddr_v6", static_dns, sizeof(static_dns));
-                                                    if ( '\0' != static_dns[ 0 ] )
-                                                    {
-                                                        strcpy( dns_str, static_dns );
-                                                        strcat(dns_str," ");
-                                                    }
                                                 }
-                                                strcat(dns_str,dhcpv6s_pool_cfg.X_RDKCENTRAL_COM_DNSServers);
+                                                /* issue_High10 & issue_High14 */
+                                                
+                                                int dns_len = snprintf(dns_str, sizeof(dns_str), "%s%s%s",
+                                                                       static_dns, static_dns[0] != '\0' ? " " : "",
+                                                                       dhcpv6s_pool_cfg.X_RDKCENTRAL_COM_DNSServers);
+                                                if (dns_len < 0 || (size_t)dns_len >= sizeof(dns_str))
+                                                {
+                                                    fprintf(stderr, "%s: DNS server list formatting failed or exceeded buffer size\n", __FUNCTION__);
+                                                    continue;
+                                                }
 
                                                 fprintf(stderr,"%s %d - DNSServersEnabled:%d DNSServers:%s\n", __FUNCTION__,
                                                                                                                                                           __LINE__,
@@ -1802,7 +1807,9 @@ OPTIONS:
                     ifl_get_event( "ipv6_dnssl", domain_str, sizeof(domain_str));
                     if (domain_str[0] != '\0') {
                         format_dibbler_option(domain_str);
-                        fprintf(fp, "     option %s %s\n", tag_list[tag_index].opt_str, domain_str);
+                        /*issue High21*/
+                        if (strspn(domain_str, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,-") == strlen(domain_str))
+                            fprintf(fp, "     option %s %s\n", tag_list[tag_index].opt_str, domain_str);
                     }
                 }
             } else {
