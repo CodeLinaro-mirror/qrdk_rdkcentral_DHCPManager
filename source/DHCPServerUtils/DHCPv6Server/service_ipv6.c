@@ -1372,6 +1372,7 @@ static int lan_addr6_set()
 
     //Intel Proposed RDKB Generic Bug Fix from XB6 SDK
     /*start zebra*/
+    DHCPMGR_LOG_WARNING("ZEBRA_RESTART_TRACE component=dhcp-manager pid=%ld site=%s:%d function=%s reason=LAN_IPv6_addresses_configured\n", (long)getpid(), __FILE__, __LINE__, __func__);
     ifl_set_event( "zebra-restart", NULL);
 
     return 0;
@@ -1938,6 +1939,7 @@ int serv_ipv6_start(__attribute__((__unused__)) void *args)
 
     //Intel Proposed RDKB Generic Bug Fix from XB6 SDK
     /*start zebra*/
+    DHCPMGR_LOG_WARNING("ZEBRA_RESTART_TRACE component=dhcp-manager pid=%ld site=%s:%d function=%s reason=IPv6_start_continuing_before_DHCPv6_server_start\n", (long)getpid(), __FILE__, __LINE__, __func__);
     ifl_set_event( "zebra-restart", NULL);
 
     if (dhcpv6s_start() != 0) {

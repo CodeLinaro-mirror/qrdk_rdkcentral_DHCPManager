@@ -24,6 +24,7 @@ if [ "$v6Routes_Change" == "1" ]; then
     elif [ "$DEFAULT_IPV6_ROUTES_COUNT" -eq 0 ]; then # Case when no ipv6 default routes present in gateway
         sysevent set ipv6_wan_defrtr 0
     fi
+    echo "ZEBRA_RESTART_TRACE component=dhcp-manager pid=$$ ppid=$PPID site=$0:notify_routes reason=IPv6_default_routes_changed route_count=$DEFAULT_IPV6_ROUTES_COUNT" >&2
     sysevent set zebra-restart
 fi
 

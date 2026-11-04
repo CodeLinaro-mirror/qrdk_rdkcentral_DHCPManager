@@ -1653,6 +1653,7 @@ CosaDmlDhcpv6Init
         Utopia_RawSet(&utctx,NULL,"router_managed_flag","1");
         SETI_INTO_UTOPIA(DHCPV6S_NAME,  "", 0, "", 0, "servertype", g_dhcpv6_server_type)
 
+        DHCPMGR_LOG_WARNING("ZEBRA_RESTART_TRACE component=dhcp-manager pid=%ld site=%s:%d function=%s reason=first_boot_switch_to_stateful_DHCPv6\n", (long)getpid(), __FILE__, __LINE__, __func__);
         commonSyseventSet("zebra-restart", "");
     }
 #endif
@@ -3121,6 +3122,7 @@ CosaDmlDhcpv6sEnable
     Utopia_Free(&utctx,1);
 
     #if defined(_BCI_FEATURE_REQ)
+    DHCPMGR_LOG_WARNING("ZEBRA_RESTART_TRACE component=dhcp-manager pid=%ld site=%s:%d function=%s reason=BCI_DHCPv6_server_enable_changed enable=%d\n", (long)getpid(), __FILE__, __LINE__, __func__, bEnable);
     commonSyseventSet("zebra-restart", "");
     #endif
 
@@ -3231,6 +3233,7 @@ CosaDmlDhcpv6sSetType
 #endif
 
 #ifdef _HUB4_PRODUCT_REQ_
+        DHCPMGR_LOG_WARNING("ZEBRA_RESTART_TRACE component=dhcp-manager pid=%ld site=%s:%d function=%s reason=HUB4_enabled_DHCPv6_server_type_changed type=%lu\n", (long)getpid(), __FILE__, __LINE__, __func__, (unsigned long)type);
         commonSyseventSet("zebra-restart", "");
 #endif
     }
@@ -3734,6 +3737,7 @@ CosaDmlDhcpv6sSetPoolCfg
         if( bNeedZebraRestart )
         {
         DHCPMGR_LOG_WARNING("%s Restarting Zebra Process\n", __FUNCTION__);
+        DHCPMGR_LOG_WARNING("ZEBRA_RESTART_TRACE component=dhcp-manager pid=%ld site=%s:%d function=%s reason=pool_static_DNS_changed_kill_then_send_if_kill_succeeds\n", (long)getpid(), __FILE__, __LINE__, __func__);
         v_secure_system("killall zebra && sysevent set zebra-restart");
         }
 
@@ -4677,6 +4681,7 @@ CosaDmlDhcpv6sSetOption
                         ( _ansc_strcmp((const char*)sDhcpv6ServerPoolOption[Index][Index2].Value, (const char*)pEntry->Value) &&
                                   !_ansc_strlen((const char*)pEntry->PassthroughClient) ) ) )
                     {
+                        DHCPMGR_LOG_WARNING("ZEBRA_RESTART_TRACE component=dhcp-manager pid=%ld site=%s:%d function=%s reason=DHCPv6_option_23_DNS_or_passthrough_changed pool=%lu\n", (long)getpid(), __FILE__, __LINE__, __func__, (unsigned long)ulPoolInstanceNumber);
                         commonSyseventSet("zebra-restart", "");
                     }
 
