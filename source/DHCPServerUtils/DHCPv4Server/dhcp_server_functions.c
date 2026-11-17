@@ -946,7 +946,8 @@ int prepare_dhcp_conf (char *input)
     char l_cWifi_Not_Configured[8] = {0};
     char l_cIotEnabled[16] = {0}, l_cIotIfName[16] = {0}, l_cIotStartAddr[16] = {0};
         char l_cIotEndAddr[16] = {0}, l_cIotNetMask[16] = {0};
-        char l_cPropagate_Dom[8] = {0}, l_cLan_Domain[32] = {0}, l_cLog_Level[8] = {0};
+        char l_cPropagate_Dom[8] = {0}, l_cLan_Domain[256] = {0}, l_cLog_Level[8] = {0};
+        char l_cWan_Ipv4_State[16] = {0};
         char l_cLan_Status[16] = {0};
     char l_cWan_Service_Stat[16] = {0}, l_cDns_Only_Prefix[8] = {0};
         char *l_cpPsm_Get = NULL;
@@ -1478,20 +1479,49 @@ int prepare_dhcp_conf (char *input)
 
         //Propagate Domain
         syscfg_get(NULL, "dhcp_server_propagate_wan_domain", l_cPropagate_Dom, sizeof(l_cPropagate_Dom));
+        DHCPMGR_LOG_INFO("DHCP domain selection: WAN propagation setting is '%s'", l_cPropagate_Dom);
 
         // if we are provisioned to use the wan domain name, the we do so
         // otherwise we use the lan domain name
         if (!strncmp(l_cPropagate_Dom, "1", 1))
         {
-            ifl_get_event( "dhcp_domain", l_cLan_Domain, sizeof(l_cLan_Domain));
+            if (IFL_SUCCESS == ifl_get_event("ipv4_connection_state", l_cWan_Ipv4_State, sizeof(l_cWan_Ipv4_State)))
+            {
+                DHCPMGR_LOG_INFO("DHCP domain selection: WAN IPv4 connection state is '%s'", l_cWan_Ipv4_State);
+                if (!strcmp(l_cWan_Ipv4_State, "up"))
+                {
+                    if (IFL_SUCCESS == ifl_get_event("dhcp_domain", l_cLan_Domain, sizeof(l_cLan_Domain)))
+                    {
+                        DHCPMGR_LOG_INFO("DHCP domain selection: current WAN domain is '%s'", l_cLan_Domain);
+                    }
+                    else
+                    {
+                        DHCPMGR_LOG_WARNING("DHCP domain selection: failed to read dhcp_domain sysevent");
+                    }
+                }
+                else
+                {
+                    DHCPMGR_LOG_INFO("DHCP domain selection: WAN IPv4 is not up; ignoring dynamic WAN domain");
+                }
+            }
+            else
+            {
+                DHCPMGR_LOG_WARNING("DHCP domain selection: failed to read ipv4_connection_state; ignoring dynamic WAN domain");
+            }
         }
         if (0 == l_cLan_Domain[0])
         {
             syscfg_get(NULL, "lan_domain", l_cLan_Domain, sizeof(l_cLan_Domain));
+            DHCPMGR_LOG_INFO("DHCP domain selection: using LAN fallback domain '%s'", l_cLan_Domain);
         }
         if (0 != l_cLan_Domain[0])
         {
+            DHCPMGR_LOG_INFO("DHCP domain selection: advertising domain '%s' in dnsmasq configuration", l_cLan_Domain);
             fprintf(l_fLocal_Dhcp_ConfFile, "domain=%s\n",l_cLan_Domain);
+        }
+        else
+        {
+            DHCPMGR_LOG_INFO("DHCP domain selection: no domain available; dnsmasq domain directive omitted");
         }
     }
     else
