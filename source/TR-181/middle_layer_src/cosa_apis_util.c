@@ -514,7 +514,8 @@ int GetInstanceNumberByIndex(char* pObjName,unsigned int* Inscont,unsigned int**
 int g_GetParamValueString(ANSC_HANDLE g_pDslhDmlAgent, char* prefixFullName, char* prefixValue,PULONG uSize){
 
         UNUSED(g_pDslhDmlAgent);
-        return CosaGetParamValueString(prefixFullName, prefixValue, &uSize);
+        /*issue High15 */
+        return CosaGetParamValueString(prefixFullName, prefixValue, uSize);
 }
 
 int
@@ -527,6 +528,8 @@ CosaGetParamValueString
 {
     char        acTmpReturnValue[256] = {0};
     int         ret = -1;
+    ULONG       bufferSize;
+    size_t      valueSize;
     char        comp_name[MAX_STR_SIZE];
     char        dbus_path[MAX_STR_SIZE];
 
@@ -538,11 +541,18 @@ CosaGetParamValueString
             DHCPMGR_LOG_ERROR("[%s][%d]Failed to get param value\n", __FUNCTION__, __LINE__);
             return -1;
         }
-        strncpy(pBuffer, acTmpReturnValue, strlen(acTmpReturnValue));
-        *pulSize = strlen(acTmpReturnValue) + 1;
+        /*issue High15 */
+        bufferSize = *pulSize;
+        valueSize = strnlen(acTmpReturnValue, sizeof(acTmpReturnValue));
+        *pulSize = valueSize + 1;
+        if (valueSize == sizeof(acTmpReturnValue) || bufferSize < *pulSize) {
+            return 1;
+        }
+        memcpy(pBuffer, acTmpReturnValue, *pulSize);
         return 0;
     }
 #endif
+
     /* we should look up CR to find right component.
             if it's P&M component, we just call the global variable
             Currently, we suppose all the parameter is from P&M. */
@@ -556,8 +566,14 @@ CosaGetParamValueString
         ret=Get_comp_paramvalue(comp_name,dbus_path,pParamName,acTmpReturnValue);
         if(ret){
 
-                strncpy(pBuffer, acTmpReturnValue, strlen(acTmpReturnValue));
-                *pulSize = strlen(acTmpReturnValue) + 1;
+                /*issue High15 */
+                bufferSize = *pulSize;
+                valueSize = strnlen(acTmpReturnValue, sizeof(acTmpReturnValue));
+                *pulSize = valueSize + 1;
+                if (valueSize == sizeof(acTmpReturnValue) || bufferSize < *pulSize) {
+                    return 1;
+                }
+                memcpy(pBuffer, acTmpReturnValue, *pulSize);
                 return 0;
         }
 

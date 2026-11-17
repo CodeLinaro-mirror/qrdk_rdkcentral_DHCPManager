@@ -64,6 +64,7 @@ extern int executeCmd(char *cmd);
 
 #elif (defined _COSA_INTEL_USG_ARM_) || (defined _COSA_BCM_MIPS_)
 
+#include <arpa/inet.h>
 #include <net/if.h>
 #include <sys/ioctl.h>
 #include <ctype.h>
@@ -102,6 +103,46 @@ extern int executeCmd(char *cmd);
 #define CMD_BUFF_SIZE                  256
 #endif
 #define DHCPV6S_NAME                   "dhcpv6s"
+
+/* issue_High11 */
+static int is_valid_dhcpv6_pool_address(const char *prefix, const char *range)
+{
+    char address[INET6_ADDRSTRLEN];
+    unsigned char parsed_address[16];
+    int length = snprintf(address, sizeof(address), "%s%s", prefix, range);
+
+    return length > 0 && (size_t)length < sizeof(address) &&
+           inet_pton(AF_INET6, address, parsed_address) == 1;
+}
+
+/*issue High18*/
+static int is_valid_ipv6_list(const char *value, size_t value_size)
+{
+    char address[INET6_ADDRSTRLEN];
+    struct in6_addr parsed_address;
+    const char *entry = value;
+    size_t value_length = strnlen(value, value_size);
+
+    if (value_length == 0 || value_length == value_size)
+        return 0;
+
+    while (*entry) {
+        const char *separator = strchr(entry, ',');
+        size_t address_length = separator ? (size_t)(separator - entry) : strlen(entry);
+
+        if (address_length == 0 || address_length >= sizeof(address))
+            return 0;
+        memcpy(address, entry, address_length);
+        address[address_length] = '\0';
+        if (inet_pton(AF_INET6, address, &parsed_address) != 1)
+            return 0;
+        if (!separator)
+            return 1;
+        entry = separator + 1;
+    }
+
+    return 0;
+}
 
 #if defined (INTEL_PUMA7)
 #define NO_OF_RETRY 90
@@ -773,12 +814,19 @@ void __cosa_dhcpsv6_refresh_config()
                         if ( prefixValue[i-1] == ':' )
                             j++;
                         i--;
+
                     }
                     /* delete one last ':' becaues there are 4 parts in this prefix*/
                     if ( j == 3 )
                         prefixValue[_ansc_strlen(prefixValue)-1] = '\0';
                 }
-                fprintf(fp, "       pool %s%s - %s%s\n", prefixValue, sDhcpv6ServerPool[Index].Cfg.PrefixRangeBegin, prefixValue, sDhcpv6ServerPool[Index].Cfg.PrefixRangeEnd );
+                /* issue_High11 */
+                   if (is_valid_dhcpv6_pool_address(prefixValue, sDhcpv6ServerPool[Index].Cfg.PrefixRangeBegin) &&
+                   is_valid_dhcpv6_pool_address(prefixValue, sDhcpv6ServerPool[Index].Cfg.PrefixRangeEnd)) {
+                    fprintf(fp, "       pool %s%s - %s%s\n", prefixValue, sDhcpv6ServerPool[Index].Cfg.PrefixRangeBegin, prefixValue, sDhcpv6ServerPool[Index].Cfg.PrefixRangeEnd );
+                } else {
+                   DHCPMGR_LOG_WARNING("Skipping DHCPv6 pool with invalid range address\n");
+               }
 #endif
                 /*we need get two time values */
                 {
@@ -1395,7 +1443,8 @@ OPTIONS:
                                                         pServerOption = (char*)sDhcpv6ServerPoolOption[Index][Index2].Value;
                                                 else
                                                         pServerOption = CosaDmlDhcpv6sGetAddressFromString((char*)sDhcpv6ServerPoolOption[Index][Index2].Value);
-                                                if ( pServerOption ){
+                                                /*issue High18*/
+                                                if ( pServerOption && is_valid_ipv6_list(pServerOption, sizeof(sDhcpv6ServerPoolOption[Index][Index2].Value)) ){  
 #if defined(_XB6_PRODUCT_REQ_) && defined(_COSA_BCM_ARM_)
                                                if( isInCaptivePortal == TRUE ) {
                                                         fprintf(fp, "#  option %s %s\n", tagList[Index3].cmdstring, pServerOption);
@@ -1606,7 +1655,8 @@ void __cosa_dhcpsv6_refresh_config()
                     }
                     /* delete one last ':' becaues there are 4 parts in this prefix*/
                     if ( j == 3 )
-                        prefixValue[_ansc_strlen(prefixValue)-1] = '\0';
+
+                    
 #endif
                     if (bBadPrefixFormat == FALSE && i > 2)
                      {
@@ -1652,7 +1702,14 @@ void __cosa_dhcpsv6_refresh_config()
                        DHCPMGR_LOG_INFO("%s Fixed prefixValue: %s\n", __func__, prefixValue);
                      }
                 }
-                fprintf(fp, "       pool %s%s - %s%s\n", prefixValue, sDhcpv6ServerPool[Index].Cfg.PrefixRangeBegin, prefixValue, sDhcpv6ServerPool[Index].Cfg.PrefixRangeEnd );
+                /* issue_High11 */
+                if (is_valid_dhcpv6_pool_address(prefixValue, sDhcpv6ServerPool[Index].Cfg.PrefixRangeBegin) &&
+                    is_valid_dhcpv6_pool_address(prefixValue, sDhcpv6ServerPool[Index].Cfg.PrefixRangeEnd)) {
+                    fprintf(fp, "       pool %s%s - %s%s\n", prefixValue, sDhcpv6ServerPool[Index].Cfg.PrefixRangeBegin, prefixValue, sDhcpv6ServerPool[Index].Cfg.PrefixRangeEnd );
+                }
+                else {
+                    DHCPMGR_LOG_WARNING("Skipping DHCPv6 pool with invalid range address\n");
+                }
 #endif
                 /*we need get two time values */
                 {
@@ -1834,7 +1891,7 @@ OPTIONS:
                                                         pServerOption = (char*)sDhcpv6ServerPoolOption[Index][Index2].Value;
                                                 else
                                                         pServerOption = CosaDmlDhcpv6sGetAddressFromString((char*)sDhcpv6ServerPoolOption[Index][Index2].Value);
-                                                if ( pServerOption )
+                                                if ( pServerOption && is_valid_ipv6_list(pServerOption, sizeof(sDhcpv6ServerPoolOption[Index][Index2].Value)) ) /*issue_High18*/
                                                         fprintf(fp, "    option %s %s\n", tagList[Index3].cmdstring, pServerOption);
                                         }
                 }
@@ -1887,6 +1944,12 @@ int format_dibbler_option(char *option)
         return -1;
     unsigned int i;
     size_t len = strlen(option);
+    /*issue High16 */
+    if (strspn(option, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789:.,- ") != len) {
+        option[0] = '\0';
+        return -1;
+    }
+    
     for (i = 0; i < len; i++) {
         if(option[i] == ' ')
             option[i] = ',';

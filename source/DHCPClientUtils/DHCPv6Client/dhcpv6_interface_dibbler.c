@@ -246,6 +246,13 @@ static int dibbler_get_send_options(FILE * fout,  dhcp_opt_list * send_opt_list)
                 break;
         
             case DHCPV6_OPT_25:
+                /*issue High20*/
+                if (opt_list->dhcp_opt_val != NULL &&
+                    strpbrk(opt_list->dhcp_opt_val, "\r\n{}\"\\;#") != NULL)
+                {
+                    DHCPMGR_LOG_WARNING("Ignoring invalid DHCPv6 PD option value.\n");
+                    break;
+                }
                 snprintf(args, sizeof(args), "\n\tpd %s \n", (opt_list->dhcp_opt_val == NULL) ? "" : opt_list->dhcp_opt_val);
                 fputs(args, fout);
                 break;
