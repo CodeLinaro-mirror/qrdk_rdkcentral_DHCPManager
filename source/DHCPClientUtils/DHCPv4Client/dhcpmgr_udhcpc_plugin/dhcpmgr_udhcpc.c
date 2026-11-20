@@ -316,15 +316,10 @@ static int get_and_fill_env_data (DHCPv4_PLUGIN_MSG *dhcpv4_data, udhcpc_env_t* 
         }
         if((env = getenv(DHCP_DOMAIN_NAME)) != NULL)
         {
-            snprintf(dhcpv4_data->cDomainName, sizeof(dhcpv4_data->cDomainName), "%s", env);
+            strncpy(dhcpv4_data->cDomainName, env, sizeof(dhcpv4_data->cDomainName));
             if ('\0' == dhcpv4_data->cDomainName[0])
             {
-                DHCPMGR_LOG_ERROR("[%s-%d] Failed to copy data for DomainName\n", __FUNCTION__, __LINE__);
-            }
-            else
-            {
-                DHCPMGR_LOG_INFO("[%s-%d] WAN DHCP Option 15 domain received: %s\n",
-                                 __FUNCTION__, __LINE__, dhcpv4_data->cDomainName);
+                DHCPMGR_LOG_ERROR("[%s-%d] Failed to copy data for DomainName \n", __FUNCTION__, __LINE__);
             }
         }
         else
